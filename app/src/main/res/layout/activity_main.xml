@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/id_constraintLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView27"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
+        android:text="0.00kg"
+        android:textColor="@color/qmui_config_color_white"
+        app:layout_constraintBottom_toBottomOf="@+id/textView12"
+        app:layout_constraintStart_toEndOf="@+id/textView12"
+        app:layout_constraintTop_toTopOf="@+id/textView12"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textView24"
+        android:layout_width="30dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="48dp"
+        android:text="累计"
+        android:textColor="@color/qmui_config_color_white"
+        app:layout_constraintBottom_toBottomOf="@+id/textView27"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/textView27" />
+
+    <TextView
+        android:id="@+id/textView19"
+        android:layout_width="46dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="归零"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/textView18"
+        app:layout_constraintTop_toTopOf="@+id/imageView5" />
+
+    <TextView
+        android:id="@+id/textView21"
+        android:layout_width="46dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="累计"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/textView20"
+        app:layout_constraintTop_toTopOf="@+id/imageView5" />
+
+    <TextView
+        android:id="@+id/textView16"
+        android:layout_width="43dp"
+        android:layout_height="30dp"
+        android:text="净重"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/id_tv_weight"
+        app:layout_constraintEnd_toStartOf="@+id/guideline7"
+        app:layout_constraintHorizontal_bias="0.511"
+        app:layout_constraintStart_toStartOf="@+id/guideline7" />
+
+    <TextView
+        android:id="@+id/textView14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(kg)"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView16"
+        app:layout_constraintStart_toEndOf="@+id/textView16" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
+        android:text="0(0)kg"
+        android:textColor="#F4FC14"
+        android:textSize="28sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView24"
+        app:layout_constraintStart_toEndOf="@+id/textView24"
+        app:layout_constraintTop_toTopOf="@+id/textView24" />
+
+    <TextView
+        android:id="@+id/textView12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:text="扣重"
+        android:textColor="@color/qmui_config_color_white"
+        app:layout_constraintBottom_toTopOf="@+id/textView26"
+        app:layout_constraintStart_toStartOf="@+id/textView26" />
+
+    <TextView
+        android:id="@+id/id_tv_weight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.00"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="120sp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline8"
+        app:layout_constraintEnd_toStartOf="@+id/guideline7"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/guideline8" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:paddingHorizontal="5dp"
+        android:text="供应商："
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView2"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/textView2"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/imageView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_choose_print_24" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView6"
+        app:layout_constraintStart_toEndOf="@+id/imageView6"
+        app:srcCompat="@drawable/ic_print_24dp" />
+
+    <ImageView
+        android:id="@+id/id_iv_zxing"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_search_matter"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_takePicture"
+        app:layout_constraintTop_toTopOf="@+id/et_search_matter"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/ic_zxing_24dp" />
+
+    <ImageView
+        android:id="@+id/id_iv_takePicture"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_search_matter"
+        app:layout_constraintStart_toEndOf="@+id/et_search_matter"
+        app:layout_constraintTop_toTopOf="@+id/et_search_matter"
+        app:srcCompat="@drawable/ic_camera_24dp" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="49dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_connect_24dp" />
+
+    <TextView
+        android:id="@+id/id_tv_choose_device"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="4dp"
+        android:gravity="center|right"
+        android:text="当前连接设备"
+        android:textColor="@color/qmui_config_color_white"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <EditText
+        android:id="@+id/et_search_matter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:imeActionLabel="搜索"
+        android:imeOptions="flagNoExtractUi"
+        android:background="@drawable/text_background"
+        android:drawableLeft="@drawable/ic_search_24dp"
+        android:gravity="center"
+        android:hint="请输入物料信息"
+        android:padding="8dp"
+        android:textColor="@color/qmui_config_color_white"
+        android:textColorHint="@color/qmui_config_color_white"
+        android:textSize="15sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/id_iv_choose_matter"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_search_matter"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_zxing"
+        app:layout_constraintTop_toTopOf="@+id/et_search_matter"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/ic_choose_matter_24dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:padding="5dp"
+        android:text="PCS"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_matter"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_choose_matter"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView18"
+        android:layout_width="46dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="扣重"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/textView22"
+        app:layout_constraintTop_toTopOf="@+id/imageView5"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView20"
+        android:layout_width="46dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="单位"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/textView19"
+        app:layout_constraintTop_toTopOf="@+id/imageView5" />
+
+    <TextView
+        android:id="@+id/textView22"
+        android:layout_width="46dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="净/毛"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/textView26"
+        app:layout_constraintTop_toTopOf="@+id/imageView5" />
+
+    <TextView
+        android:id="@+id/textView26"
+        android:layout_width="46dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="采样"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/imageView5"
+        app:layout_constraintTop_toTopOf="@+id/imageView5"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
+</android.support.constraint.ConstraintLayout>

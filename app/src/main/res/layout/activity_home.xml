@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+    <include layout="@layout/action_bar_theme_noback"/>
+    <TextView
+        android:id="@+id/tv_menu1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:text="wifi继电器"
+        android:background="@color/colorPrimary"/>
+    <TextView
+        android:id="@+id/tv_menu2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:text="蓝牙继电器"
+        android:background="@color/colorPrimaryDark"/>
+    <TextView
+        android:id="@+id/tv_menu3"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:text="蓝牙电子秤"
+        android:background="@color/theme"/>
+</LinearLayout>
