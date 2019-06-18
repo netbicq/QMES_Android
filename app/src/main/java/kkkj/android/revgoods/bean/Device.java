@@ -5,8 +5,9 @@ package kkkj.android.revgoods.bean;
  */
 public class Device {
     /**
-     * type = 0;蓝牙设备
-     * type = 1;wifi设备
+     * type = 0;蓝牙电子秤
+     * type = 1;蓝牙继电器
+     * type = 2;wifi继电器
      */
     private int type;
 

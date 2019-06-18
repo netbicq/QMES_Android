@@ -1,8 +1,9 @@
 package kkkj.android.revgoods.fragment;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -19,45 +20,27 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
-import com.chad.library.adapter.base.BaseQuickAdapter;
-
-import org.greenrobot.eventbus.EventBus;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 import kkkj.android.revgoods.R;
-import kkkj.android.revgoods.adapter.DeviceAdapter;
-import kkkj.android.revgoods.bean.Device;
-import kkkj.android.revgoods.bean.MyEvent;
-import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
+import kkkj.android.revgoods.common.getpic.GetPicModel;
+import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 
-public class DeviceListFragment extends DialogFragment implements View.OnClickListener {
+/**
+ * 采样
+ */
+
+public class SamplingFragment extends DialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
+    private ImageView mTakePictureImageView;
     private RecyclerView mRecyclerView;
-    private DeviceAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
-
-    private List<Device> mDevices;
-
-    //BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress);
-
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_device_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_sampling, container, false);
         //设置背景透明
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
@@ -68,61 +51,28 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
     }
 
     private void initData() {
-        mDevices = new ArrayList<>();
-        //蓝牙电子秤
-        Device deviceBluetooth = new Device();
-        deviceBluetooth.setType(0);
-        deviceBluetooth.setName("蓝牙电子秤");
-        deviceBluetooth.setBluetoothMac("20:17:03:15:05:65");
-        mDevices.add(deviceBluetooth);
-        //蓝牙继电器
-        Device deviceBluetoothRelay = new Device();
-        deviceBluetoothRelay.setType(1);
-        deviceBluetoothRelay.setName("蓝牙继电器");
-        deviceBluetoothRelay.setBluetoothMac("00:0D:1B:00:13:BA");
-        mDevices.add(deviceBluetoothRelay);
-        //Wifi继电器
-        Device deviceWifi = new Device();
-        deviceWifi.setType(2);
-        deviceWifi.setName("Wifi继电器");
-        deviceWifi.setWifiIp("192.168.123.105");
-        deviceWifi.setWifiPort(10001);
-        mDevices.add(deviceWifi);
-
-        //00:0D:1B:00:13:BA
-
-
     }
 
     private void initView(View view) {
-        mBackImageView = view.findViewById(R.id.iv_back);
-        mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
+        mBackImageView = view.findViewById(R.id.iv_sampling_back);
+        mTakePictureImageView = view.findViewById(R.id.id_iv_sampling_takePicture);
+        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mBackImageView.setOnClickListener(this);
+        mTakePictureImageView.setOnClickListener(this);
 
-        mAdapter = new DeviceAdapter(R.layout.item_device_list,mDevices);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
-        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                Device device = mDevices.get(position);
-                MyEvent myEvent = new MyEvent(device);
-                EventBus.getDefault().post(myEvent);
-                dismiss();
-            }
-        });
-        mRecyclerView.setAdapter(mAdapter);
-
     }
+
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = new Dialog(getActivity());
         // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.fragment_device_list);
+        dialog.setContentView(R.layout.fragment_sampling);
         dialog.setCanceledOnTouchOutside(true);
 
         // 设置弹出框布局参数，宽度铺满全屏，底部。
@@ -148,12 +98,51 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.iv_back:
+            case R.id.iv_sampling_back:
                 dismiss();
+                break;
+
+            case R.id.id_iv_sampling_takePicture:
+                takePicture();
                 break;
 
             default:
                 break;
         }
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //拍照回调
+        if (requestCode == 200) {
+            if (resultCode == Activity.RESULT_OK) {
+                GetPicModel picOrMp4 = new GetPicModel();
+                picOrMp4 = (GetPicModel) data.getSerializableExtra("result");
+
+            }
+        }
+    }
+
+    /**
+     * 拍照
+     */
+    private void takePicture() {
+        RxPermissions rxPermissions = new RxPermissions(getActivity());
+        rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO)
+                .subscribe(permission -> { // will emit 1 Permission object
+                    if (permission.granted) {
+                        startActivityForResult(new Intent(getContext(), GetPicOrMP4Activity.class), 200);
+                    } else if (permission.shouldShowRequestPermissionRationale) {
+                        //有至少一个权限没有同意
+                        //showToast("请同意全部权限");
+                    } else {
+                        //有至少一个权限没有同意且勾选了不在提示
+                        //showToast("请在权限管理中打开相关权限");
+                    }
+                });
+    }
+
 }

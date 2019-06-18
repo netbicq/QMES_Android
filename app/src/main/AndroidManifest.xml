@@ -53,33 +53,29 @@
             android:theme="@android:style/Theme.Translucent" />
         <activity
             android:name=".MainActivity"
-            android:theme="@style/QMUI.Compat.NoActionBar"
-            android:screenOrientation="landscape">
-
+            android:screenOrientation="landscape"
+            android:theme="@style/QMUI.Compat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
-
         <activity android:name=".elcscale.view.ElcScaleActivity" />
         <activity android:name=".relay.wifi.view.SocketTestActivity" />
         <activity android:name=".relay.wifi.view.WifiRelayActivity" />
         <activity android:name=".relay.wifi.view.BlueToothRelayActivity" />
         <activity android:name=".common.getpic.PhotoViewActivity" />
         <activity android:name=".common.getpic.GetPicOrMP4Activity" />
-
-        <activity android:name=".HomeActivity" >
-
-        </activity>
-
+        <activity android:name=".HomeActivity"></activity>
         <activity
             android:name=".ChooseMatterActivity"
-            android:theme="@style/QMUI.Compat.NoActionBar"
-            android:screenOrientation="landscape"/>
-
+            android:screenOrientation="landscape"
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
+        <activity
+            android:name=".ChooseSupplierActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
     </application>
 
 </manifest>

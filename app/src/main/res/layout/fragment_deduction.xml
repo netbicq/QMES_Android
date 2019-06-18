@@ -1,73 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ChooseMatterActivity">
+    android:background="@color/qmui_config_color_white"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
         android:id="@+id/relativeLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/background"
-        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/id_iv_back"
+            android:id="@+id/iv_sampling_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="8dp"
             app:srcCompat="@drawable/ic_left_black_24dp" />
 
         <TextView
-            android:id="@+id/textView25"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/id_iv_back"
+            android:layout_centerHorizontal="true"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="选择物料"
+            android:text="扣重"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
-
-        <EditText
-            android:id="@+id/et_search_matter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/id_iv_zxing"
-            android:imeOptions="flagNoExtractUi"
-            android:background="@drawable/text_background"
-            android:drawableLeft="@drawable/ic_search_24dp"
-            android:gravity="center"
-            android:hint="请输入物料信息"
-            android:padding="8dp"
-            android:textColor="@color/qmui_config_color_white"
-            android:textColorHint="@color/qmui_config_color_white"
-            android:textSize="15sp" />
-
-        <ImageView
-            android:id="@+id/id_iv_zxing"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="4dp"
-            android:background="@drawable/text_background"
-            android:padding="8dp"
-            app:srcCompat="@drawable/ic_zxing_24dp" />
-
 
     </RelativeLayout>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/id_recyclerView"
+        android:id="@+id/id_sampling_recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/relativeLayout" />
+
 </android.support.constraint.ConstraintLayout>

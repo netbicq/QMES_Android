@@ -1,5 +1,6 @@
 package kkkj.android.revgoods.relay.adapter;
 
+import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.TextView;
@@ -19,19 +20,16 @@ public class RelayAdapter extends BaseQuickAdapter<RelayBean, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper,  RelayBean item) {
-        helper.setText(R.id.tv_name,item.getName());
-        TextView tv_menu1 = helper.getView(R.id.tv_menu1);//吸合
-        TextView tv_menu2 = helper.getView(R.id.tv_menu2);//断开
+        helper.setText(R.id.id_tv_relay_name,item.getName());
+        TextView mrelayName = helper.getView(R.id.id_tv_relay_name);
         if(item.getState().equals("1"))//吸合
         {
-            tv_menu1.setVisibility(View.GONE);
-            tv_menu2.setVisibility(View.VISIBLE);
+            mrelayName.setBackgroundColor(Color.parseColor("#008577"));
         }
         else {
-            tv_menu1.setVisibility(View.VISIBLE);
-            tv_menu2.setVisibility(View.GONE);
+            mrelayName.setBackgroundColor(Color.parseColor("#C1CDCD"));
         }
-        helper.addOnClickListener(R.id.tv_menu1);
-        helper.addOnClickListener(R.id.tv_menu2);
+        helper.addOnClickListener(R.id.id_tv_relay_name);
+
     }
 }

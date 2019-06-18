@@ -4,23 +4,27 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
@@ -38,19 +42,13 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.Inflater;
 
-import butterknife.BindView;
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.MyEvent;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
@@ -65,13 +63,19 @@ import kkkj.android.revgoods.conn.socket.PulseData;
 import kkkj.android.revgoods.conn.socket.SocketListener;
 import kkkj.android.revgoods.conn.socket.WriteData;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
+import kkkj.android.revgoods.fragment.CumulativeFragment;
+import kkkj.android.revgoods.fragment.DeductionFragment;
 import kkkj.android.revgoods.fragment.DeviceListFragment;
+import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
+import kkkj.android.revgoods.fragment.SamplingFragment;
+import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
-import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.relay.wifi.model.Order;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 import static com.xuhao.didi.core.iocore.interfaces.IOAction.ACTION_READ_COMPLETE;
 import static com.xuhao.didi.socket.client.sdk.client.action.IAction.ACTION_READ_THREAD_SHUTDOWN;
+import static kkkj.android.revgoods.utils.GetMacAddress.callCmd;
 import static kkkj.android.revgoods.utils.GetMacAddress.getMacFromArpCache;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -81,27 +85,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private PinBlueReceiver pinBlueReceiver;
     private Bluetooth mBluetooth;
     private List<BluetoothBean> mList_b;
-    private List<RelayBean> mList;
+    private List<RelayBean> mWifiList;
     SocketListener listener;
     IConnectionManager manager;
     private PulseData mPulseData = new PulseData();
 
+    //蓝牙电子秤
+    private BluetoothBean bluetoothRelay = new BluetoothBean();
+
+    private RelayAdapter wifiAdapter;
     private boolean isFirst = true;
+    private RecyclerView mWifiRelayRecyclerView;
     private ImageView mChooseMatterImageView;
     private ImageView mTakePictureImageView;
-    private ImageView mZXingImageView;
+    private ImageView mChoosePrinterImageView;
+    private TextView mChooseSupplierTextView;
     private TextView mChooseDeviceTextView;
     private TextView mWeightTextView;
+    private TextView mPieceweightTextView;//单重
+    private TextView mSamplingTextView;//采样
+    private TextView mSamplingCount;//采样累计
+    private TextView mCumulativeTextView;//累计
+    private TextView mDeductionTextView;//扣重
     private DeviceListFragment deviceListFragment;
+    private SamplingFragment samplingFragment;
+    private SamplingDetailsFragment samplingDetailsFragment;
+    private CumulativeFragment cumulativeFragment;
+    private DeductionFragment deductionFragment;
     private Observer<String> stateOB;
     private double weight = 0;
-    private Observable<String> observableWeight;
     private List<Device> mDeices;
 
-    /**
-     * 扫描跳转Activity RequestCode
-     */
-    public static final int REQUEST_CODE = 111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EventBus.getDefault().register(this);
         initData();
         initView();
-
 
 
     }
@@ -144,26 +157,119 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(MyEvent myEvent) {
-        Device device = myEvent.getDevice();
-        mDeices.add(device);
         mChooseDeviceTextView.setText(myEvent.getDevice().getName());
 
-        if (device.getType() == 0) {
-            //蓝牙设备
-            String address = device.getBluetoothMac();
-            BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-            connectBluetooth(bluetoothDevice);
-        } else {
-            //Wifi设备
-            connectWifi(device);
+        Device device = myEvent.getDevice();
 
+        switch (device.getType()) {
+            case 0://蓝牙电子秤
+                String address = device.getBluetoothMac();
+                BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+                bluetoothRelay = connectAndGetBluetoothScale(bluetoothDevice);
+                break;
+            case 1://蓝牙继电器
+                String address1 = device.getBluetoothMac();
+                BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                connectBluetoothRelay(bluetoothDevice1);
+                break;
+            case 2://Wifi继电器
+                connectWifi(device);
+                break;
         }
 
 
     }
 
-    //连接蓝牙设备
-    private void connectBluetooth(BluetoothDevice bluetoothDevice) {
+    //蓝牙电子秤
+    private BluetoothBean connectAndGetBluetoothScale(BluetoothDevice bluetoothDevice) {
+        final boolean[] isConnect = {false};
+        BluetoothBean bluetoothBean = new BluetoothBean();
+        bluetoothBean.setBluetoothDevice(bluetoothDevice);
+
+        if (bluetoothBean.getBluetoothDevice().getBondState() != BluetoothDevice.BOND_BONDED) {
+            bluetoothBean.getMyBluetoothManager().pin();
+        } else {
+            bluetoothBean.getMyBluetoothManager().getConnectOB().subscribe(new Observer<Boolean>() {
+                @Override
+                public void onSubscribe(Disposable d) {
+
+                }
+
+                @Override
+                public void onNext(Boolean aBoolean) {
+                    isConnect[0] = aBoolean;
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    isConnect[0] = false;
+                }
+
+                @Override
+                public void onComplete() {
+                    Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
+                            .takeWhile(new Predicate<Long>() {
+                                @Override
+                                public boolean test(Long integer) throws Exception {
+                                    return true;
+                                }
+                            })
+                            .subscribe(new Consumer<Long>() {
+                                @Override
+                                public void accept(@NonNull Long aLong) throws Exception {
+                                    bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
+                                        @Override
+                                        public void onSubscribe(Disposable d) {
+
+                                            if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
+                                                Logger.d("蓝牙断开");
+                                                d.dispose();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onNext(String s) {
+                                            Logger.d("读取到数据:" + s);
+                                            if (s.length() == 8) {
+                                                //去掉前面的零和“=”号
+                                                String str = s.replaceFirst("^0*", "").replace("=", "");
+                                                if (str.startsWith(".")) {
+                                                    str = "0" + str;
+                                                }
+                                                mWeightTextView.setText(str);
+                                                double weight = Double.parseDouble(str);
+                                                if (weight > 3) {
+                                                    manager.send(new WriteData(Order.TURN_ON_1));
+
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onError(Throwable e) {
+                                            Logger.d("读取错误:" + e.getMessage());
+                                        }
+
+                                        @Override
+                                        public void onComplete() {
+
+                                        }
+                                    });
+                                }
+                            });
+                }
+            });
+        }
+        if (isConnect[0]) {
+            return bluetoothBean;
+        } else {
+            return null;
+        }
+
+    }
+
+    //蓝牙继电器
+    private void connectBluetoothRelay(BluetoothDevice bluetoothDevice) {
 
         BluetoothBean bluetoothBean = new BluetoothBean();
         bluetoothBean.setBluetoothDevice(bluetoothDevice);
@@ -193,127 +299,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onComplete() {
-                    /**  boolean flag = !mList.get(m).isChangeFlag();
-                     mList.get(m).setChangeFlag(flag);
+                    /**  boolean flag = !mWifiList.get(m).isChangeFlag();
+                     mWifiList.get(m).setChangeFlag(flag);
                      adapter.notifyItemChanged(m);
                      */
-
                     // bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_1).subscribe(stateOB);
-                    if (bluetoothDevice.getAddress().equals("20:17:03:15:05:65")) {
-                        Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
-                                .takeWhile(new Predicate<Long>() {
-                                    @Override
-                                    public boolean test(Long integer) throws Exception {
-                                        return true;
-                                    }
-                                })
-                                .subscribe(new Consumer<Long>() {
-                                    @Override
-                                    public void accept(@NonNull Long aLong) throws Exception {
-                                        bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
-                                            @Override
-                                            public void onSubscribe(Disposable d) {
-
-                                                if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
-                                                    Logger.d("蓝牙断开");
-                                                    d.dispose();
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onNext(String s) {
-                                                Logger.d("读取到数据:" + s);
-                                                if (s.length() == 8) {
-                                                    //去掉前面的零和“=”号
-                                                    String str = s.replaceFirst("^0*", "").replace("=", "");
-                                                    if (str.startsWith(".")) {
-                                                        str = "0" + str;
-                                                    }
-                                                    mWeightTextView.setText(str);
-
-                                                    weight = Double.parseDouble(str);
-                                                    if (weight > 10 && manager != null) {
-                                                        manager.send(new WriteData(Order.TURN_ON_1));
-
-                                                    }
-                                                    observableWeight = getWeight(str);
-
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onError(Throwable e) {
-                                                Logger.d("读取错误:" + e.getMessage());
-                                            }
-
-                                            @Override
-                                            public void onComplete() {
-
-                                            }
-                                        });
-                                    }
-                                });
-                    }
-
-                    if (observableWeight != null) {
-                        observableWeight.subscribe(new Observer<String>() {
-                            @Override
-                            public void onSubscribe(Disposable d) {
-
-                            }
-
-                            @Override
-                            public void onNext(String s) {
-                                weight = Double.parseDouble(s);
-                                Logger.d("重量;" + weight);
-                                for (int i = 0;i<mDeices.size();i++) {
-                                    if (mDeices.get(i).getName().equals("蓝牙继电器")) {
-                                        String address = mDeices.get(i).getBluetoothMac();
-                                        BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                                        BluetoothBean bluetoothBean = new BluetoothBean();
-                                        bluetoothBean.setBluetoothDevice(bluetoothDevice);
-
-                                        if (weight > 10) {
-                                            bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_2).subscribe(stateOB);
-                                        }
-                                    }
-                                }
-                                if (weight > 10) {
-                                    manager.send(new WriteData(Order.TURN_ON_1));
-
-                                }
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-
-                            }
-
-                            @Override
-                            public void onComplete() {
-
-                            }
-                        });
-                    }
-
+                    //manager.send(new WriteData(Order.TURN_ON_1));
                 }
             });
         }
     }
 
-    private Observable<String> getWeight(String str) {
-        Observable<String> getWeight = Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                emitter.onNext(str);
-                emitter.onComplete();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
 
-        return getWeight;
-    }
-
-    //连接Wifi设备
+    //连接Wifi继电器
     private void connectWifi(Device device) {
         initWifiDevice(device);
 
@@ -376,10 +374,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             char[] bin = binaryState.toCharArray();
                             if (bin.length == 8) {
                                 for (int i = 0; i < bin.length; i++) {
-                                    mList.get(i).setState(bin[i] + "");
+                                    mWifiList.get(i).setState(bin[i] + "");
                                 }
                             }
-
+                            wifiAdapter.notifyDataSetChanged();
                         } else if (message.getData().indexOf("01 05 00 ") == 0) {
                             //收到状态
                             //第几个继电器
@@ -390,62 +388,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             switch (index) {
                                 case "00":
                                     if (!state.equals("00")) {
-                                        mList.get(0).setState("1");
+                                        mWifiList.get(0).setState("1");
                                     } else {
-                                        mList.get(0).setState("0");
+                                        mWifiList.get(0).setState("0");
                                     }
                                     break;
                                 case "01":
                                     if (!state.equals("00")) {
-                                        mList.get(1).setState("1");
+                                        mWifiList.get(1).setState("1");
                                     } else {
-                                        mList.get(1).setState("0");
+                                        mWifiList.get(1).setState("0");
                                     }
                                     break;
                                 case "02":
                                     if (!state.equals("00")) {
-                                        mList.get(2).setState("1");
+                                        mWifiList.get(2).setState("1");
                                     } else {
-                                        mList.get(2).setState("0");
+                                        mWifiList.get(2).setState("0");
                                     }
                                     break;
                                 case "03":
                                     if (!state.equals("00")) {
-                                        mList.get(3).setState("1");
+                                        mWifiList.get(3).setState("1");
                                     } else {
-                                        mList.get(3).setState("0");
+                                        mWifiList.get(3).setState("0");
                                     }
                                     break;
                                 case "04":
                                     if (!state.equals("00")) {
-                                        mList.get(4).setState("1");
+                                        mWifiList.get(4).setState("1");
                                     } else {
-                                        mList.get(4).setState("0");
+                                        mWifiList.get(4).setState("0");
                                     }
                                     break;
                                 case "05":
                                     if (!state.equals("00")) {
-                                        mList.get(5).setState("1");
+                                        mWifiList.get(5).setState("1");
                                     } else {
-                                        mList.get(5).setState("0");
+                                        mWifiList.get(5).setState("0");
                                     }
                                     break;
                                 case "06":
                                     if (!state.equals("00")) {
-                                        mList.get(6).setState("1");
+                                        mWifiList.get(6).setState("1");
                                     } else {
-                                        mList.get(6).setState("0");
+                                        mWifiList.get(6).setState("0");
                                     }
                                     break;
                                 case "07":
                                     if (!state.equals("00")) {
-                                        mList.get(7).setState("1");
+                                        mWifiList.get(7).setState("1");
                                     } else {
-                                        mList.get(7).setState("0");
+                                        mWifiList.get(7).setState("0");
                                     }
                                     break;
                             }
-
+                            wifiAdapter.notifyDataSetChanged();
                         }
                         Logger.d("收到:" + message.getData());
                         break;
@@ -474,11 +472,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChooseDeviceTextView = findViewById(R.id.id_tv_choose_device);
         mWeightTextView = findViewById(R.id.id_tv_weight);
         mTakePictureImageView = findViewById(R.id.id_iv_takePicture);
-        mZXingImageView = findViewById(R.id.id_iv_zxing);
-        mZXingImageView.setOnClickListener(this);
+        mChoosePrinterImageView = findViewById(R.id.id_iv_choose_printer);
+        mWifiRelayRecyclerView = findViewById(R.id.id_wifiRelay_recyclerView);
+        mPieceweightTextView = findViewById(R.id.id_tv_piece_weight);
+        mChooseSupplierTextView = findViewById(R.id.id_tv_choose_supplier);
+        mSamplingTextView = findViewById(R.id.id_tv_sampling);
+        mSamplingCount = findViewById(R.id.id_tv_sampling_count);
+        mCumulativeTextView = findViewById(R.id.id_tv_cumulative);
+        mDeductionTextView = findViewById(R.id.id_tv_deduction);
+        mDeductionTextView.setOnClickListener(this);
+        mCumulativeTextView.setOnClickListener(this);
+        mSamplingCount.setOnClickListener(this);
+        mSamplingTextView.setOnClickListener(this);
+        mChooseSupplierTextView.setOnClickListener(this);
+        mPieceweightTextView.setOnClickListener(this);
+        mChoosePrinterImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
         mChooseMatterImageView.setOnClickListener(this);
         mChooseDeviceTextView.setOnClickListener(this);
+
+        wifiAdapter = new RelayAdapter(R.layout.item_relay_new,mWifiList);
+        mWifiRelayRecyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this,4));
+        //mWifiRelayRecyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,
+              //  DividerItemDecoration.VERTICAL));
+        mWifiRelayRecyclerView.setAdapter(wifiAdapter);
 
     }
 
@@ -492,12 +509,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //蓝牙设备集合
         mList_b = new ArrayList<>();
         //继电器实体类集合
-        mList = new ArrayList<>();
+        mWifiList = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             RelayBean relayBean = new RelayBean();
-            relayBean.setName(i + 1 + "号继电器");
-            mList.add(relayBean);
+            relayBean.setName(i + 1 + "");
+            mWifiList.add(relayBean);
         }
+
+
+
 
         if (!mBluetooth.isSupportBlue()) {
             Toast.makeText(this, "当前设备不支持蓝牙", Toast.LENGTH_LONG).show();
@@ -531,7 +551,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onBondSuccess(BluetoothDevice device) {
-                connectBluetooth(device);
+                switch (device.getAddress()) {
+                    case "20:17:03:15:05:65"://电子秤
+                        connectAndGetBluetoothScale(device);
+                        break;
+
+                    case "00:0D:1B:00:13:BA":
+                        connectBluetoothRelay(device);//继电器
+                        break;
+
+                    default:
+                        break;
+                }
+
             }
         }, "1234");
 
@@ -597,7 +629,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onNext(String s) {
-                /**
+
                  mList_b.get(0).getMyBluetoothManager().getReadOBModbus().subscribe(new Observer<byte[]>() {
                 @Override public void onSubscribe(Disposable d) {
 
@@ -614,64 +646,65 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 switch (index) {
                 case "00":
                 if (!state.equals("00")) {
-                mList.get(0).setState("1");
+                mWifiList.get(0).setState("1");
                 } else {
-                mList.get(0).setState("0");
+                mWifiList.get(0).setState("0");
                 }
                 break;
                 case "01":
                 if (!state.equals("00")) {
-                mList.get(1).setState("1");
+                mWifiList.get(1).setState("1");
                 } else {
-                mList.get(1).setState("0");
+                mWifiList.get(1).setState("0");
                 }
                 break;
                 case "02":
                 if (!state.equals("00")) {
-                mList.get(2).setState("1");
+                mWifiList.get(2).setState("1");
                 } else {
-                mList.get(2).setState("0");
+                mWifiList.get(2).setState("0");
                 }
                 break;
                 case "03":
                 if (!state.equals("00")) {
-                mList.get(3).setState("1");
+                mWifiList.get(3).setState("1");
                 } else {
-                mList.get(3).setState("0");
+                mWifiList.get(3).setState("0");
                 }
                 break;
                 case "04":
                 if (!state.equals("00")) {
-                mList.get(4).setState("1");
+                mWifiList.get(4).setState("1");
                 } else {
-                mList.get(4).setState("0");
+                mWifiList.get(4).setState("0");
                 }
                 break;
                 case "05":
                 if (!state.equals("00")) {
-                mList.get(5).setState("1");
+                mWifiList.get(5).setState("1");
                 } else {
-                mList.get(5).setState("0");
+                mWifiList.get(5).setState("0");
                 }
                 break;
                 case "06":
                 if (!state.equals("00")) {
-                mList.get(6).setState("1");
+                mWifiList.get(6).setState("1");
                 } else {
-                mList.get(6).setState("0");
+                mWifiList.get(6).setState("0");
                 }
                 break;
                 case "07":
                 if (!state.equals("00")) {
-                mList.get(7).setState("1");
+                mWifiList.get(7).setState("1");
                 } else {
-                mList.get(7).setState("0");
+                mWifiList.get(7).setState("0");
                 }
                 break;
                 default:
                 break;
                 }
-                // adapter.notifyDataSetChanged();
+                wifiAdapter.notifyDataSetChanged();
+
                 }
                 }
 
@@ -683,7 +716,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 }
                 });
-                 */
             }
 
             @Override
@@ -718,29 +750,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        //二维码扫描回调
-        if (requestCode == REQUEST_CODE) {
-            //处理扫描结果（在界面上显示）
-            if (null != data) {
-                Bundle bundle = data.getExtras();
-                if (bundle == null) {
-                    return;
-                }
-                if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_SUCCESS) {
-                    /**
-                    result = bundle.getString(CodeUtils.RESULT_STRING);
-                    Logger.d(result);
-//                    fragments.get(showPosition).reserve(result);
-                    GetEmpTaskByQRCoderModel.Request request = new GetEmpTaskByQRCoderModel.Request();
-                    request.setDangerPointID(result);
-                    mPresenter.getEmpTaskByQRCoder(request);
-                     */
-//                    Toast.makeText(this, "解析结果:" + result, Toast.LENGTH_LONG).show();
-                } else if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_FAILED) {
-                   // showToast("解析二维码失败");
-                }
-            }
-        }
     }
 
     //沉浸式模式
@@ -763,11 +772,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
 
         switch (view.getId()) {
-            case R.id.id_iv_choose_matter:
+            case R.id.id_iv_choose_matter://选择物料
                 startActivity(new Intent(MainActivity.this, ChooseMatterActivity.class));
                 break;
 
+            case R.id.id_tv_choose_supplier://选择供应商
+                startActivity(new Intent(MainActivity.this,ChooseSupplierActivity.class));
+                break;
+
+            case R.id.id_tv_sampling://采样
+                if (samplingFragment == null) {
+                    samplingFragment = new SamplingFragment();
+                }
+                FragmentTransaction ft1 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft1.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                samplingFragment.show(ft1,"samplingFragment");
+                break;
+
+            case R.id.id_tv_sampling_count://采样累计
+                if (samplingDetailsFragment == null) {
+                    samplingDetailsFragment = new SamplingDetailsFragment();
+                }
+                FragmentTransaction ft2 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft2.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                samplingDetailsFragment.show(ft2,"samplingDetailsFragment");
+                break;
+
+            case R.id.id_tv_cumulative://累计
+                if (cumulativeFragment == null) {
+                    cumulativeFragment = new CumulativeFragment();
+                }
+                FragmentTransaction ft3 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft3.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                cumulativeFragment.show(ft3,"cumulativeFragment");
+                break;
+
+            case R.id.id_tv_deduction:
+                if (deductionFragment == null) {
+                    deductionFragment = new DeductionFragment();
+                }
+                FragmentTransaction ft4 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft4.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                deductionFragment.show(ft4,"deductionFragment");
+                break;
+
             case R.id.id_tv_choose_device:
+            case R.id.id_iv_choose_printer:
                 if (deviceListFragment == null) {
                     deviceListFragment = new DeviceListFragment();
                 }
@@ -776,12 +826,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 deviceListFragment.show(ft, "deviceFragment");
                 break;
 
-            case R.id.id_iv_takePicture:
-                takePicture();
+            case R.id.id_tv_piece_weight://单重
+                final EditText editText = new EditText(MainActivity.this);
+                AlertDialog.Builder inputDialog =new AlertDialog.Builder(MainActivity.this);
+                inputDialog.setTitle("请输入单重").setView(editText);
+                inputDialog.setPositiveButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_PIECE_WEIGHT,editText.getText().toString().trim());
+
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
+
                 break;
 
-            case R.id.id_iv_zxing:
-                zxing();
+            case R.id.id_iv_takePicture:
+                takePicture();
                 break;
 
             default:
@@ -802,38 +868,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return bString;
     }
 
+    /**
+     * 拍照
+     */
     private void takePicture() {
         RxPermissions rxPermissions = new RxPermissions(MainActivity.this);
         rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.RECORD_AUDIO)
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO)
                 .subscribe(permission -> { // will emit 1 Permission object
                     if (permission.granted) {
                         startActivityForResult(new Intent(MainActivity.this, GetPicOrMP4Activity.class), 200);
-                    } else if (permission.shouldShowRequestPermissionRationale) {
-                        //有至少一个权限没有同意
-                        //showToast("请同意全部权限");
-                    } else {
-                        //有至少一个权限没有同意且勾选了不在提示
-                        //showToast("请在权限管理中打开相关权限");
-                    }
-                });
-    }
-
-    /**
-     * 获取权限
-     */
-    private void zxing() {
-        RxPermissions rxPermissions = new RxPermissions(MainActivity.this);
-        rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-                .subscribe(permission -> { // will emit 1 Permission object
-                    if (permission.granted) {
-                        Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
-                        startActivityForResult(intent, REQUEST_CODE);
                     } else if (permission.shouldShowRequestPermissionRationale) {
                         //有至少一个权限没有同意
                         //showToast("请同意全部权限");

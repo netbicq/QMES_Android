@@ -34,6 +34,8 @@ public class SharedPreferenceUtil {
     public static final String SP_Commonparts_Token = "SP_Commonparts_Token";
     public static final String SP_Commonparts_AccountID = "SP_Commonparts_AccountID";
 
+    public static final String SP_PIECE_WEIGHT = "SP_PIECE_WEIGHT";
+
 
     public static String getString(String key)
     {

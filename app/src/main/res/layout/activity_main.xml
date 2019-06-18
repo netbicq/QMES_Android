@@ -13,11 +13,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="3dp"
-        android:text="0.00kg"
-        android:textColor="@color/qmui_config_color_white"
-        app:layout_constraintBottom_toBottomOf="@+id/textView12"
-        app:layout_constraintStart_toEndOf="@+id/textView12"
-        app:layout_constraintTop_toTopOf="@+id/textView12"
+        android:text="(0)"
+        android:textColor="#F4FC14"
+        app:layout_constraintBottom_toBottomOf="@+id/id_tv_sampling_count"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_sampling_count"
+        app:layout_constraintTop_toTopOf="@+id/id_tv_sampling_count"
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
@@ -31,23 +31,9 @@
         app:layout_constraintStart_toStartOf="@+id/guideline7"
         app:layout_constraintTop_toTopOf="@+id/textView27" />
 
-    <TextView
-        android:id="@+id/textView19"
-        android:layout_width="46dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:background="@drawable/text_background"
-        android:gravity="center"
-        android:padding="5dp"
-        android:text="归零"
-        android:textColor="@color/qmui_config_color_white"
-        android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintStart_toEndOf="@+id/textView18"
-        app:layout_constraintTop_toTopOf="@+id/imageView5" />
 
     <TextView
-        android:id="@+id/textView21"
+        android:id="@+id/id_tv_cumulative"
         android:layout_width="46dp"
         android:layout_height="0dp"
         android:layout_marginStart="4dp"
@@ -58,7 +44,7 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintStart_toEndOf="@+id/textView20"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_deduction"
         app:layout_constraintTop_toTopOf="@+id/imageView5" />
 
     <TextView
@@ -96,14 +82,14 @@
         app:layout_constraintTop_toTopOf="@+id/textView24" />
 
     <TextView
-        android:id="@+id/textView12"
+        android:id="@+id/id_tv_sampling_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        android:text="扣重"
+        android:text="采样累计"
         android:textColor="@color/qmui_config_color_white"
-        app:layout_constraintBottom_toTopOf="@+id/textView26"
-        app:layout_constraintStart_toStartOf="@+id/textView26" />
+        app:layout_constraintBottom_toTopOf="@+id/id_tv_sampling"
+        app:layout_constraintStart_toStartOf="@+id/id_tv_sampling" />
 
     <TextView
         android:id="@+id/id_tv_weight"
@@ -118,9 +104,10 @@
         app:layout_constraintTop_toTopOf="@+id/guideline8" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/id_tv_choose_supplier"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/text_background"
         android:gravity="center"
         android:paddingHorizontal="5dp"
@@ -128,12 +115,12 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="@+id/textView2"
-        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintEnd_toStartOf="@+id/guideline7"
         app:layout_constraintTop_toTopOf="@+id/textView2"
         app:layout_constraintVertical_bias="0.0" />
 
     <ImageView
-        android:id="@+id/imageView6"
+        android:id="@+id/id_iv_choose_printer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -151,33 +138,20 @@
         android:layout_marginStart="8dp"
         android:background="@drawable/text_background"
         android:padding="6dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView6"
-        app:layout_constraintStart_toEndOf="@+id/imageView6"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_printer"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_printer"
         app:srcCompat="@drawable/ic_print_24dp" />
-
-    <ImageView
-        android:id="@+id/id_iv_zxing"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginStart="12dp"
-        android:background="@drawable/text_background"
-        android:padding="6dp"
-        app:layout_constraintBottom_toBottomOf="@+id/et_search_matter"
-        app:layout_constraintStart_toEndOf="@+id/id_iv_takePicture"
-        app:layout_constraintTop_toTopOf="@+id/et_search_matter"
-        app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@drawable/ic_zxing_24dp" />
 
     <ImageView
         android:id="@+id/id_iv_takePicture"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:background="@drawable/text_background"
         android:padding="6dp"
-        app:layout_constraintBottom_toBottomOf="@+id/et_search_matter"
-        app:layout_constraintStart_toEndOf="@+id/et_search_matter"
-        app:layout_constraintTop_toTopOf="@+id/et_search_matter"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_camera_24dp" />
 
     <ImageView
@@ -186,7 +160,7 @@
         android:layout_height="36dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView4"
+        app:layout_constraintBottom_toBottomOf="@+id/id_tv_choose_supplier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_connect_24dp" />
@@ -204,36 +178,16 @@
         app:layout_constraintTop_toTopOf="@+id/imageView"
         app:layout_constraintVertical_bias="1.0" />
 
-    <EditText
-        android:id="@+id/et_search_matter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:imeActionLabel="搜索"
-        android:imeOptions="flagNoExtractUi"
-        android:background="@drawable/text_background"
-        android:drawableLeft="@drawable/ic_search_24dp"
-        android:gravity="center"
-        android:hint="请输入物料信息"
-        android:padding="8dp"
-        android:textColor="@color/qmui_config_color_white"
-        android:textColorHint="@color/qmui_config_color_white"
-        android:textSize="15sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <ImageView
         android:id="@+id/id_iv_choose_matter"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="8dp"
         android:background="@drawable/text_background"
         android:padding="6dp"
-        app:layout_constraintBottom_toBottomOf="@+id/et_search_matter"
-        app:layout_constraintStart_toEndOf="@+id/id_iv_zxing"
-        app:layout_constraintTop_toTopOf="@+id/et_search_matter"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_takePicture"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_takePicture"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_takePicture"
         app:srcCompat="@drawable/ic_choose_matter_24dp" />
 
     <TextView
@@ -251,7 +205,7 @@
         app:layout_constraintVertical_bias="1.0" />
 
     <TextView
-        android:id="@+id/textView18"
+        android:id="@+id/id_tv_deduction"
         android:layout_width="46dp"
         android:layout_height="0dp"
         android:layout_marginStart="4dp"
@@ -262,42 +216,29 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintStart_toEndOf="@+id/textView22"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_piece_weight"
         app:layout_constraintTop_toTopOf="@+id/imageView5"
         app:layout_constraintVertical_bias="1.0" />
 
+
+
     <TextView
-        android:id="@+id/textView20"
+        android:id="@+id/id_tv_piece_weight"
         android:layout_width="46dp"
         android:layout_height="0dp"
         android:layout_marginStart="4dp"
         android:background="@drawable/text_background"
         android:gravity="center"
         android:padding="5dp"
-        android:text="单位"
+        android:text="单重"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintStart_toEndOf="@+id/textView19"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_sampling"
         app:layout_constraintTop_toTopOf="@+id/imageView5" />
 
     <TextView
-        android:id="@+id/textView22"
-        android:layout_width="46dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:background="@drawable/text_background"
-        android:gravity="center"
-        android:padding="5dp"
-        android:text="净/毛"
-        android:textColor="@color/qmui_config_color_white"
-        android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintStart_toEndOf="@+id/textView26"
-        app:layout_constraintTop_toTopOf="@+id/imageView5" />
-
-    <TextView
-        android:id="@+id/textView26"
+        android:id="@+id/id_tv_sampling"
         android:layout_width="46dp"
         android:layout_height="0dp"
         android:layout_marginStart="20dp"
@@ -325,5 +266,15 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.5" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/id_wifiRelay_recyclerView"
+        android:layout_width="160dp"
+        android:layout_height="123dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/guideline8"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/id_tv_choose_device" />
 
 </android.support.constraint.ConstraintLayout>
