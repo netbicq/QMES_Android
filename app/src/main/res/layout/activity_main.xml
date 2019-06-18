@@ -9,7 +9,7 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/textView27"
+        android:id="@+id/id_tv_sampling_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="3dp"
@@ -27,9 +27,9 @@
         android:layout_marginStart="48dp"
         android:text="累计"
         android:textColor="@color/qmui_config_color_white"
-        app:layout_constraintBottom_toBottomOf="@+id/textView27"
+        app:layout_constraintBottom_toBottomOf="@+id/id_tv_sampling_number"
         app:layout_constraintStart_toStartOf="@+id/guideline7"
-        app:layout_constraintTop_toTopOf="@+id/textView27" />
+        app:layout_constraintTop_toTopOf="@+id/id_tv_sampling_number" />
 
 
     <TextView
@@ -272,11 +272,12 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/id_wifiRelay_recyclerView"
         android:layout_width="150dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:background="@color/qmui_config_color_white"
         app:layout_constraintBottom_toTopOf="@+id/guideline8"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline8" />
+        app:layout_constraintTop_toBottomOf="@+id/id_tv_choose_device"/>
 
 </android.support.constraint.ConstraintLayout>

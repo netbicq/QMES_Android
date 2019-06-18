@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -107,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mPieceweightTextView;//单重
     private TextView mSamplingTextView;//采样
     private TextView mSamplingCount;//采样累计
+    private TextView mSamplingNumber;
     private TextView mCumulativeTextView;//累计
     private TextView mDeductionTextView;//扣重
     private DeviceListFragment deviceListFragment;
@@ -243,6 +245,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 if (weight > 3) {
                                                     manager.send(new WriteData(Order.TURN_ON_3));
                                                     manager.send(new WriteData(Order.TURN_ON_2));
+                                                    Observable.timer(2,TimeUnit.SECONDS)
+                                                            .subscribe(new Observer<Long>() {
+                                                                @Override
+                                                                public void onSubscribe(Disposable d) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onNext(Long aLong) {
+                                                                    manager.send(new WriteData(Order.TURN_OFF_3));
+                                                                    manager.send(new WriteData(Order.TURN_OFF_2));
+
+                                                                }
+
+                                                                @Override
+                                                                public void onError(Throwable e) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onComplete() {
+
+                                                                }
+                                                            });
 
                                                 }
 
@@ -485,6 +511,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSamplingCount = findViewById(R.id.id_tv_sampling_count);
         mCumulativeTextView = findViewById(R.id.id_tv_cumulative);
         mDeductionTextView = findViewById(R.id.id_tv_deduction);
+        mSamplingNumber = findViewById(R.id.id_tv_sampling_number);
         mDeductionTextView.setOnClickListener(this);
         mCumulativeTextView.setOnClickListener(this);
         mSamplingCount.setOnClickListener(this);
@@ -925,8 +952,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //查表法，将16进制转为2进制
     public static String hexString2binaryString(String hexString) {
-        if (hexString == null || hexString.length() % 2 != 0)
+        if (hexString == null || hexString.length() % 2 != 0) {
+
             return null;
+        }
+
         String bString = "";
         String tmp;
         for (int i = 0; i < hexString.length(); i++) {

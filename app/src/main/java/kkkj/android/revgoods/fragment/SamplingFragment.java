@@ -19,9 +19,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
@@ -32,38 +43,61 @@ import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 
 public class SamplingFragment extends DialogFragment implements View.OnClickListener {
 
+    @BindView(R.id.button)
+    Button mSaveButton;
+
+    private Spinner mSpinner;
+    @BindView(R.id.id_et_weight)
+    EditText mEtWeight;
+    Unbinder unbinder;
     private ImageView mBackImageView;
     private ImageView mTakePictureImageView;
-    private RecyclerView mRecyclerView;
-    private LinearLayoutManager mLayoutManager;
+
+    private ArrayAdapter adapter;
+
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sampling, container, false);
         //设置背景透明
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         initData();
         initView(view);
+        unbinder = ButterKnife.bind(this, view);
         return view;
 
     }
 
     private void initData() {
+
+        adapter = new ArrayAdapter<String>(getActivity().getApplication(),
+                android.R.layout.simple_spinner_item, getDataSource());
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+    }
+
+    public List<String> getDataSource(){
+        List<String> list = new ArrayList<String>() ;
+        list.add("牛");
+        list.add("羊");
+        list.add("鸡");
+        list.add("鱼");
+        return list  ;
     }
 
     private void initView(View view) {
+        mSpinner = view.findViewById(R.id.id_spinner);
+        mSpinner.setAdapter(adapter);
+
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mTakePictureImageView = view.findViewById(R.id.id_iv_sampling_takePicture);
-        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mBackImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
 
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
-                DividerItemDecoration.VERTICAL));
+
     }
 
 
@@ -145,4 +179,9 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 });
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
 }

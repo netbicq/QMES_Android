@@ -7,17 +7,24 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import kkkj.android.revgoods.R;
 
 /**
@@ -25,35 +32,57 @@ import kkkj.android.revgoods.R;
  */
 public class DeductionFragment extends DialogFragment implements View.OnClickListener {
 
+    @BindView(R.id.button)
+    Button mSaveButton;
+
+    private Spinner mSpinner;
+    @BindView(R.id.id_et_weight)
+    EditText mEtWeight;
+    @BindView(R.id.id_et_price)
+    EditText mEtPrice;
+    Unbinder unbinder;
     private ImageView mBackImageView;
-    private RecyclerView mRecyclerView;
-    private LinearLayoutManager mLayoutManager;
+
+    private ArrayAdapter adapter;
+
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_deduction, container, false);
         //设置背景透明
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         initData();
         initView(view);
+        unbinder = ButterKnife.bind(this, view);
         return view;
 
     }
 
     private void initData() {
+        adapter = new ArrayAdapter<String>(getActivity().getApplication(),
+                android.R.layout.simple_spinner_item, getDataSource());
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    }
+
+    public List<String> getDataSource(){
+        List<String> list = new ArrayList<String>() ;
+        list.add("去皮");
+        list.add("报废");
+        list.add("鸡");
+        list.add("鱼");
+        return list  ;
     }
 
     private void initView(View view) {
+        mSpinner = view.findViewById(R.id.id_spinner);
+        mSpinner.setAdapter(adapter);
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mBackImageView.setOnClickListener(this);
 
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
-                DividerItemDecoration.VERTICAL));
+
     }
 
 
@@ -95,5 +124,11 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 }
