@@ -82,7 +82,6 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mBackImageView.setOnClickListener(this);
 
-
     }
 
 
