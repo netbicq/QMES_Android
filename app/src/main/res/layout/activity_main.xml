@@ -116,6 +116,7 @@
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="@+id/textView2"
         app:layout_constraintEnd_toStartOf="@+id/guideline7"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
         app:layout_constraintTop_toTopOf="@+id/textView2"
         app:layout_constraintVertical_bias="0.0" />
 
@@ -269,13 +270,13 @@
         app:layout_constraintGuide_percent="0.5" />
 
     <android.support.v7.widget.RecyclerView
-        android:background="@color/qmui_config_color_white"
         android:id="@+id/id_wifiRelay_recyclerView"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:layout_marginEnd="8dp"
+        android:background="@color/qmui_config_color_white"
+        app:layout_constraintBottom_toTopOf="@+id/guideline8"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_tv_choose_device" />
+        app:layout_constraintTop_toTopOf="@+id/guideline8" />
 
 </android.support.constraint.ConstraintLayout>

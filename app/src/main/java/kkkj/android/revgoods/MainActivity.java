@@ -504,7 +504,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
                 switch (view.getId()) {
-                    case R.id.tv_close:
+                    case R.id.tv_open:
                         switch (position) { //position 哪个继电器
                             case 0:
                                 manager.send(new WriteData(Order.TURN_ON_1));
@@ -532,7 +532,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 break;
                         }
                         break;
-                    case R.id.tv_open:
+                    case R.id.tv_close:
                         switch (position) {
                             case 0:
                                 manager.send(new WriteData(Order.TURN_OFF_1));
