@@ -20,16 +20,20 @@ public class RelayAdapter extends BaseQuickAdapter<RelayBean, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper,  RelayBean item) {
-        helper.setText(R.id.id_tv_relay_name,item.getName());
-        TextView mrelayName = helper.getView(R.id.id_tv_relay_name);
+        helper.setText(R.id.tv_name,item.getName());
+        TextView close = helper.getView(R.id.tv_close);
+        TextView open = helper.getView(R.id.tv_open);
         if(item.getState().equals("1"))//吸合
         {
-            mrelayName.setBackgroundColor(Color.parseColor("#008577"));
+            close.setVisibility(View.VISIBLE);
+            open.setVisibility(View.GONE);
         }
         else {
-            mrelayName.setBackgroundColor(Color.parseColor("#C1CDCD"));
+            close.setVisibility(View.GONE);
+            open.setVisibility(View.VISIBLE);
         }
-        helper.addOnClickListener(R.id.id_tv_relay_name);
+        helper.addOnClickListener(R.id.tv_close);
+        helper.addOnClickListener(R.id.tv_open);
 
     }
 }

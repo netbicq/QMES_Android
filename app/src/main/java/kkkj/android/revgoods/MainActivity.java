@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.EditText;
@@ -23,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -239,9 +241,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 mWeightTextView.setText(str);
                                                 double weight = Double.parseDouble(str);
                                                 if (weight > 3) {
-                                                    manager.send(new WriteData(Order.TURN_ON_1));
+                                                    manager.send(new WriteData(Order.TURN_ON_3));
+                                                    manager.send(new WriteData(Order.TURN_ON_2));
 
                                                 }
+
+
                                             }
                                         }
 
@@ -491,10 +496,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChooseMatterImageView.setOnClickListener(this);
         mChooseDeviceTextView.setOnClickListener(this);
 
-        wifiAdapter = new RelayAdapter(R.layout.item_relay_new,mWifiList);
-        mWifiRelayRecyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this,4));
+        wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay,mWifiList);
+        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         //mWifiRelayRecyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,
-              //  DividerItemDecoration.VERTICAL));
+               // DividerItemDecoration.VERTICAL));
+        wifiAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                switch (view.getId()) {
+                    case R.id.tv_close:
+                        switch (position) { //position 哪个继电器
+                            case 0:
+                                manager.send(new WriteData(Order.TURN_ON_1));
+                                break;
+                            case 1:
+                                manager.send(new WriteData(Order.TURN_ON_2));
+                                break;
+                            case 2:
+                                manager.send(new WriteData(Order.TURN_ON_3));
+                                break;
+                            case 3:
+                                manager.send(new WriteData(Order.TURN_ON_4));
+                                break;
+                            case 4:
+                                manager.send(new WriteData(Order.TURN_ON_5));
+                                break;
+                            case 5:
+                                manager.send(new WriteData(Order.TURN_ON_6));
+                                break;
+                            case 6:
+                                manager.send(new WriteData(Order.TURN_ON_7));
+                                break;
+                            case 7:
+                                manager.send(new WriteData(Order.TURN_ON_8));
+                                break;
+                        }
+                        break;
+                    case R.id.tv_open:
+                        switch (position) {
+                            case 0:
+                                manager.send(new WriteData(Order.TURN_OFF_1));
+                                break;
+                            case 1:
+                                manager.send(new WriteData(Order.TURN_OFF_2));
+                                break;
+                            case 2:
+                                manager.send(new WriteData(Order.TURN_OFF_3));
+                                break;
+                            case 3:
+                                manager.send(new WriteData(Order.TURN_OFF_4));
+                                break;
+                            case 4:
+                                manager.send(new WriteData(Order.TURN_OFF_5));
+                                break;
+                            case 5:
+                                manager.send(new WriteData(Order.TURN_OFF_6));
+                                break;
+                            case 6:
+                                manager.send(new WriteData(Order.TURN_OFF_7));
+                                break;
+                            case 7:
+                                manager.send(new WriteData(Order.TURN_OFF_8));
+                                break;
+                        }
+                        break;
+                }
+            }
+        });
         mWifiRelayRecyclerView.setAdapter(wifiAdapter);
 
     }
@@ -512,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mWifiList = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             RelayBean relayBean = new RelayBean();
-            relayBean.setName(i + 1 + "");
+            relayBean.setName(i + 1 + "号继电器");
             mWifiList.add(relayBean);
         }
 
