@@ -57,10 +57,10 @@
             android:theme="@style/QMUI.Compat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".elcscale.view.ElcScaleActivity" />
         <activity android:name=".relay.wifi.view.SocketTestActivity" />
         <activity android:name=".relay.wifi.view.WifiRelayActivity" />

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:tools="http://schemas.android.com/tools"
-                                             android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/qmui_config_color_white"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="@color/qmui_config_color_white">
 
     <RelativeLayout
         android:id="@+id/relativeLayout"
@@ -36,9 +36,9 @@
             android:id="@+id/id_iv_sampling_takePicture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"
             android:layout_alignParentEnd="true"
-            app:srcCompat="@drawable/ic_camera"/>
+            android:padding="8dp"
+            app:srcCompat="@drawable/ic_camera" />
 
 
     </RelativeLayout>
@@ -50,7 +50,7 @@
         android:text="保存"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -64,22 +64,22 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:gravity="center"
-            android:text="物料"/>
+            android:text="数量" />
 
         <View
-            android:background="@color/qmui_config_color_pure_black"
             android:layout_width="1dp"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="重量(kg)"/>
+            android:text="重量(kg)" />
 
     </LinearLayout>
 
@@ -92,22 +92,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
-        <Spinner
-            android:id="@+id/id_spinner"
+        <EditText
+            android:id="@+id/id_et_number"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:gravity="center"/>
+            android:layout_weight="1"
+            android:gravity="center"
+            android:imeOptions="flagNoExtractUi"
+            android:inputType="number"
+            android:text="0" />
 
 
         <EditText
             android:id="@+id/id_et_weight"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:imeOptions="flagNoExtractUi"
+            android:layout_weight="1"
             android:gravity="center"
-            android:text="0"/>
+            android:imeOptions="flagNoExtractUi"
+            android:inputType="number"
+            android:text="0" />
 
     </LinearLayout>
 

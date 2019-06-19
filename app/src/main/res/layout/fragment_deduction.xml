@@ -97,7 +97,7 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
         <Spinner
-            android:id="@+id/id_spinner"
+            android:id="@+id/id_et_number"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -111,6 +111,7 @@
             android:layout_height="wrap_content"
             android:imeOptions="flagNoExtractUi"
             android:gravity="center"
+            android:inputType="number"
             android:text="0"/>
 
         <EditText
@@ -120,6 +121,7 @@
             android:layout_height="wrap_content"
             android:imeOptions="flagNoExtractUi"
             android:gravity="center"
+            android:inputType="number"
             android:text="0"/>
 
     </LinearLayout>

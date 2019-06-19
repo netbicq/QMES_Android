@@ -7,22 +7,16 @@ import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -31,10 +25,7 @@ import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
-import com.uuzuche.lib_zxing.activity.CaptureActivity;
-import com.uuzuche.lib_zxing.activity.CodeUtils;
 import com.xuhao.didi.core.utils.BytesUtils;
 import com.xuhao.didi.socket.client.sdk.OkSocket;
 import com.xuhao.didi.socket.client.sdk.client.ConnectionInfo;
@@ -58,7 +49,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
 import kkkj.android.revgoods.bean.Device;
-import kkkj.android.revgoods.bean.MyEvent;
+import kkkj.android.revgoods.bean.DeviceEvent;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
@@ -107,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mChooseMatterImageView;
     private ImageView mTakePictureImageView;
     private ImageView mChoosePrinterImageView;
-    private TextView mChooseSupplierTextView;
+    private ImageView mChooseSupplierImageView;
     private TextView mChooseDeviceTextView;
     private TextView mWeightTextView;
     private TextView mPieceweightTextView;//单重
@@ -130,21 +121,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-
-        if (Build.VERSION.SDK_INT >= 21) {
-            Window window = MainActivity.this.getWindow();
-            //取消设置透明状态栏,使 ContentView 内容不再覆盖状态栏
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            //需要设置这个 flag 才能调用 setStatusBarColor 来设置状态栏颜色
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            //设置状态栏颜色
-            window.setStatusBarColor(ContextCompat.getColor(this, R.color.background));
-        }
-
-
         EventBus.getDefault().register(this);
+        /**
+         * 沉浸式
+         */
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getWindow().setAttributes(lp);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
         initData();
         initView();
 
@@ -174,15 +159,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        manager.unRegisterReceiver(listener);
+        if (manager != null) {
+            manager.unRegisterReceiver(listener);
+        }
+
         EventBus.getDefault().unregister(this);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void ConnectDevice(MyEvent myEvent) {
-        mChooseDeviceTextView.setText(myEvent.getDevice().getName());
+    public void ConnectDevice(DeviceEvent deviceEvent) {
+        mChooseDeviceTextView.setText(deviceEvent.getDevice().getName());
 
-        Device device = myEvent.getDevice();
+        Device device = deviceEvent.getDevice();
 
         switch (device.getType()) {
             case 0://蓝牙电子秤
@@ -199,7 +187,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 connectWifi(device);
                 break;
         }
-
 
     }
 
@@ -221,11 +208,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onNext(Boolean aBoolean) {
                     isConnect[0] = aBoolean;
+                    Toast.makeText(MainActivity.this,"蓝牙电子秤连接成功！",Toast.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onError(Throwable e) {
                     isConnect[0] = false;
+                    Toast.makeText(MainActivity.this,"蓝牙电子秤连接失败！",Toast.LENGTH_LONG).show();
                 }
 
                 @Override
@@ -261,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 }
                                                 mWeightTextView.setText(str);
                                                 double weight = Double.parseDouble(str);
-                                                if (weight > 3) {
+                                                if (weight > 3 && manager != null && manager.isConnect()) {
                                                     manager.send(new WriteData(Order.TURN_ON_3));
                                                     manager.send(new WriteData(Order.TURN_ON_2));
                                                     Observable.timer(2,TimeUnit.SECONDS)
@@ -338,6 +327,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (aBoolean) {
                         initRelay();
                         Logger.d("与" + bluetoothDevice.getName() + "成功建立连接");
+                        Toast.makeText(MainActivity.this,"蓝牙继电器连接成功！",Toast.LENGTH_LONG).show();
                     }
                 }
 
@@ -345,6 +335,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onError(Throwable e) {
                     e.printStackTrace();
                     Logger.d("与" + bluetoothDevice.getName() + "连接失败");
+                    Toast.makeText(MainActivity.this,"蓝牙电子秤连接失败！",Toast.LENGTH_LONG).show();
                 }
 
                 @Override
@@ -367,7 +358,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (manager != null) {
             manager.connect();
-            Logger.d("连接Wifi");
         }
     }
 
@@ -398,11 +388,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Logger.d("Action:" + message.getAction());
                 switch (message.getAction()) {
                     case IAction.ACTION_CONNECTION_FAILED:
-                        //showToast("连接失败");
+                        Toast.makeText(MainActivity.this,"Wifi继电器连接失败！",Toast.LENGTH_LONG).show();
                         break;
 
                     case IAction.ACTION_CONNECTION_SUCCESS://连接成功
-                        //showToast("连接成功");
+                        Toast.makeText(MainActivity.this,"Wifi继电器连接成功！",Toast.LENGTH_LONG).show();
                         Logger.d("mac地址：" + getMacFromArpCache(manager.getRemoteConnectionInfo().getIp()));
                         manager.getPulseManager()
                                 .setPulseSendable(mPulseData)//只需要设置一次,下一次可以直接调用pulse()
@@ -410,6 +400,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         manager.send(new WriteData(Order.GET_STATE));
                         break;
                     case IAction.ACTION_DISCONNECTION:
+                        Toast.makeText(MainActivity.this,"Wifi继电器连接已断开！",Toast.LENGTH_LONG).show();
                     case ACTION_READ_THREAD_SHUTDOWN://断开
                         break;
                     case ACTION_READ_COMPLETE:
@@ -504,6 +495,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onError(Throwable e) {
                 if (manager != null) {
                     // showToast(e.getMessage());
+                    Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
 
                 }
             }
@@ -525,7 +517,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChoosePrinterImageView = findViewById(R.id.id_iv_choose_printer);
         mWifiRelayRecyclerView = findViewById(R.id.id_wifiRelay_recyclerView);
         mPieceweightTextView = findViewById(R.id.id_tv_piece_weight);
-        mChooseSupplierTextView = findViewById(R.id.id_tv_choose_supplier);
+        mChooseSupplierImageView = findViewById(R.id.id_tv_choose_supplier);
         mSamplingTextView = findViewById(R.id.id_tv_sampling);
         mSamplingCount = findViewById(R.id.id_tv_sampling_count);
         mCumulativeTextView = findViewById(R.id.id_tv_cumulative);
@@ -535,78 +527,83 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mCumulativeTextView.setOnClickListener(this);
         mSamplingCount.setOnClickListener(this);
         mSamplingTextView.setOnClickListener(this);
-        mChooseSupplierTextView.setOnClickListener(this);
+        mChooseSupplierImageView.setOnClickListener(this);
         mPieceweightTextView.setOnClickListener(this);
         mChoosePrinterImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
         mChooseMatterImageView.setOnClickListener(this);
         mChooseDeviceTextView.setOnClickListener(this);
 
+
         wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay,mWifiList);
         mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        //mWifiRelayRecyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,
-               // DividerItemDecoration.VERTICAL));
+
         wifiAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                switch (view.getId()) {
-                    case R.id.tv_open:
-                        switch (position) { //position 哪个继电器
-                            case 0:
-                                manager.send(new WriteData(Order.TURN_ON_1));
-                                break;
-                            case 1:
-                                manager.send(new WriteData(Order.TURN_ON_2));
-                                break;
-                            case 2:
-                                manager.send(new WriteData(Order.TURN_ON_3));
-                                break;
-                            case 3:
-                                manager.send(new WriteData(Order.TURN_ON_4));
-                                break;
-                            case 4:
-                                manager.send(new WriteData(Order.TURN_ON_5));
-                                break;
-                            case 5:
-                                manager.send(new WriteData(Order.TURN_ON_6));
-                                break;
-                            case 6:
-                                manager.send(new WriteData(Order.TURN_ON_7));
-                                break;
-                            case 7:
-                                manager.send(new WriteData(Order.TURN_ON_8));
-                                break;
-                        }
-                        break;
-                    case R.id.tv_close:
-                        switch (position) {
-                            case 0:
-                                manager.send(new WriteData(Order.TURN_OFF_1));
-                                break;
-                            case 1:
-                                manager.send(new WriteData(Order.TURN_OFF_2));
-                                break;
-                            case 2:
-                                manager.send(new WriteData(Order.TURN_OFF_3));
-                                break;
-                            case 3:
-                                manager.send(new WriteData(Order.TURN_OFF_4));
-                                break;
-                            case 4:
-                                manager.send(new WriteData(Order.TURN_OFF_5));
-                                break;
-                            case 5:
-                                manager.send(new WriteData(Order.TURN_OFF_6));
-                                break;
-                            case 6:
-                                manager.send(new WriteData(Order.TURN_OFF_7));
-                                break;
-                            case 7:
-                                manager.send(new WriteData(Order.TURN_OFF_8));
-                                break;
-                        }
-                        break;
+                if (manager != null && manager.isConnect()) {
+                    switch (view.getId()) {
+                        case R.id.tv_open:
+                            switch (position) { //position 哪个继电器
+                                case 0:
+                                    manager.send(new WriteData(Order.TURN_ON_1));
+                                    break;
+                                case 1:
+                                    manager.send(new WriteData(Order.TURN_ON_2));
+                                    break;
+                                case 2:
+                                    manager.send(new WriteData(Order.TURN_ON_3));
+                                    break;
+                                case 3:
+                                    manager.send(new WriteData(Order.TURN_ON_4));
+                                    break;
+                                case 4:
+                                    manager.send(new WriteData(Order.TURN_ON_5));
+                                    break;
+                                case 5:
+                                    manager.send(new WriteData(Order.TURN_ON_6));
+                                    break;
+                                case 6:
+                                    manager.send(new WriteData(Order.TURN_ON_7));
+                                    break;
+                                case 7:
+                                    manager.send(new WriteData(Order.TURN_ON_8));
+                                    break;
+                            }
+                            break;
+                        case R.id.tv_close:
+                            switch (position) {
+                                case 0:
+                                    manager.send(new WriteData(Order.TURN_OFF_1));
+                                    break;
+                                case 1:
+                                    manager.send(new WriteData(Order.TURN_OFF_2));
+                                    break;
+                                case 2:
+                                    manager.send(new WriteData(Order.TURN_OFF_3));
+                                    break;
+                                case 3:
+                                    manager.send(new WriteData(Order.TURN_OFF_4));
+                                    break;
+                                case 4:
+                                    manager.send(new WriteData(Order.TURN_OFF_5));
+                                    break;
+                                case 5:
+                                    manager.send(new WriteData(Order.TURN_OFF_6));
+                                    break;
+                                case 6:
+                                    manager.send(new WriteData(Order.TURN_OFF_7));
+                                    break;
+                                case 7:
+                                    manager.send(new WriteData(Order.TURN_OFF_8));
+                                    break;
+                            }
+                            break;
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this,"继电器未连接，请先连接继电器！",Toast.LENGTH_LONG).show();
                 }
+
             }
         });
         mWifiRelayRecyclerView.setAdapter(wifiAdapter);
@@ -626,12 +623,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mWifiList = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             RelayBean relayBean = new RelayBean();
-            relayBean.setName(i + 1 + "号继电器");
+            relayBean.setName(i + 1 + "号开关");
             mWifiList.add(relayBean);
         }
-
-
-
 
         if (!mBluetooth.isSupportBlue()) {
             Toast.makeText(this, "当前设备不支持蓝牙", Toast.LENGTH_LONG).show();
@@ -733,6 +727,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    //蓝牙继电器
     public void initRelay() {
         //recyclerView.setVisibility(View.VISIBLE);
         stateOB = new Observer<String>() {
@@ -866,22 +861,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    //沉浸式模式
-   /** @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && Build.VERSION.SDK_INT >= 19) {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
-    }*/
-
     @Override
     public void onClick(View view) {
 
@@ -895,9 +874,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_sampling://采样
-                if (samplingFragment == null) {
-                    samplingFragment = new SamplingFragment();
-                }
+
+                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
                 FragmentTransaction ft1 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft1.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 samplingFragment.show(ft1,"samplingFragment");
@@ -921,10 +899,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 cumulativeFragment.show(ft3,"cumulativeFragment");
                 break;
 
-            case R.id.id_tv_deduction:
-                if (deductionFragment == null) {
-                    deductionFragment = new DeductionFragment();
-                }
+            case R.id.id_tv_deduction://扣重
+
+                deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
                 FragmentTransaction ft4 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft4.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 deductionFragment.show(ft4,"deductionFragment");
@@ -942,6 +919,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.id_tv_piece_weight://单重
                 final EditText editText = new EditText(MainActivity.this);
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
                 AlertDialog.Builder inputDialog =new AlertDialog.Builder(MainActivity.this);
                 inputDialog.setTitle("请输入单重").setView(editText);
                 inputDialog.setPositiveButton("确定",

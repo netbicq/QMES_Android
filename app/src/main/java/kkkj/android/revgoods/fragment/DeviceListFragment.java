@@ -1,8 +1,6 @@
 package kkkj.android.revgoods.fragment;
 
 import android.app.Dialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -19,8 +17,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 
@@ -29,13 +25,10 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeviceAdapter;
 import kkkj.android.revgoods.bean.Device;
-import kkkj.android.revgoods.bean.MyEvent;
-import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
+import kkkj.android.revgoods.bean.DeviceEvent;
 
 public class DeviceListFragment extends DialogFragment implements View.OnClickListener {
 
@@ -108,8 +101,8 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 Device device = mDevices.get(position);
-                MyEvent myEvent = new MyEvent(device);
-                EventBus.getDefault().post(myEvent);
+                DeviceEvent deviceEvent = new DeviceEvent(device);
+                EventBus.getDefault().post(deviceEvent);
                 dismiss();
             }
         });

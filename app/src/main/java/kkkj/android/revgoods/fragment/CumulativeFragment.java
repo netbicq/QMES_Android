@@ -18,7 +18,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.adapter.CumulativeAdapter;
+import kkkj.android.revgoods.bean.Cumulative;
 
 /**
  * 累计
@@ -28,6 +33,8 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
     private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
+    private CumulativeAdapter adapter;
+    private List<Cumulative> cumulativeList;
 
     @Nullable
     @Override
@@ -43,6 +50,16 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
     }
 
     private void initData() {
+        cumulativeList = new ArrayList<>();
+        for (int i = 0;i<10;i++) {
+            Cumulative cumulative = new Cumulative();
+            cumulative.setCount(i+1);
+            cumulative.setMweight(20+i+"");
+            cumulative.setKweight(1+i+"");
+            cumulative.setJweight(Double.parseDouble(cumulative.getMweight()) - Double.parseDouble(cumulative.getKweight()) + "");
+            cumulativeList.add(cumulative);
+        }
+        adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
     }
 
     private void initView(View view) {
@@ -54,6 +71,7 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
+        mRecyclerView.setAdapter(adapter);
     }
 
 

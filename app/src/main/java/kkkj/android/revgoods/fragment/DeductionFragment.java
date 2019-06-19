@@ -36,15 +36,29 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
     Button mSaveButton;
 
     private Spinner mSpinner;
-    @BindView(R.id.id_et_weight)
-    EditText mEtWeight;
+    private EditText mEtWeight;
     @BindView(R.id.id_et_price)
     EditText mEtPrice;
     Unbinder unbinder;
     private ImageView mBackImageView;
 
     private ArrayAdapter adapter;
+    private String weight;
 
+    public static DeductionFragment newInstance(String weight) {
+        Bundle args = new Bundle();
+        args.putString("weight",weight);
+
+        DeductionFragment fragment = new DeductionFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        weight = (String)getArguments().getSerializable("weight");
+    }
 
     @Nullable
     @Override
@@ -73,11 +87,13 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
         list.add("报废");
         list.add("鸡");
         list.add("鱼");
-        return list  ;
+        return list;
     }
 
     private void initView(View view) {
-        mSpinner = view.findViewById(R.id.id_spinner);
+        mEtWeight = view.findViewById(R.id.id_et_weight);
+        mEtWeight.setText(weight);
+        mSpinner = view.findViewById(R.id.id_et_number);
         mSpinner.setAdapter(adapter);
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mBackImageView.setOnClickListener(this);

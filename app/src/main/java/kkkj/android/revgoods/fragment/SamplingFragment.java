@@ -10,9 +10,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,12 +20,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -45,16 +38,29 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
     @BindView(R.id.button)
     Button mSaveButton;
-
-    private Spinner mSpinner;
-    @BindView(R.id.id_et_weight)
-    EditText mEtWeight;
+    private EditText mEtNumber;
+    private EditText mEtWeight;
     Unbinder unbinder;
     private ImageView mBackImageView;
     private ImageView mTakePictureImageView;
-
     private ArrayAdapter adapter;
+    private String weight;
 
+    public static SamplingFragment newInstance(String weight) {
+        Bundle args = new Bundle();
+        args.putString("weight",weight);
+
+        SamplingFragment fragment = new SamplingFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        weight = (String)getArguments().getSerializable("weight");
+    }
 
     @Nullable
     @Override
@@ -71,26 +77,18 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
     }
 
+
     private void initData() {
 
-        adapter = new ArrayAdapter<String>(getActivity().getApplication(),
-                android.R.layout.simple_spinner_item, getDataSource());
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
 
     }
 
-    public List<String> getDataSource(){
-        List<String> list = new ArrayList<String>() ;
-        list.add("牛");
-        list.add("羊");
-        list.add("鸡");
-        list.add("鱼");
-        return list  ;
-    }
 
     private void initView(View view) {
-        mSpinner = view.findViewById(R.id.id_spinner);
-        mSpinner.setAdapter(adapter);
+        mEtNumber = view.findViewById(R.id.id_et_number);
+        mEtWeight = view.findViewById(R.id.id_et_weight);
+        mEtWeight.setText(weight);
 
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mTakePictureImageView = view.findViewById(R.id.id_iv_sampling_takePicture);

@@ -17,7 +17,13 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.adapter.SamplingDetailsAdapter;
+import kkkj.android.revgoods.bean.SamplingDetails;
 
 /**
  * 采样明细
@@ -27,6 +33,8 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
     private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
+    private SamplingDetailsAdapter adapter;
+    private List<SamplingDetails> samplingDetailsList;
 
     @Nullable
     @Override
@@ -42,6 +50,16 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
     }
 
     private void initData() {
+        samplingDetailsList = new ArrayList<>();
+        for (int i = 0;i<10;i++) {
+            SamplingDetails samplingDetails = new SamplingDetails();
+            samplingDetails.setCount(i);
+            samplingDetails.setName("测试");
+            samplingDetails.setWeight("10"+i);
+            samplingDetailsList.add(samplingDetails);
+        }
+
+        adapter = new SamplingDetailsAdapter(R.layout.item_sampling_deatils,samplingDetailsList);
     }
 
     private void initView(View view) {
@@ -53,6 +71,7 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
+        mRecyclerView.setAdapter(adapter);
     }
 
 
