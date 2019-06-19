@@ -18,8 +18,11 @@ import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -99,8 +102,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mTakePictureImageView;
     private ImageView mChoosePrinterImageView;
     private ImageView mChooseSupplierImageView;
-    private TextView mChooseDeviceTextView;
+    private Spinner mChooseProductionLine;
     private TextView mWeightTextView;
+    private TextView mShowPieceWeight;
     private TextView mPieceweightTextView;//单重
     private TextView mSamplingTextView;//采样
     private TextView mSamplingCount;//采样累计
@@ -115,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Observer<String> stateOB;
     private double weight = 0;
     private List<Device> mDeices;
+    private ArrayAdapter spinnerAdapter;
 
 
     @Override
@@ -139,18 +144,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        if (isFirst) {
-            isFirst = false;
-            deviceListFragment = new DeviceListFragment();
-            FragmentTransaction ft = MainActivity.this.getSupportFragmentManager().beginTransaction();
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            deviceListFragment.show(ft, "deviceFragment");
-        }
+        Logger.d("生命周期"+"onResume");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        Logger.d("生命周期"+"onStop");
         if (manager != null) {
             manager.disconnect();
         }
@@ -168,7 +168,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
-        mChooseDeviceTextView.setText(deviceEvent.getDevice().getName());
 
         Device device = deviceEvent.getDevice();
 
@@ -208,13 +207,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onNext(Boolean aBoolean) {
                     isConnect[0] = aBoolean;
-                    Toast.makeText(MainActivity.this,"蓝牙电子秤连接成功！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "蓝牙电子秤连接成功！", Toast.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onError(Throwable e) {
                     isConnect[0] = false;
-                    Toast.makeText(MainActivity.this,"蓝牙电子秤连接失败！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "蓝牙电子秤连接失败！", Toast.LENGTH_LONG).show();
                 }
 
                 @Override
@@ -253,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 if (weight > 3 && manager != null && manager.isConnect()) {
                                                     manager.send(new WriteData(Order.TURN_ON_3));
                                                     manager.send(new WriteData(Order.TURN_ON_2));
-                                                    Observable.timer(2,TimeUnit.SECONDS)
+                                                    Observable.timer(2, TimeUnit.SECONDS)
                                                             .subscribe(new Observer<Long>() {
                                                                 @Override
                                                                 public void onSubscribe(Disposable d) {
@@ -327,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (aBoolean) {
                         initRelay();
                         Logger.d("与" + bluetoothDevice.getName() + "成功建立连接");
-                        Toast.makeText(MainActivity.this,"蓝牙继电器连接成功！",Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "蓝牙继电器连接成功！", Toast.LENGTH_LONG).show();
                     }
                 }
 
@@ -335,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onError(Throwable e) {
                     e.printStackTrace();
                     Logger.d("与" + bluetoothDevice.getName() + "连接失败");
-                    Toast.makeText(MainActivity.this,"蓝牙电子秤连接失败！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "蓝牙电子秤连接失败！", Toast.LENGTH_LONG).show();
                 }
 
                 @Override
@@ -368,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String ip = device.getWifiIp();
         int port = device.getWifiPort();
         //连接参数设置(IP,端口号),这也是一个连接的唯一标识,不同连接,该参数中的两个值至少有其一不一样
-        ConnectionInfo info = new ConnectionInfo(ip, port);
+        ConnectionInfo info = new ConnectionInfo(ip,port);
         //调用OkSocket,开启这次连接的通道,拿到通道Manager
         manager = OkSocket.open(info);
         //设置自定义解析头
@@ -388,11 +387,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Logger.d("Action:" + message.getAction());
                 switch (message.getAction()) {
                     case IAction.ACTION_CONNECTION_FAILED:
-                        Toast.makeText(MainActivity.this,"Wifi继电器连接失败！",Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "Wifi继电器连接失败！", Toast.LENGTH_LONG).show();
                         break;
 
                     case IAction.ACTION_CONNECTION_SUCCESS://连接成功
-                        Toast.makeText(MainActivity.this,"Wifi继电器连接成功！",Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "Wifi继电器连接成功！", Toast.LENGTH_LONG).show();
                         Logger.d("mac地址：" + getMacFromArpCache(manager.getRemoteConnectionInfo().getIp()));
                         manager.getPulseManager()
                                 .setPulseSendable(mPulseData)//只需要设置一次,下一次可以直接调用pulse()
@@ -400,7 +399,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         manager.send(new WriteData(Order.GET_STATE));
                         break;
                     case IAction.ACTION_DISCONNECTION:
-                        Toast.makeText(MainActivity.this,"Wifi继电器连接已断开！",Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "Wifi继电器连接已断开！", Toast.LENGTH_LONG).show();
                     case ACTION_READ_THREAD_SHUTDOWN://断开
                         break;
                     case ACTION_READ_COMPLETE:
@@ -424,7 +423,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             //第几个继电器
                             String index = message.getData().substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
                             //继电器状态
-                            String state = message.getData().substring("01 05 00 ".length() + 3, "01 05 00 ".length() + 5);
+                            String state = message.getData().substring("01 05 00 ".length() + 3,
+                                    "01 05 00 ".length() + 5);
                             Logger.d("---" + index + "---" + state + "---");
                             switch (index) {
                                 case "00":
@@ -495,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onError(Throwable e) {
                 if (manager != null) {
                     // showToast(e.getMessage());
-                    Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
 
                 }
             }
@@ -511,7 +511,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initView() {
         mChooseMatterImageView = findViewById(R.id.id_iv_choose_matter);
-        mChooseDeviceTextView = findViewById(R.id.id_tv_choose_device);
+        mChooseProductionLine = findViewById(R.id.id_tv_choose_device);//生产线
         mWeightTextView = findViewById(R.id.id_tv_weight);
         mTakePictureImageView = findViewById(R.id.id_iv_takePicture);
         mChoosePrinterImageView = findViewById(R.id.id_iv_choose_printer);
@@ -523,6 +523,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mCumulativeTextView = findViewById(R.id.id_tv_cumulative);
         mDeductionTextView = findViewById(R.id.id_tv_deduction);
         mSamplingNumber = findViewById(R.id.id_tv_sampling_number);
+        mShowPieceWeight = findViewById(R.id.id_tv_show_piece_weight);
         mDeductionTextView.setOnClickListener(this);
         mCumulativeTextView.setOnClickListener(this);
         mSamplingCount.setOnClickListener(this);
@@ -532,10 +533,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChoosePrinterImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
         mChooseMatterImageView.setOnClickListener(this);
-        mChooseDeviceTextView.setOnClickListener(this);
 
+        mChooseProductionLine.setAdapter(spinnerAdapter);
+        mChooseProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        break;
 
-        wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay,mWifiList);
+                    case 1:
+                        if (deviceListFragment == null) {
+                            deviceListFragment = new DeviceListFragment();
+                        }
+                        FragmentTransaction ft = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                        deviceListFragment.show(ft, "deviceFragment");
+                        break;
+
+                    case 2:
+
+                        break;
+
+                    case 3:
+
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay, mWifiList);
         mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
 
         wifiAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
@@ -601,7 +636,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             break;
                     }
                 } else {
-                    Toast.makeText(MainActivity.this,"继电器未连接，请先连接继电器！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "继电器未连接，请先连接继电器！", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -611,6 +646,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initData() {
+
+        spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
+                R.layout.spinner_style, getDataSource());
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         mDeices = new ArrayList<>();
         isFirst = true;
@@ -637,6 +676,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         //注册蓝牙广播
         rigistReciver();
+    }
+
+    public List<String> getDataSource() {
+        List<String> list = new ArrayList<String>();
+        list.add("请选择生产线");
+        list.add("一号生产线");
+        list.add("二号生产线");
+        list.add("三号生产线");
+        return list;
     }
 
     private void rigistReciver() {
@@ -739,91 +787,95 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onNext(String s) {
 
-                 mList_b.get(0).getMyBluetoothManager().getReadOBModbus().subscribe(new Observer<byte[]>() {
-                @Override public void onSubscribe(Disposable d) {
+                mList_b.get(0).getMyBluetoothManager().getReadOBModbus().subscribe(new Observer<byte[]>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
-                }
+                    }
 
-                @Override public void onNext(byte[] bytes) {
-                Logger.d("----" + BytesUtils.toHexStringForLog(bytes) + "----");
-                String message = BytesUtils.toHexStringForLog(bytes);
-                if (message.indexOf("01 05 00 ") == 0) {
-                //收到状态
-                String index = message.substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
-                String state = message.substring("01 05 00 ".length() + 3, "01 05 00 ".length() + 5);
-                Logger.d("---" + index + "---" + state + "---");
-                switch (index) {
-                case "00":
-                if (!state.equals("00")) {
-                mWifiList.get(0).setState("1");
-                } else {
-                mWifiList.get(0).setState("0");
-                }
-                break;
-                case "01":
-                if (!state.equals("00")) {
-                mWifiList.get(1).setState("1");
-                } else {
-                mWifiList.get(1).setState("0");
-                }
-                break;
-                case "02":
-                if (!state.equals("00")) {
-                mWifiList.get(2).setState("1");
-                } else {
-                mWifiList.get(2).setState("0");
-                }
-                break;
-                case "03":
-                if (!state.equals("00")) {
-                mWifiList.get(3).setState("1");
-                } else {
-                mWifiList.get(3).setState("0");
-                }
-                break;
-                case "04":
-                if (!state.equals("00")) {
-                mWifiList.get(4).setState("1");
-                } else {
-                mWifiList.get(4).setState("0");
-                }
-                break;
-                case "05":
-                if (!state.equals("00")) {
-                mWifiList.get(5).setState("1");
-                } else {
-                mWifiList.get(5).setState("0");
-                }
-                break;
-                case "06":
-                if (!state.equals("00")) {
-                mWifiList.get(6).setState("1");
-                } else {
-                mWifiList.get(6).setState("0");
-                }
-                break;
-                case "07":
-                if (!state.equals("00")) {
-                mWifiList.get(7).setState("1");
-                } else {
-                mWifiList.get(7).setState("0");
-                }
-                break;
-                default:
-                break;
-                }
-                wifiAdapter.notifyDataSetChanged();
+                    @Override
+                    public void onNext(byte[] bytes) {
+                        Logger.d("----" + BytesUtils.toHexStringForLog(bytes) + "----");
+                        String message = BytesUtils.toHexStringForLog(bytes);
+                        if (message.indexOf("01 05 00 ") == 0) {
+                            //收到状态
+                            String index = message.substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
+                            String state = message.substring("01 05 00 ".length() + 3, "01 05 00 ".length() + 5);
+                            Logger.d("---" + index + "---" + state + "---");
+                            switch (index) {
+                                case "00":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(0).setState("1");
+                                    } else {
+                                        mWifiList.get(0).setState("0");
+                                    }
+                                    break;
+                                case "01":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(1).setState("1");
+                                    } else {
+                                        mWifiList.get(1).setState("0");
+                                    }
+                                    break;
+                                case "02":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(2).setState("1");
+                                    } else {
+                                        mWifiList.get(2).setState("0");
+                                    }
+                                    break;
+                                case "03":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(3).setState("1");
+                                    } else {
+                                        mWifiList.get(3).setState("0");
+                                    }
+                                    break;
+                                case "04":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(4).setState("1");
+                                    } else {
+                                        mWifiList.get(4).setState("0");
+                                    }
+                                    break;
+                                case "05":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(5).setState("1");
+                                    } else {
+                                        mWifiList.get(5).setState("0");
+                                    }
+                                    break;
+                                case "06":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(6).setState("1");
+                                    } else {
+                                        mWifiList.get(6).setState("0");
+                                    }
+                                    break;
+                                case "07":
+                                    if (!state.equals("00")) {
+                                        mWifiList.get(7).setState("1");
+                                    } else {
+                                        mWifiList.get(7).setState("0");
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                            wifiAdapter.notifyDataSetChanged();
 
-                }
-                }
+                        }
+                    }
 
-                @Override public void onError(Throwable e) {
+                    @Override
+                    public void onError(Throwable e) {
 
-                }
+                    }
 
-                @Override public void onComplete() {
+                    @Override
+                    public void onComplete() {
 
-                }
+                    }
                 });
             }
 
@@ -870,7 +922,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_choose_supplier://选择供应商
-                startActivity(new Intent(MainActivity.this,ChooseSupplierActivity.class));
+                startActivity(new Intent(MainActivity.this, ChooseSupplierActivity.class));
                 break;
 
             case R.id.id_tv_sampling://采样
@@ -878,7 +930,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
                 FragmentTransaction ft1 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft1.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                samplingFragment.show(ft1,"samplingFragment");
+                samplingFragment.show(ft1, "samplingFragment");
                 break;
 
             case R.id.id_tv_sampling_count://采样累计
@@ -887,7 +939,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 FragmentTransaction ft2 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft2.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                samplingDetailsFragment.show(ft2,"samplingDetailsFragment");
+                samplingDetailsFragment.show(ft2, "samplingDetailsFragment");
                 break;
 
             case R.id.id_tv_cumulative://累计
@@ -896,7 +948,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 FragmentTransaction ft3 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft3.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                cumulativeFragment.show(ft3,"cumulativeFragment");
+                cumulativeFragment.show(ft3, "cumulativeFragment");
                 break;
 
             case R.id.id_tv_deduction://扣重
@@ -904,10 +956,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
                 FragmentTransaction ft4 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft4.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                deductionFragment.show(ft4,"deductionFragment");
+                deductionFragment.show(ft4, "deductionFragment");
                 break;
 
-            case R.id.id_tv_choose_device:
             case R.id.id_iv_choose_printer:
                 if (deviceListFragment == null) {
                     deviceListFragment = new DeviceListFragment();
@@ -920,13 +971,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_piece_weight://单重
                 final EditText editText = new EditText(MainActivity.this);
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-                AlertDialog.Builder inputDialog =new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
                 inputDialog.setTitle("请输入单重").setView(editText);
                 inputDialog.setPositiveButton("确定",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_PIECE_WEIGHT,editText.getText().toString().trim());
+                                SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_PIECE_WEIGHT,
+                                        editText.getText().toString().trim());
+                                mShowPieceWeight.setText(editText.getText().toString().trim());
 
                             }
                         })
