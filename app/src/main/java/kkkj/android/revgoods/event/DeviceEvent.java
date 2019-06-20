@@ -1,8 +1,23 @@
-package kkkj.android.revgoods.bean;
+package kkkj.android.revgoods.event;
+
+import kkkj.android.revgoods.bean.Device;
 
 public class DeviceEvent {
     public String msg;
     public Device device;
+
+    public int samplingNumber;
+
+    public DeviceEvent(){
+
+    }
+    public int getSamplingNumber() {
+        return samplingNumber;
+    }
+
+    public void setSamplingNumber(int samplingNumber) {
+        this.samplingNumber = samplingNumber;
+    }
 
     public DeviceEvent(String msg) {
         this.msg = msg;

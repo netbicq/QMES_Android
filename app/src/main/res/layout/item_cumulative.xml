@@ -18,12 +18,12 @@
         android:layout_height="match_parent"/>
 
     <TextView
-        android:id="@+id/id_tv_mweight"
+        android:id="@+id/id_tv_category"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="毛重"/>
+        android:text="类别"/>
 
     <View
         android:background="@color/qmui_config_color_pure_black"
@@ -31,24 +31,11 @@
         android:layout_height="match_parent"/>
 
     <TextView
-        android:id="@+id/id_tv_kweight"
+        android:id="@+id/id_tv_weight"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="扣重"/>
-
-    <View
-        android:background="@color/qmui_config_color_pure_black"
-        android:layout_width="1dp"
-        android:layout_height="match_parent"/>
-
-    <TextView
-        android:id="@+id/id_tv_jweight"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:text="净重"/>
+        android:text="重量"/>
 
 </LinearLayout>

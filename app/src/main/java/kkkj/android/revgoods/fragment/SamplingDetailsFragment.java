@@ -18,6 +18,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import org.litepal.LitePal;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,13 +53,7 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
 
     private void initData() {
         samplingDetailsList = new ArrayList<>();
-        for (int i = 0;i<10;i++) {
-            SamplingDetails samplingDetails = new SamplingDetails();
-            samplingDetails.setCount(i);
-            samplingDetails.setName("测试");
-            samplingDetails.setWeight("10"+i);
-            samplingDetailsList.add(samplingDetails);
-        }
+        samplingDetailsList = LitePal.findAll(SamplingDetails.class);
 
         adapter = new SamplingDetailsAdapter(R.layout.item_sampling_deatils,samplingDetailsList);
     }

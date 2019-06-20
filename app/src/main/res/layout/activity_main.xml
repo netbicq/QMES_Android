@@ -8,6 +8,57 @@
     android:background="@color/background"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/id_iv_choose_specs"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_takePicture"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_matter"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_takePicture"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/ic_specs_36dp" />
+
+    <TextView
+        android:id="@+id/id_tv_save_bill"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="保存单据"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
+        app:layout_constraintEnd_toStartOf="@+id/id_tv_save_bill2"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/id_tv_save_bill2"
+        android:layout_width="50dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="0/0"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_tv_save_bill"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.852"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/id_tv_save_bill"
+        app:layout_constraintVertical_bias="0.0" />
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
@@ -83,15 +134,15 @@
         android:text="@string/cumulative"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
         app:layout_constraintStart_toEndOf="@+id/id_tv_deduction"
-        app:layout_constraintTop_toTopOf="@+id/imageView5" />
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print" />
 
     <TextView
         android:id="@+id/textView16"
         android:layout_width="43dp"
         android:layout_height="30dp"
-        android:text="@string/gross_weight"
+        android:text="@string/net_weight"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/id_tv_weight"
@@ -173,7 +224,7 @@
         app:srcCompat="@drawable/ic_choose_print_24" />
 
     <ImageView
-        android:id="@+id/imageView5"
+        android:id="@+id/id_iv_print"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -195,7 +246,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_camera_36dp" />
 
-    <Spinner
+    <kkkj.android.revgoods.customer.ReSpinner
         android:id="@+id/id_tv_choose_device"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
@@ -230,9 +281,9 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
-        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_matter"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_specs"
         app:layout_constraintTop_toTopOf="@+id/id_iv_choose_matter"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/id_tv_deduction"
@@ -245,9 +296,9 @@
         android:text="@string/deduction"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
         app:layout_constraintStart_toEndOf="@+id/id_tv_piece_weight"
-        app:layout_constraintTop_toTopOf="@+id/imageView5"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print"
         app:layout_constraintVertical_bias="1.0" />
 
     <TextView
@@ -261,9 +312,9 @@
         android:text="@string/piece_weight"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
         app:layout_constraintStart_toEndOf="@+id/id_tv_sampling"
-        app:layout_constraintTop_toTopOf="@+id/imageView5" />
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print" />
 
     <TextView
         android:id="@+id/id_tv_sampling"
@@ -276,9 +327,9 @@
         android:text="@string/sampling"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView5"
-        app:layout_constraintStart_toEndOf="@+id/imageView5"
-        app:layout_constraintTop_toTopOf="@+id/imageView5"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_print"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print"
         app:layout_constraintVertical_bias="1.0" />
 
     <android.support.constraint.Guideline
@@ -297,16 +348,15 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/id_wifiRelay_recyclerView"
-        android:layout_width="96dp"
-        android:layout_height="122dp"
+        android:layout_width="98dp"
+        android:layout_height="129dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline8"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintEnd_toEndOf="@+id/id_tv_choose_device"
         app:layout_constraintStart_toStartOf="@+id/id_tv_choose_device"
-        app:layout_constraintTop_toBottomOf="@+id/id_tv_choose_device"/>
+        app:layout_constraintTop_toBottomOf="@+id/id_tv_choose_device"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/textView7"

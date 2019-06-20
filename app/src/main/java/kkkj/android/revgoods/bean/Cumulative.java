@@ -6,19 +6,14 @@ package kkkj.android.revgoods.bean;
 public class Cumulative {
     private int count;
     /**
-     * 毛重
+     * 类别
      */
-    private String mweight;
+    private String category;
 
     /**
-     * 扣重
+     * 重量
      */
-    private String kweight;
-
-    /**
-     * 净重
-     */
-    private String jweight;
+    private String weight;
 
     public int getCount() {
         return count;
@@ -28,27 +23,20 @@ public class Cumulative {
         this.count = count;
     }
 
-    public String getMweight() {
-        return mweight;
+    public String getCategory() {
+        return category;
     }
 
-    public void setMweight(String mweight) {
-        this.mweight = mweight;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
-    public String getKweight() {
-        return kweight;
+
+    public String getWeight() {
+        return weight;
     }
 
-    public void setKweight(String kweight) {
-        this.kweight = kweight;
-    }
-
-    public String getJweight() {
-        return jweight;
-    }
-
-    public void setJweight(String jweight) {
-        this.jweight = jweight;
+    public void setWeight(String weight) {
+        this.weight = weight;
     }
 }

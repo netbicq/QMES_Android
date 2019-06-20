@@ -1,7 +1,6 @@
 package kkkj.android.revgoods.app;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 
 import com.orhanobut.logger.AndroidLogAdapter;
@@ -29,8 +28,8 @@ import java.util.Set;
 import kkkj.android.revgoods.R;
 
 
-public class RevGoods extends ZApplication {
-    private static RevGoods instance;
+public class BaseApplication extends ZApplication {
+    private static BaseApplication instance;
     private Set<Activity> allActivities;
     private static Context mContext;
     private Map<String, String> commonparts;
@@ -75,7 +74,7 @@ public class RevGoods extends ZApplication {
         LitePal.initialize(this);
         instance = this;
         FormatStrategy formatStrategy = PrettyFormatStrategy.newBuilder()
-                .tag("RevGoods")
+                .tag("BaseApplication")
                 .build();
         //打印日志
         Logger.addLogAdapter(new AndroidLogAdapter(formatStrategy));
@@ -90,7 +89,7 @@ public class RevGoods extends ZApplication {
 //        Bugly.init(mContext, "0776eeab1a", false);
         initX5();
     }
-    public static synchronized RevGoods getInstance() {
+    public static synchronized BaseApplication getInstance() {
         return instance;
     }
 

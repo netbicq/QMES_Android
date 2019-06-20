@@ -79,7 +79,7 @@ public class GetPicOrMP4Activity extends MvpBaseActivity {
         getPermissions();
     }
 
-    /*
+    /**
     获取真实路径
      */
     public static String getRealPathFromUri(Context context, Uri contentUri) {

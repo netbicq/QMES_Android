@@ -8,13 +8,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -23,7 +21,7 @@ import org.greenrobot.eventbus.EventBus;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import kkkj.android.revgoods.R;
-import kkkj.android.revgoods.app.RevGoods;
+import kkkj.android.revgoods.app.BaseApplication;
 import kkkj.android.revgoods.customer.MyToasty;
 
 /**
@@ -109,7 +107,7 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
         if (mPresenter != null) {
             mPresenter.attachView(this);
         }
-        RevGoods.getInstance().addActivity(mActivity);
+        BaseApplication.getInstance().addActivity(mActivity);
         initMonitorAndData();
         if (this.getClass().isAnnotationPresent(BindEventBus.class)) {
             EventBus.getDefault().register(this);
@@ -131,7 +129,7 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
         }
         if (mPresenter != null)
             mPresenter.detachView();
-        RevGoods.getInstance().removeActivity(mActivity);
+        BaseApplication.getInstance().removeActivity(mActivity);
     }
 
     protected abstract int getLayout();

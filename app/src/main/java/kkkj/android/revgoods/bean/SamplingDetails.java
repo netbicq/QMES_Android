@@ -1,9 +1,24 @@
 package kkkj.android.revgoods.bean;
 
-public class SamplingDetails {
+import org.litepal.crud.LitePalSupport;
+
+import java.util.List;
+
+import kkkj.android.revgoods.common.getpic.GetPicModel;
+
+public class SamplingDetails extends LitePalSupport {
     private int count;
-    private String name;
+    private String number;
     private String weight;
+    private List<GetPicModel> modelList;
+
+    public List<GetPicModel> getModelList() {
+        return modelList;
+    }
+
+    public void setModelList(List<GetPicModel> modelList) {
+        this.modelList = modelList;
+    }
 
     public int getCount() {
         return count;
@@ -13,12 +28,12 @@ public class SamplingDetails {
         this.count = count;
     }
 
-    public String getName() {
-        return name;
+    public String getNumber() {
+        return number;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNumber(String number) {
+        this.number = number;
     }
 
     public String getWeight() {

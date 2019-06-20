@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 
@@ -28,11 +29,15 @@ import java.util.List;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeviceAdapter;
 import kkkj.android.revgoods.bean.Device;
-import kkkj.android.revgoods.bean.DeviceEvent;
+import kkkj.android.revgoods.event.DeviceEvent;
 
+/**
+ * 设备列表
+ */
 public class DeviceListFragment extends DialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
+    private TextView mTitle;
     private RecyclerView mRecyclerView;
     private DeviceAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
@@ -90,6 +95,8 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
     private void initView(View view) {
         mBackImageView = view.findViewById(R.id.iv_back);
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
+        mTitle = view.findViewById(R.id.id_tv_title);
+        mTitle.setText("请选择当前要连接的设备");
         mBackImageView.setOnClickListener(this);
 
         mAdapter = new DeviceAdapter(R.layout.item_device_list,mDevices);

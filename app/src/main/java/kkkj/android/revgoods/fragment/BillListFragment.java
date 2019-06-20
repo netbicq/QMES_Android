@@ -17,29 +17,33 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import kkkj.android.revgoods.R;
-import kkkj.android.revgoods.adapter.CumulativeAdapter;
-import kkkj.android.revgoods.bean.Cumulative;
+import kkkj.android.revgoods.adapter.BillAdapter;
+import kkkj.android.revgoods.adapter.DeviceAdapter;
+import kkkj.android.revgoods.bean.Bill;
 
 /**
- * 累计
+ * 单据列表
  */
-public class CumulativeFragment extends DialogFragment implements View.OnClickListener {
+public class BillListFragment extends DialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
+    private TextView mTitle;
     private RecyclerView mRecyclerView;
+    private DeviceAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
-    private CumulativeAdapter adapter;
-    private List<Cumulative> cumulativeList;
+    private BillAdapter billAdapter;
+    private List<Bill> mBills;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_cumulative, container, false);
+        View view = inflater.inflate(R.layout.fragment_device_list, container, false);
         //设置背景透明
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
@@ -50,36 +54,37 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
     }
 
     private void initData() {
-        cumulativeList = new ArrayList<>();
-        for (int i = 0;i<10;i++) {
-            Cumulative cumulative = new Cumulative();
-            cumulative.setCount(i+1);
-            cumulative.setCategory("测试");
-            cumulative.setWeight(i+20+"");
-            cumulativeList.add(cumulative);
+        mBills = new ArrayList<>();
+        for (int i=0;i<4;i++) {
+            Bill bill = new Bill();
+            bill.setName("测试");
+            mBills.add(bill);
         }
-        adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
     }
 
+
     private void initView(View view) {
-        mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
+        mBackImageView = view.findViewById(R.id.iv_back);
+        mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
+        mTitle = view.findViewById(R.id.id_tv_title);
+        mTitle.setText("请选择要打印的单据");
         mBackImageView.setOnClickListener(this);
 
+        billAdapter = new BillAdapter(R.layout.item_device_list,mBills);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(adapter);
-    }
+        mRecyclerView.setAdapter(billAdapter);
 
+    }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = new Dialog(getActivity());
         // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.fragment_cumulative);
+        dialog.setContentView(R.layout.fragment_device_list);
         dialog.setCanceledOnTouchOutside(true);
 
         // 设置弹出框布局参数，宽度铺满全屏，底部。
@@ -105,7 +110,7 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.iv_sampling_back:
+            case R.id.iv_back:
                 dismiss();
                 break;
 

@@ -1,9 +1,7 @@
 package kkkj.android.revgoods;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,12 +13,10 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
-import kkkj.android.revgoods.common.getpic.GetPicModel;
-
 /**
- * 选择品类
+ * 选择规格
  */
-public class ChooseMatterActivity extends AppCompatActivity implements View.OnClickListener {
+public class ChooseSpecsActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ImageView mBackImageView;
     private ImageView mZXingImageView;
@@ -32,7 +28,7 @@ public class ChooseMatterActivity extends AppCompatActivity implements View.OnCl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_choose_matter);
+        setContentView(R.layout.activity_choose_specs);
 
         /**
          * 沉浸式
@@ -51,7 +47,6 @@ public class ChooseMatterActivity extends AppCompatActivity implements View.OnCl
         mZXingImageView.setOnClickListener(this);
         mBackImageView.setOnClickListener(this);
     }
-
 
     @Override
     public void onClick(View view) {
@@ -100,14 +95,14 @@ public class ChooseMatterActivity extends AppCompatActivity implements View.OnCl
      * 二维码扫描
      */
     private void zxing() {
-        RxPermissions rxPermissions = new RxPermissions(ChooseMatterActivity.this);
+        RxPermissions rxPermissions = new RxPermissions(ChooseSpecsActivity.this);
         rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE
         )
                 .subscribe(permission -> { // will emit 1 Permission object
                     if (permission.granted) {
-                        Intent intent = new Intent(ChooseMatterActivity.this, CaptureActivity.class);
+                        Intent intent = new Intent(ChooseSpecsActivity.this, CaptureActivity.class);
                         startActivityForResult(intent, REQUEST_CODE);
                     } else if (permission.shouldShowRequestPermissionRationale) {
                         //有至少一个权限没有同意
@@ -118,6 +113,4 @@ public class ChooseMatterActivity extends AppCompatActivity implements View.OnCl
                     }
                 });
     }
-
-
 }

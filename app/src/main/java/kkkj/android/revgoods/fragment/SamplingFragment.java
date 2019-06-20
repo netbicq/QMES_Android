@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,15 +22,27 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.tencent.smtt.sdk.TbsVideo;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import org.greenrobot.eventbus.EventBus;
+import org.litepal.LitePal;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import butterknife.Unbinder;
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.adapter.PicOrMp4Adapter;
+import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
+import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
+import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
  * 采样
@@ -36,19 +50,22 @@ import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 
 public class SamplingFragment extends DialogFragment implements View.OnClickListener {
 
-    @BindView(R.id.button)
-    Button mSaveButton;
+    private Button mSaveButton;
     private EditText mEtNumber;
     private EditText mEtWeight;
     Unbinder unbinder;
     private ImageView mBackImageView;
     private ImageView mTakePictureImageView;
+    private RecyclerView recyclerView;
     private ArrayAdapter adapter;
     private String weight;
+    private List<GetPicModel> mList;
+    private PicOrMp4Adapter picOrMp4Adapter;
+
 
     public static SamplingFragment newInstance(String weight) {
         Bundle args = new Bundle();
-        args.putString("weight",weight);
+        args.putString("weight", weight);
 
         SamplingFragment fragment = new SamplingFragment();
         fragment.setArguments(args);
@@ -59,7 +76,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        weight = (String)getArguments().getSerializable("weight");
+        weight = (String) getArguments().getSerializable("weight");
     }
 
     @Nullable
@@ -72,7 +89,6 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
         initData();
         initView(view);
-        unbinder = ButterKnife.bind(this, view);
         return view;
 
     }
@@ -80,7 +96,42 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
     private void initData() {
 
+        mList = new ArrayList<>();
 
+        picOrMp4Adapter = new PicOrMp4Adapter(R.layout.item_picormp4, mList);
+        picOrMp4Adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                mList = picOrMp4Adapter.getData();
+                switch (view.getId()) {
+                    case R.id.img:
+                    case R.id.mp4:
+                        Logger.d("图片路径:" + mList.get(position).getImagePath());
+                        Logger.d("MP4路径:" + mList.get(position).getMp4Path());
+                        if (mList.get(position).getType() == 0) {
+                            startActivityForResult(new Intent(getActivity(), PhotoViewActivity.class).putExtra("picUrl", mList.get(position).getImagePath()), 200);
+                        } else {
+                            //用腾讯TBS播放视频
+                            //判断当前是否可用
+                            if (TbsVideo.canUseTbsPlayer(getActivity().getApplicationContext())) {
+                                //播放视频
+                                TbsVideo.openVideo(getActivity().getApplicationContext(), mList.get(position).getMp4Path());
+                            } else {
+                                Toast.makeText(getActivity(), "TBS视频播放器异常", Toast.LENGTH_LONG);
+                            }
+                        }
+                        break;
+                    case R.id.iv_delete:
+                        mList.remove(position);
+                        picOrMp4Adapter.notifyDataSetChanged();
+                        break;
+
+                    case R.id.ed_content:
+
+                        break;
+                }
+            }
+        });
 
     }
 
@@ -88,12 +139,18 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private void initView(View view) {
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
+        mSaveButton = view.findViewById(R.id.button);
         mEtWeight.setText(weight);
 
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mTakePictureImageView = view.findViewById(R.id.id_iv_sampling_takePicture);
         mBackImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
+        mSaveButton.setOnClickListener(this);
+
+        recyclerView = view.findViewById(R.id.id_recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        recyclerView.setAdapter(picOrMp4Adapter);
 
 
     }
@@ -119,7 +176,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
         int height = outMetrics.heightPixels;
 
         wlp.width = (2 * width) / 3;
-        wlp.height = (2 * height) / 3;
+        wlp.height = (3 * height) / 4;
         // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         window.setAttributes(wlp);
 
@@ -138,6 +195,33 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 takePicture();
                 break;
 
+            case R.id.button:
+                SamplingDetails samplingDetails = new SamplingDetails();
+                samplingDetails.setWeight(mEtWeight.getText().toString().trim());
+                samplingDetails.setNumber(mEtNumber.getText().toString().trim());
+                samplingDetails.setModelList(mList);
+
+                DeviceEvent  deviceEvent = new DeviceEvent();
+
+                if (!LitePal.isExist(SamplingDetails.class)) {
+                    samplingDetails.setCount(1);
+                    deviceEvent.setSamplingNumber(1);
+                } else {
+                    SamplingDetails lastDetails = LitePal.findLast(SamplingDetails.class);
+                    samplingDetails.setCount(lastDetails.getCount() + 1);
+                    deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
+                }
+
+                EventBus.getDefault().post(deviceEvent);
+
+                samplingDetails.save();
+
+
+
+
+                dismiss();
+                break;
+
             default:
                 break;
         }
@@ -146,13 +230,15 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         //拍照回调
-        if (requestCode == 200) {
-            if (resultCode == Activity.RESULT_OK) {
-                GetPicModel picOrMp4 = new GetPicModel();
-                picOrMp4 = (GetPicModel) data.getSerializableExtra("result");
-
-            }
+        if (resultCode == Activity.RESULT_OK) {
+            mList = picOrMp4Adapter.getData();
+            GetPicModel picOrMp4 = new GetPicModel();
+            picOrMp4 = (GetPicModel) data.getSerializableExtra("result");
+            Logger.d(picOrMp4.getMp4Path());
+            mList.add(picOrMp4);
+            picOrMp4Adapter.notifyDataSetChanged();
         }
+
     }
 
     /**
@@ -177,9 +263,4 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 });
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        unbinder.unbind();
-    }
 }

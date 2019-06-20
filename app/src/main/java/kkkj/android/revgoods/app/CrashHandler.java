@@ -1,7 +1,6 @@
 package kkkj.android.revgoods.app;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Looper;
 import android.widget.Toast;
 
@@ -49,7 +48,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 //        Intent intent = new Intent(context, LoginActivity.class);
 //        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //        context.startActivity(intent);
-        RevGoods.getInstance().exitApp();
+        BaseApplication.getInstance().exitApp();
         android.os.Process.killProcess(android.os.Process.myPid());//再此之前可以做些退出等操作
     }
 }

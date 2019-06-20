@@ -5,7 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.Build;
 
-import kkkj.android.revgoods.app.RevGoods;
+import kkkj.android.revgoods.app.BaseApplication;
 
 
 public class NetUtils {
@@ -28,7 +28,7 @@ public class NetUtils {
 
     public static boolean checkNetWork(){
         try{
-            ConnectivityManager connectactivity = (ConnectivityManager) RevGoods.getInstance().getAppContext().
+            ConnectivityManager connectactivity = (ConnectivityManager) BaseApplication.getInstance().getAppContext().
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             if(connectactivity != null){
                 //6.0以上判断是否网络真正可用

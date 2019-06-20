@@ -18,15 +18,14 @@ import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
@@ -39,11 +38,14 @@ import com.xuhao.didi.socket.client.sdk.client.connection.IConnectionManager;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.litepal.LitePal;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -52,19 +54,21 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
 import kkkj.android.revgoods.bean.Device;
-import kkkj.android.revgoods.bean.DeviceEvent;
+import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueCallBack;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueReceiver;
-import kkkj.android.revgoods.conn.bluetooth.ScanBlueReceiver;
 import kkkj.android.revgoods.conn.socket.Message;
 import kkkj.android.revgoods.conn.socket.ModbusProtocol;
 import kkkj.android.revgoods.conn.socket.PulseData;
 import kkkj.android.revgoods.conn.socket.SocketListener;
 import kkkj.android.revgoods.conn.socket.WriteData;
+import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
+import kkkj.android.revgoods.fragment.BillListFragment;
 import kkkj.android.revgoods.fragment.CumulativeFragment;
 import kkkj.android.revgoods.fragment.DeductionFragment;
 import kkkj.android.revgoods.fragment.DeviceListFragment;
@@ -74,6 +78,7 @@ import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.wifi.model.Order;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
+import kkkj.android.revgoods.utils.StringUtils;
 
 import static com.xuhao.didi.core.iocore.interfaces.IOAction.ACTION_READ_COMPLETE;
 import static com.xuhao.didi.socket.client.sdk.client.action.IAction.ACTION_READ_THREAD_SHUTDOWN;
@@ -82,8 +87,41 @@ import static kkkj.android.revgoods.utils.GetMacAddress.getMacFromArpCache;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private int REQUEST_ENABLE_BT = 101;
-    private ScanBlueReceiver scanBlueReceiver;
+    @BindView(R.id.id_wifiRelay_recyclerView)
+    RecyclerView mWifiRelayRecyclerView;
+    @BindView(R.id.id_iv_choose_matter)
+    ImageView mChooseMatterImageView;
+    @BindView(R.id.id_iv_takePicture)
+    ImageView mTakePictureImageView;
+    @BindView(R.id.id_iv_choose_printer)
+    ImageView mChoosePrinterImageView;
+    @BindView(R.id.id_iv_print)
+    ImageView mPrintImageView;
+    @BindView(R.id.id_tv_choose_supplier)
+    ImageView mChooseSupplierImageView;
+    @BindView(R.id.id_tv_choose_device)
+    ReSpinner mChooseProductionLine;
+    @BindView(R.id.id_tv_weight)
+    TextView mWeightTextView;
+    @BindView(R.id.id_tv_show_piece_weight)
+    TextView mShowPieceWeight;
+    @BindView(R.id.id_tv_piece_weight)
+    TextView mPieceweightTextView;//单重
+    @BindView(R.id.id_tv_sampling)
+    TextView mSamplingTextView;//采样
+    @BindView(R.id.id_tv_sampling_count)
+    TextView mSamplingCount;//采样累计
+    @BindView(R.id.id_tv_sampling_number)
+    TextView mSamplingNumber;//采样累计数字
+    @BindView(R.id.id_tv_cumulative)
+    TextView mCumulativeTextView;//累计
+    @BindView(R.id.id_tv_deduction)
+    TextView mDeductionTextView;//扣重
+    @BindView(R.id.id_iv_choose_specs)
+    ImageView mChooseSpecsImageView;
+
+    private String mSampling = "(0)";//采样累计默认数字
+
     private PinBlueReceiver pinBlueReceiver;
     private Bluetooth mBluetooth;
     private List<BluetoothBean> mList_b;
@@ -91,35 +129,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     SocketListener listener;
     IConnectionManager manager;
     private PulseData mPulseData = new PulseData();
-
     //蓝牙电子秤
-    private BluetoothBean bluetoothRelay = new BluetoothBean();
-
+    private BluetoothBean bluetoothScale = new BluetoothBean();
     private RelayAdapter wifiAdapter;
-    private boolean isFirst = true;
-    private RecyclerView mWifiRelayRecyclerView;
-    private ImageView mChooseMatterImageView;
-    private ImageView mTakePictureImageView;
-    private ImageView mChoosePrinterImageView;
-    private ImageView mChooseSupplierImageView;
-    private Spinner mChooseProductionLine;
-    private TextView mWeightTextView;
-    private TextView mShowPieceWeight;
-    private TextView mPieceweightTextView;//单重
-    private TextView mSamplingTextView;//采样
-    private TextView mSamplingCount;//采样累计
-    private TextView mSamplingNumber;
-    private TextView mCumulativeTextView;//累计
-    private TextView mDeductionTextView;//扣重
+    private ArrayAdapter spinnerAdapter;
+
+    private BillListFragment billListFragment;
     private DeviceListFragment deviceListFragment;
     private SamplingFragment samplingFragment;
     private SamplingDetailsFragment samplingDetailsFragment;
     private CumulativeFragment cumulativeFragment;
     private DeductionFragment deductionFragment;
+
     private Observer<String> stateOB;
     private double weight = 0;
-    private List<Device> mDeices;
-    private ArrayAdapter spinnerAdapter;
+
 
 
     @Override
@@ -127,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
+        ButterKnife.bind(this);
         /**
          * 沉浸式
          */
@@ -138,22 +163,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initData();
         initView();
 
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Logger.d("生命周期"+"onResume");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Logger.d("生命周期"+"onStop");
-        if (manager != null) {
-            manager.disconnect();
-        }
     }
 
     @Override
@@ -162,20 +171,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (manager != null) {
             manager.unRegisterReceiver(listener);
         }
-
         EventBus.getDefault().unregister(this);
     }
 
+    //EventBus
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
-
         Device device = deviceEvent.getDevice();
+
+        if (deviceEvent.getSamplingNumber() > 0) {
+            mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
+        }
 
         switch (device.getType()) {
             case 0://蓝牙电子秤
                 String address = device.getBluetoothMac();
                 BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                bluetoothRelay = connectAndGetBluetoothScale(bluetoothDevice);
+                bluetoothScale = connectAndGetBluetoothScale(bluetoothDevice);
                 break;
             case 1://蓝牙继电器
                 String address1 = device.getBluetoothMac();
@@ -218,6 +230,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onComplete() {
+                    /**
+                     * 连接完成之后每隔100毫秒取一次电子秤的数据
+                     */
                     Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
                             .takeWhile(new Predicate<Long>() {
                                 @Override
@@ -324,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onNext(Boolean aBoolean) {
                     if (aBoolean) {
-                        initRelay();
+                        initBluetoothRelay();
                         Logger.d("与" + bluetoothDevice.getName() + "成功建立连接");
                         Toast.makeText(MainActivity.this, "蓝牙继电器连接成功！", Toast.LENGTH_LONG).show();
                     }
@@ -361,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * 初始化wifi设备
+     * 初始化wifi继电器
      */
     private void initWifiDevice(Device device) {
         String ip = device.getWifiIp();
@@ -410,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (message.getData().indexOf("01 01 02 ") == 0) {
                             //收到状态
                             String state = message.getData().substring("01 01 02 ".length(), "01 01 02 ".length() + 2);
-                            String binaryState = hexString2binaryString(state);
+                            String binaryState = StringUtils.hexString2binaryString(state);
                             char[] bin = binaryState.toCharArray();
                             if (bin.length == 8) {
                                 for (int i = 0; i < bin.length; i++) {
@@ -426,6 +441,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             String state = message.getData().substring("01 05 00 ".length() + 3,
                                     "01 05 00 ".length() + 5);
                             Logger.d("---" + index + "---" + state + "---");
+
+                            /**
+                             * 获取继电器各个开关的状态
+                             */
                             switch (index) {
                                 case "00":
                                     if (!state.equals("00")) {
@@ -510,20 +529,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void initView() {
-        mChooseMatterImageView = findViewById(R.id.id_iv_choose_matter);
-        mChooseProductionLine = findViewById(R.id.id_tv_choose_device);//生产线
-        mWeightTextView = findViewById(R.id.id_tv_weight);
-        mTakePictureImageView = findViewById(R.id.id_iv_takePicture);
-        mChoosePrinterImageView = findViewById(R.id.id_iv_choose_printer);
-        mWifiRelayRecyclerView = findViewById(R.id.id_wifiRelay_recyclerView);
-        mPieceweightTextView = findViewById(R.id.id_tv_piece_weight);
-        mChooseSupplierImageView = findViewById(R.id.id_tv_choose_supplier);
-        mSamplingTextView = findViewById(R.id.id_tv_sampling);
-        mSamplingCount = findViewById(R.id.id_tv_sampling_count);
-        mCumulativeTextView = findViewById(R.id.id_tv_cumulative);
-        mDeductionTextView = findViewById(R.id.id_tv_deduction);
-        mSamplingNumber = findViewById(R.id.id_tv_sampling_number);
-        mShowPieceWeight = findViewById(R.id.id_tv_show_piece_weight);
+
+        mPrintImageView.setOnClickListener(this);
         mDeductionTextView.setOnClickListener(this);
         mCumulativeTextView.setOnClickListener(this);
         mSamplingCount.setOnClickListener(this);
@@ -533,7 +540,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChoosePrinterImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
         mChooseMatterImageView.setOnClickListener(this);
+        mChooseSpecsImageView.setOnClickListener(this);
 
+        mSamplingNumber.setText(mSampling);
+
+        spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
+                R.layout.spinner_style, getDataSource());
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mChooseProductionLine.setAdapter(spinnerAdapter);
         mChooseProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -572,94 +585,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay, mWifiList);
         mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-
-        wifiAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                if (manager != null && manager.isConnect()) {
-                    switch (view.getId()) {
-                        case R.id.tv_open:
-                            switch (position) { //position 哪个继电器
-                                case 0:
-                                    manager.send(new WriteData(Order.TURN_ON_1));
-                                    break;
-                                case 1:
-                                    manager.send(new WriteData(Order.TURN_ON_2));
-                                    break;
-                                case 2:
-                                    manager.send(new WriteData(Order.TURN_ON_3));
-                                    break;
-                                case 3:
-                                    manager.send(new WriteData(Order.TURN_ON_4));
-                                    break;
-                                case 4:
-                                    manager.send(new WriteData(Order.TURN_ON_5));
-                                    break;
-                                case 5:
-                                    manager.send(new WriteData(Order.TURN_ON_6));
-                                    break;
-                                case 6:
-                                    manager.send(new WriteData(Order.TURN_ON_7));
-                                    break;
-                                case 7:
-                                    manager.send(new WriteData(Order.TURN_ON_8));
-                                    break;
-                            }
-                            break;
-                        case R.id.tv_close:
-                            switch (position) {
-                                case 0:
-                                    manager.send(new WriteData(Order.TURN_OFF_1));
-                                    break;
-                                case 1:
-                                    manager.send(new WriteData(Order.TURN_OFF_2));
-                                    break;
-                                case 2:
-                                    manager.send(new WriteData(Order.TURN_OFF_3));
-                                    break;
-                                case 3:
-                                    manager.send(new WriteData(Order.TURN_OFF_4));
-                                    break;
-                                case 4:
-                                    manager.send(new WriteData(Order.TURN_OFF_5));
-                                    break;
-                                case 5:
-                                    manager.send(new WriteData(Order.TURN_OFF_6));
-                                    break;
-                                case 6:
-                                    manager.send(new WriteData(Order.TURN_OFF_7));
-                                    break;
-                                case 7:
-                                    manager.send(new WriteData(Order.TURN_OFF_8));
-                                    break;
-                            }
-                            break;
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "继电器未连接，请先连接继电器！", Toast.LENGTH_LONG).show();
-                }
-
-            }
-        });
         mWifiRelayRecyclerView.setAdapter(wifiAdapter);
 
     }
 
     private void initData() {
 
-        spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
-                R.layout.spinner_style, getDataSource());
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        if (LitePal.isExist(SamplingDetails.class)) {
+            mSampling = "(" + LitePal.findLast(SamplingDetails.class).getCount() + ")";
+        }
 
-        mDeices = new ArrayList<>();
-        isFirst = true;
-        //BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress);
 
         mBluetooth = new Bluetooth();
-        //蓝牙设备集合
+        //蓝牙继电器
         mList_b = new ArrayList<>();
-        //继电器实体类集合
+        //Wifi继电器
         mWifiList = new ArrayList<>();
+
         for (int i = 0; i < 8; i++) {
             RelayBean relayBean = new RelayBean();
             relayBean.setName(i + 1 + "号开关");
@@ -671,11 +613,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         } else if (!mBluetooth.isBlueEnable()) {
             Toast.makeText(this, "请先打开蓝牙蓝牙", Toast.LENGTH_LONG).show();
-            //mBluetooth.openBlueSync(MainActivity.this, REQUEST_ENABLE_BT);
+            //直接打开
             mBluetooth.openBlueAsyn();
         }
         //注册蓝牙广播
-        rigistReciver();
+        registerReceiver();
     }
 
     public List<String> getDataSource() {
@@ -687,7 +629,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return list;
     }
 
-    private void rigistReciver() {
+    //注册蓝牙配对广播接收器
+    private void registerReceiver() {
 
         pinBlueReceiver = new PinBlueReceiver(new PinBlueCallBack() {
             @Override
@@ -723,11 +666,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }, "1234");
 
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(scanBlueReceiver, filter);
-        IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(scanBlueReceiver, filter2);
-
         IntentFilter filter4 = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
         IntentFilter filter5 = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(pinBlueReceiver, filter4);
@@ -735,49 +673,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    public int getModelInList(BluetoothDevice device) {
-        int result = -1;
-        for (int i = 0; i < mList_b.size(); i++) {
-            if (device.getAddress().equals(mList_b.get(i).getBluetoothDevice().getAddress())) {
-                result = i;
-            }
-        }
-        return result;
-    }
-
-    public void connect(final int m) {
-        mList_b.get(m).getMyBluetoothManager().getConnectOB().subscribe(new Observer<Boolean>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(Boolean aBoolean) {
-                if (aBoolean) {
-                    initRelay();
-                    // showToast("与" + mList_b.get(m).getBluetoothDevice().getName() + "成功建立连接");
-                }
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                e.printStackTrace();
-                //showToast("与" + mList_b.get(m).getBluetoothDevice().getName() + "连接失败");
-            }
-
-            @Override
-            public void onComplete() {
-                boolean flag = !mList_b.get(m).isChangeFlag();
-                mList_b.get(m).setChangeFlag(flag);
-                //adapter_b.notifyItemChanged(m);
-            }
-        });
-    }
-
-    //蓝牙继电器
-    public void initRelay() {
-        //recyclerView.setVisibility(View.VISIBLE);
+    //初始化蓝牙继电器
+    public void initBluetoothRelay() {
         stateOB = new Observer<String>() {
             @Override
             public void onSubscribe(Disposable d) {
@@ -893,15 +790,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_ENABLE_BT) {
-            if (resultCode == -1)//蓝牙打开
-            {
-                //smartRefreshLayout.autoRefresh();
-            } else {
-                //showToast("蓝牙打开失败");
-                //smartRefreshLayout.finishRefresh();
-            }
+        if (samplingFragment != null) {
+            samplingFragment.onActivityResult(requestCode,resultCode,data);//在DialogFragment中获取回调结果
         }
+
         //拍照回调
         if (requestCode == 200) {
             if (resultCode == Activity.RESULT_OK) {
@@ -917,12 +809,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
 
         switch (view.getId()) {
-            case R.id.id_iv_choose_matter://选择物料
+            case R.id.id_iv_choose_matter://选择品类
                 startActivity(new Intent(MainActivity.this, ChooseMatterActivity.class));
                 break;
 
             case R.id.id_tv_choose_supplier://选择供应商
                 startActivity(new Intent(MainActivity.this, ChooseSupplierActivity.class));
+                break;
+
+            case R.id.id_iv_choose_specs://选择规格
+                startActivity(new Intent(MainActivity.this,ChooseSpecsActivity.class));
                 break;
 
             case R.id.id_tv_sampling://采样
@@ -959,7 +855,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 deductionFragment.show(ft4, "deductionFragment");
                 break;
 
-            case R.id.id_iv_choose_printer:
+            case R.id.id_iv_choose_printer://选择打印机
                 if (deviceListFragment == null) {
                     deviceListFragment = new DeviceListFragment();
                 }
@@ -968,9 +864,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 deviceListFragment.show(ft, "deviceFragment");
                 break;
 
+            case R.id.id_iv_print://打印
+                if (billListFragment == null) {
+                    billListFragment = new BillListFragment();
+                }
+                FragmentTransaction ft5 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft5.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                billListFragment.show(ft5,"billListFragment");
+                break;
+
             case R.id.id_tv_piece_weight://单重
                 final EditText editText = new EditText(MainActivity.this);
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                 AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
                 inputDialog.setTitle("请输入单重").setView(editText);
                 inputDialog.setPositiveButton("确定",
@@ -1000,21 +906,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    //查表法，将16进制转为2进制
-    public static String hexString2binaryString(String hexString) {
-        if (hexString == null || hexString.length() % 2 != 0) {
-
-            return null;
-        }
-
-        String bString = "";
-        String tmp;
-        for (int i = 0; i < hexString.length(); i++) {
-            tmp = "0000" + Integer.toBinaryString(Integer.parseInt(hexString.substring(i, i + 1), 16));
-            bString += tmp.substring(tmp.length() - 4);
-        }
-        return bString;
-    }
 
     /**
      * 拍照

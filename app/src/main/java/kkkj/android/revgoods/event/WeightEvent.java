@@ -1,4 +1,4 @@
-package kkkj.android.revgoods.bean;
+package kkkj.android.revgoods.event;
 
 public class WeightEvent {
     public String weight;

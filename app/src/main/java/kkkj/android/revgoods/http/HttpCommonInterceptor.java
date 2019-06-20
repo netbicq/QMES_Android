@@ -10,7 +10,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import kkkj.android.revgoods.app.RevGoods;
+import kkkj.android.revgoods.app.BaseApplication;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -40,8 +40,8 @@ class HttpCommonInterceptor implements Interceptor {
         requestBuilder.method(oldRequest.method(), oldRequest.body());
 
         //添加公共参数,添加到header中
-        mHeaderParamsMap.put("Token",  RevGoods.getInstance().getCommonParts().get("Token")+"");
-        mHeaderParamsMap.put("AccountID",  RevGoods.getInstance().getCommonParts().get("AccountID")+"");
+        mHeaderParamsMap.put("Token",  BaseApplication.getInstance().getCommonParts().get("Token")+"");
+        mHeaderParamsMap.put("AccountID",  BaseApplication.getInstance().getCommonParts().get("AccountID")+"");
         if(mHeaderParamsMap.size() > 0){
             for(Map.Entry<String,String> params:mHeaderParamsMap.entrySet()){
                 requestBuilder.header(params.getKey(),params.getValue());

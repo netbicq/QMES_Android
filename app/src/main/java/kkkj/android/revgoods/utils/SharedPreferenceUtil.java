@@ -3,7 +3,7 @@ package kkkj.android.revgoods.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import kkkj.android.revgoods.app.RevGoods;
+import kkkj.android.revgoods.app.BaseApplication;
 
 
 public class SharedPreferenceUtil {
@@ -63,6 +63,6 @@ public class SharedPreferenceUtil {
     }
     private static SharedPreferences getAppSp()
     {
-        return RevGoods.getInstance().getSharedPreferences(SHAREDPREFERENCES_NAME, Context.MODE_PRIVATE);
+        return BaseApplication.getInstance().getSharedPreferences(SHAREDPREFERENCES_NAME, Context.MODE_PRIVATE);
     }
 }
