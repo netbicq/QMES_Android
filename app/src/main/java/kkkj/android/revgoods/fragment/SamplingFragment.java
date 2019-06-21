@@ -28,6 +28,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.tencent.smtt.sdk.TbsVideo;
+import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
@@ -53,7 +54,6 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private Button mSaveButton;
     private EditText mEtNumber;
     private EditText mEtWeight;
-    Unbinder unbinder;
     private ImageView mBackImageView;
     private ImageView mTakePictureImageView;
     private RecyclerView recyclerView;
@@ -196,30 +196,36 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 break;
 
             case R.id.button:
-                SamplingDetails samplingDetails = new SamplingDetails();
-                samplingDetails.setWeight(mEtWeight.getText().toString().trim());
-                samplingDetails.setNumber(mEtNumber.getText().toString().trim());
-                samplingDetails.setModelList(mList);
+                if (!TextUtils.isEmpty(mEtWeight.getText().toString().trim()) && !TextUtils.isEmpty(mEtNumber.getText().toString().trim())) { //不能为空
 
-                DeviceEvent  deviceEvent = new DeviceEvent();
+                    if (Integer.parseInt(mEtWeight.getText().toString().trim()) != 0 && Integer.parseInt(mEtNumber.getText().toString().trim()) != 0) { //不能为零
+                        SamplingDetails samplingDetails = new SamplingDetails();
+                        samplingDetails.setWeight(mEtWeight.getText().toString().trim());
+                        samplingDetails.setNumber(mEtNumber.getText().toString().trim());
+                        samplingDetails.setModelList(mList);
 
-                if (!LitePal.isExist(SamplingDetails.class)) {
-                    samplingDetails.setCount(1);
-                    deviceEvent.setSamplingNumber(1);
+                        DeviceEvent  deviceEvent = new DeviceEvent();
+
+                        if (!LitePal.isExist(SamplingDetails.class)) {
+                            samplingDetails.setCount(1);
+                            deviceEvent.setSamplingNumber(1);
+                        } else {
+                            SamplingDetails lastDetails = LitePal.findLast(SamplingDetails.class);
+                            samplingDetails.setCount(lastDetails.getCount() + 1);
+                            deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
+                        }
+
+                        EventBus.getDefault().post(deviceEvent);
+                        samplingDetails.save();
+                        dismiss();
+                    } else {
+                        Toast.makeText(getActivity(),"输入框不能为零！请重新输入！",Toast.LENGTH_LONG).show();
+                    }
+
                 } else {
-                    SamplingDetails lastDetails = LitePal.findLast(SamplingDetails.class);
-                    samplingDetails.setCount(lastDetails.getCount() + 1);
-                    deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
+                    Toast.makeText(getActivity(),"输入框不能为空！",Toast.LENGTH_LONG).show();
                 }
 
-                EventBus.getDefault().post(deviceEvent);
-
-                samplingDetails.save();
-
-
-
-
-                dismiss();
                 break;
 
             default:

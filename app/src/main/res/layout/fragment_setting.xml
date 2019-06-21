@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="100dp"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/id_tv_deduction_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="扣重类别"
+            android:background="@color/background"
+            android:textColor="@color/qmui_config_color_50_white"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+</ScrollView>

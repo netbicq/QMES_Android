@@ -33,7 +33,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/RevGTheme">
-
+        <activity android:name=".ui.DeductionCategoryActivity"></activity>
         <!-- bugly -->
         <provider
             android:name=".utils.BuglyFileProvider"
@@ -81,17 +81,17 @@
         <activity android:name=".common.getpic.GetPicOrMP4Activity" />
         <activity android:name=".HomeActivity" />
         <activity
-            android:name=".ChooseMatterActivity"
+            android:name=".ui.ChooseMatterActivity"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity
-            android:name=".ChooseSupplierActivity"
+            android:name=".ui.ChooseSupplierActivity"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity
-            android:name=".ChooseSpecsActivity"
+            android:name=".ui.ChooseSpecsActivity"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar"/>
+            android:theme="@style/QMUI.Compat.NoActionBar" />
     </application>
 
 </manifest>

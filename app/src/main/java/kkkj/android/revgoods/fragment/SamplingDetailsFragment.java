@@ -11,12 +11,15 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+
+import com.chad.library.adapter.base.BaseQuickAdapter;
 
 import org.litepal.LitePal;
 
@@ -26,6 +29,7 @@ import java.util.List;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SamplingDetailsAdapter;
 import kkkj.android.revgoods.bean.SamplingDetails;
+import kkkj.android.revgoods.customer.SlideRecyclerView;
 
 /**
  * 采样明细
@@ -33,7 +37,7 @@ import kkkj.android.revgoods.bean.SamplingDetails;
 public class SamplingDetailsFragment extends DialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
-    private RecyclerView mRecyclerView;
+    private SlideRecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private SamplingDetailsAdapter adapter;
     private List<SamplingDetails> samplingDetailsList;
@@ -56,6 +60,21 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
         samplingDetailsList = LitePal.findAll(SamplingDetails.class);
 
         adapter = new SamplingDetailsAdapter(R.layout.item_sampling_deatils,samplingDetailsList);
+        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+            }
+        });
+        adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                int id = samplingDetailsList.get(position).getId();
+                LitePal.delete(SamplingDetails.class,id);
+                samplingDetailsList.remove(position);
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void initView(View view) {
@@ -67,6 +86,7 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
+        mRecyclerView.setCanMove(true);
         mRecyclerView.setAdapter(adapter);
     }
 
@@ -82,7 +102,7 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
         // 设置弹出框布局参数，宽度铺满全屏，底部。
         Window window = dialog.getWindow();
         WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.BOTTOM;
+        //wlp.gravity = Gravity.LEFT;
 
         WindowManager manager = getActivity().getWindowManager();
         DisplayMetrics outMetrics = new DisplayMetrics();
@@ -92,7 +112,7 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
 
         wlp.width = (2 * width) / 3;
         wlp.height = (2 * height) / 3;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        //wlp.height = WindowManager.LayoutParams.MATCH_PARENT;
         window.setAttributes(wlp);
 
         return dialog;

@@ -4,6 +4,8 @@
     <version value="1"/>
     <list>
         <mapping class="kkkj.android.revgoods.bean.SamplingDetails"/>
+        <mapping class="kkkj.android.revgoods.bean.Deduction"/>
+        <mapping class="kkkj.android.revgoods.bean.DeductionCategory"/>
     </list>
 </litepal>
 

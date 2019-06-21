@@ -74,15 +74,18 @@ import kkkj.android.revgoods.fragment.DeductionFragment;
 import kkkj.android.revgoods.fragment.DeviceListFragment;
 import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
 import kkkj.android.revgoods.fragment.SamplingFragment;
+import kkkj.android.revgoods.fragment.SettingFragment;
 import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.wifi.model.Order;
+import kkkj.android.revgoods.ui.ChooseMatterActivity;
+import kkkj.android.revgoods.ui.ChooseSpecsActivity;
+import kkkj.android.revgoods.ui.ChooseSupplierActivity;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
 
 import static com.xuhao.didi.core.iocore.interfaces.IOAction.ACTION_READ_COMPLETE;
 import static com.xuhao.didi.socket.client.sdk.client.action.IAction.ACTION_READ_THREAD_SHUTDOWN;
-import static kkkj.android.revgoods.utils.GetMacAddress.callCmd;
 import static kkkj.android.revgoods.utils.GetMacAddress.getMacFromArpCache;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -119,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mDeductionTextView;//扣重
     @BindView(R.id.id_iv_choose_specs)
     ImageView mChooseSpecsImageView;
+    @BindView(R.id.id_iv_setting)
+    ImageView mSettingImageView;
 
     private String mSampling = "(0)";//采样累计默认数字
 
@@ -140,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SamplingDetailsFragment samplingDetailsFragment;
     private CumulativeFragment cumulativeFragment;
     private DeductionFragment deductionFragment;
+    private SettingFragment settingFragment;
 
     private Observer<String> stateOB;
     private double weight = 0;
@@ -541,6 +547,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTakePictureImageView.setOnClickListener(this);
         mChooseMatterImageView.setOnClickListener(this);
         mChooseSpecsImageView.setOnClickListener(this);
+        mSettingImageView.setOnClickListener(this);
 
         mSamplingNumber.setText(mSampling);
 
@@ -818,7 +825,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_iv_choose_specs://选择规格
-                startActivity(new Intent(MainActivity.this,ChooseSpecsActivity.class));
+                startActivity(new Intent(MainActivity.this, ChooseSpecsActivity.class));
                 break;
 
             case R.id.id_tv_sampling://采样
@@ -897,6 +904,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
 
+            case R.id.id_iv_setting:
+                if (settingFragment == null) {
+                    settingFragment = new SettingFragment();
+                }
+                FragmentTransaction ft7 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft7.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                settingFragment.show(ft7,"settingFragment");
+
+                break;
+
             case R.id.id_iv_takePicture:
                 takePicture();
                 break;
@@ -905,7 +922,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
-
 
     /**
      * 拍照

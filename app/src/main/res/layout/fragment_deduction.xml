@@ -32,7 +32,6 @@
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
-
     </RelativeLayout>
 
     <Button

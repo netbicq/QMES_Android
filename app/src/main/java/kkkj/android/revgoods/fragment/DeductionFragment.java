@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 
 /**
@@ -34,7 +37,6 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
 
     @BindView(R.id.button)
     Button mSaveButton;
-
     private Spinner mSpinner;
     private EditText mEtWeight;
     @BindView(R.id.id_et_price)
@@ -42,6 +44,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
     Unbinder unbinder;
     private ImageView mBackImageView;
 
+    private AddDeductionCategoryFragment addDeductionCategoryFragment;
     private ArrayAdapter adapter;
     private String weight;
 

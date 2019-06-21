@@ -73,6 +73,7 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     //GrenderG/Toasty toast框架
     implementation 'com.github.GrenderG:Toasty:1.4.2'
+
     implementation project(path: ':socket-client')
     implementation files('libs/tencentx5.jar')
     implementation project(path: ':camera')

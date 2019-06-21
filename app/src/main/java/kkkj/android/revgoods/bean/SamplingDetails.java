@@ -7,6 +7,7 @@ import java.util.List;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 
 public class SamplingDetails extends LitePalSupport {
+    private int id;
     private int count;
     private String number;
     private String weight;
@@ -26,6 +27,14 @@ public class SamplingDetails extends LitePalSupport {
 
     public void setCount(int count) {
         this.count = count;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNumber() {
