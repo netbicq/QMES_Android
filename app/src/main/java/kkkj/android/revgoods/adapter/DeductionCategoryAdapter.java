@@ -19,5 +19,6 @@ public class DeductionCategoryAdapter extends BaseQuickAdapter<DeductionCategory
     protected void convert(BaseViewHolder helper, DeductionCategory item) {
         helper.setText(R.id.id_tv_category,item.getCategory());
         helper.setText(R.id.id_tv_price,item.getPrice());
+        helper.addOnClickListener(R.id.tv_delete);
     }
 }

@@ -151,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private double weight = 0;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -185,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void ConnectDevice(DeviceEvent deviceEvent) {
         Device device = deviceEvent.getDevice();
 
-        if (deviceEvent.getSamplingNumber() > 0) {
+        if (deviceEvent.getSamplingNumber() >= 0) {
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
         }
 
@@ -202,6 +201,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case 2://Wifi继电器
                 connectWifi(device);
+                break;
+
+            default:
                 break;
         }
 
@@ -388,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String ip = device.getWifiIp();
         int port = device.getWifiPort();
         //连接参数设置(IP,端口号),这也是一个连接的唯一标识,不同连接,该参数中的两个值至少有其一不一样
-        ConnectionInfo info = new ConnectionInfo(ip,port);
+        ConnectionInfo info = new ConnectionInfo(ip, port);
         //调用OkSocket,开启这次连接的通道,拿到通道Manager
         manager = OkSocket.open(info);
         //设置自定义解析头
@@ -798,7 +800,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (samplingFragment != null) {
-            samplingFragment.onActivityResult(requestCode,resultCode,data);//在DialogFragment中获取回调结果
+            samplingFragment.onActivityResult(requestCode, resultCode, data);//在DialogFragment中获取回调结果
         }
 
         //拍照回调
@@ -832,7 +834,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
                 FragmentTransaction ft1 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft1.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                ft1.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);//动画 淡入淡出
                 samplingFragment.show(ft1, "samplingFragment");
                 break;
 
@@ -877,7 +879,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 FragmentTransaction ft5 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft5.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                billListFragment.show(ft5,"billListFragment");
+                billListFragment.show(ft5, "billListFragment");
                 break;
 
             case R.id.id_tv_piece_weight://单重

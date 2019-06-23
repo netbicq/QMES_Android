@@ -33,7 +33,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/RevGTheme">
-        <activity android:name=".ui.DeductionCategoryActivity"></activity>
+
         <!-- bugly -->
         <provider
             android:name=".utils.BuglyFileProvider"
@@ -50,7 +50,9 @@
         <activity
             android:name="com.tencent.bugly.beta.ui.BetaActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|locale"
-            android:theme="@android:style/Theme.Translucent" /> <!-- TBS播放器 -->
+            android:theme="@android:style/Theme.Translucent" />
+
+        <!-- TBS播放器 -->
         <activity
             android:name="com.tencent.smtt.sdk.VideoActivity"
             android:alwaysRetainTaskState="true"
@@ -63,6 +65,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".MainActivity"
             android:screenOrientation="landscape"
@@ -73,6 +76,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".elcscale.view.ElcScaleActivity" />
         <activity android:name=".relay.wifi.view.SocketTestActivity" />
         <activity android:name=".relay.wifi.view.WifiRelayActivity" />
@@ -92,6 +96,12 @@
             android:name=".ui.ChooseSpecsActivity"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar" />
+
+        <activity
+            android:name=".ui.DeductionCategoryActivity"
+            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="landscape"
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
     </application>
 
 </manifest>

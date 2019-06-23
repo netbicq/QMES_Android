@@ -6,6 +6,9 @@ import org.litepal.crud.LitePalSupport;
  * 扣重类别
  */
 public class DeductionCategory extends LitePalSupport {
+
+    private int id;
+
     /**
      * 类别
      */
@@ -15,6 +18,14 @@ public class DeductionCategory extends LitePalSupport {
      * 单价
      */
     private String price;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getCategory() {
         return category;

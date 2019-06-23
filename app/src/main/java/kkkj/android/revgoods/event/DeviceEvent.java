@@ -6,7 +6,7 @@ public class DeviceEvent {
     public String msg;
     public Device device;
 
-    public int samplingNumber;
+    public int samplingNumber = -1;
 
     public DeviceEvent(){
 

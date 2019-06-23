@@ -109,13 +109,15 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                         Logger.d("图片路径:" + mList.get(position).getImagePath());
                         Logger.d("MP4路径:" + mList.get(position).getMp4Path());
                         if (mList.get(position).getType() == 0) {
-                            startActivityForResult(new Intent(getActivity(), PhotoViewActivity.class).putExtra("picUrl", mList.get(position).getImagePath()), 200);
+                            startActivityForResult(new Intent(getActivity(), PhotoViewActivity.class).putExtra(
+                                    "picUrl", mList.get(position).getImagePath()), 200);
                         } else {
                             //用腾讯TBS播放视频
                             //判断当前是否可用
                             if (TbsVideo.canUseTbsPlayer(getActivity().getApplicationContext())) {
                                 //播放视频
-                                TbsVideo.openVideo(getActivity().getApplicationContext(), mList.get(position).getMp4Path());
+                                TbsVideo.openVideo(getActivity().getApplicationContext(),
+                                        mList.get(position).getMp4Path());
                             } else {
                                 Toast.makeText(getActivity(), "TBS视频播放器异常", Toast.LENGTH_LONG);
                             }
@@ -128,6 +130,9 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
                     case R.id.ed_content:
 
+                        break;
+
+                    default:
                         break;
                 }
             }
@@ -199,12 +204,16 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 if (!TextUtils.isEmpty(mEtWeight.getText().toString().trim()) && !TextUtils.isEmpty(mEtNumber.getText().toString().trim())) { //不能为空
 
                     if (Integer.parseInt(mEtWeight.getText().toString().trim()) != 0 && Integer.parseInt(mEtNumber.getText().toString().trim()) != 0) { //不能为零
+                        LitePal.saveAll(mList);
+
                         SamplingDetails samplingDetails = new SamplingDetails();
                         samplingDetails.setWeight(mEtWeight.getText().toString().trim());
                         samplingDetails.setNumber(mEtNumber.getText().toString().trim());
-                        samplingDetails.setModelList(mList);
+                        for (int i = 0;i<mList.size();i++) {
+                            samplingDetails.getModelList().add(mList.get(i));
+                        }
 
-                        DeviceEvent  deviceEvent = new DeviceEvent();
+                        DeviceEvent deviceEvent = new DeviceEvent();
 
                         if (!LitePal.isExist(SamplingDetails.class)) {
                             samplingDetails.setCount(1);
@@ -219,11 +228,11 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                         samplingDetails.save();
                         dismiss();
                     } else {
-                        Toast.makeText(getActivity(),"输入框不能为零！请重新输入！",Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), "输入框不能为零！请重新输入！", Toast.LENGTH_LONG).show();
                     }
 
                 } else {
-                    Toast.makeText(getActivity(),"输入框不能为空！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), "输入框不能为空！", Toast.LENGTH_LONG).show();
                 }
 
                 break;

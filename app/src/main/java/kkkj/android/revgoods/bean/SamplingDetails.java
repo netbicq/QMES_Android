@@ -2,16 +2,18 @@ package kkkj.android.revgoods.bean;
 
 import org.litepal.crud.LitePalSupport;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kkkj.android.revgoods.common.getpic.GetPicModel;
+
 
 public class SamplingDetails extends LitePalSupport {
     private int id;
     private int count;
     private String number;
     private String weight;
-    private List<GetPicModel> modelList;
+    private List<GetPicModel> modelList = new ArrayList<GetPicModel>();
 
     public List<GetPicModel> getModelList() {
         return modelList;

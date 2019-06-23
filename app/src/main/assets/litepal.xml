@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
     <dbname value="revGoods"/>
-    <version value="1"/>
+    <version value="6"/>
     <list>
         <mapping class="kkkj.android.revgoods.bean.SamplingDetails"/>
         <mapping class="kkkj.android.revgoods.bean.Deduction"/>
         <mapping class="kkkj.android.revgoods.bean.DeductionCategory"/>
+        <mapping class="kkkj.android.revgoods.common.getpic.GetPicModel"/>
     </list>
 </litepal>
 

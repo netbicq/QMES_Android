@@ -14,12 +14,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
+
+import org.litepal.LitePal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,24 +35,25 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.bean.Deduction;
+import kkkj.android.revgoods.bean.DeductionCategory;
 
 /**
  * 扣重
  */
 public class DeductionFragment extends DialogFragment implements View.OnClickListener {
 
-    @BindView(R.id.button)
-    Button mSaveButton;
+    private Button mSaveButton;
     private Spinner mSpinner;
     private EditText mEtWeight;
-    @BindView(R.id.id_et_price)
-    EditText mEtPrice;
+    private EditText mEtPrice;
     Unbinder unbinder;
     private ImageView mBackImageView;
 
-    private AddDeductionCategoryFragment addDeductionCategoryFragment;
     private ArrayAdapter adapter;
     private String weight;
+    private List<DeductionCategory> deductionCategories;
+    private DeductionCategory mDeductionCategory;
 
     public static DeductionFragment newInstance(String weight) {
         Bundle args = new Bundle();
@@ -79,27 +86,46 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void initData() {
+        deductionCategories = LitePal.findAll(DeductionCategory.class);
+        mDeductionCategory = new DeductionCategory();
+
         adapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, getDataSource());
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
     }
 
     public List<String> getDataSource(){
-        List<String> list = new ArrayList<String>() ;
-        list.add("去皮");
-        list.add("报废");
-        list.add("鸡");
-        list.add("鱼");
+        List<String> list = new ArrayList<>();
+        for (int i=0;i<deductionCategories.size();i++) {
+            list.add(deductionCategories.get(i).getCategory());
+        }
         return list;
     }
 
     private void initView(View view) {
+        mSaveButton = view.findViewById(R.id.button);
+        mEtPrice = view.findViewById(R.id.id_et_price);
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mEtWeight.setText(weight);
         mSpinner = view.findViewById(R.id.id_et_number);
         mSpinner.setAdapter(adapter);
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mBackImageView.setOnClickListener(this);
+        mSaveButton.setOnClickListener(this);
+
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mEtPrice.setText(deductionCategories.get(position).getPrice());
+                mDeductionCategory = deductionCategories.get(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
     }
 
@@ -137,6 +163,24 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
         switch (view.getId()) {
             case R.id.iv_sampling_back:
                 dismiss();
+                break;
+
+            case R.id.button:
+                String wt = mEtWeight.getText().toString().trim();
+                String price = mEtPrice.getText().toString().trim();
+                if (!TextUtils.isEmpty(wt) && !TextUtils.isEmpty(price)) {
+
+                    mDeductionCategory.setPrice(price);
+                    Deduction deduction = new Deduction();
+                    deduction.setCategory(mDeductionCategory);
+                    deduction.setWeight(wt);
+                    deduction.save();
+                    dismiss();
+
+                } else {
+                    Toast.makeText(getContext(),"输入框不能为空！",Toast.LENGTH_LONG).show();
+                }
+
                 break;
 
             default:

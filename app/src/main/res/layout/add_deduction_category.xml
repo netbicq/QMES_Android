@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:orientation="horizontal">
+
+    <EditText
+        android:id="@+id/id_et_category"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:imeOptions="flagNoExtractUi"
+        android:gravity="center"
+        android:hint="请填写类别"/>
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="@color/qmui_config_color_pure_black"/>
+
+    <EditText
+        android:id="@+id/id_et_price"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:imeOptions="flagNoExtractUi"
+        android:gravity="center"
+        android:hint="请填写单价"/>
+
+</LinearLayout>

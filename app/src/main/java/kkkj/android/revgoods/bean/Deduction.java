@@ -16,6 +16,19 @@ public class Deduction extends LitePalSupport {
      */
     private String weight;
 
+    public DeductionCategory getCategory() {
+        return category;
+    }
 
+    public void setCategory(DeductionCategory category) {
+        this.category = category;
+    }
 
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
+    }
 }

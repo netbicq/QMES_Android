@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">RevGoods</string>
+    <string name="sampling">采样</string>
+    <string name="sampling_cumulative">采样累计</string>
+    <string name="piece_weight">单重</string>
+    <string name="deduction">扣重</string>
+    <string name="cumulative">Cumulative</string>
+    <string name="net_weight">净重</string>
+    <string name="gross_weight">毛重</string>
+    <string name="supplier">供应商</string>
+    <string name="matter">物料</string>
+</resources>

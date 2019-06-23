@@ -2,13 +2,16 @@ package kkkj.android.revgoods.common.getpic;
 
 
 import org.litepal.annotation.Column;
+import org.litepal.crud.LitePalSupport;
 
 import java.io.Serializable;
+
+import kkkj.android.revgoods.bean.SamplingDetails;
 
 /**
  * 照片或者录像
  */
-public class GetPicModel implements Serializable {
+public class GetPicModel extends LitePalSupport implements Serializable {
     @Column(unique = true, defaultValue = "unknow")
     String imagePath = "";
 
@@ -25,6 +28,26 @@ public class GetPicModel implements Serializable {
     int isUpload = 0;//0表示不显示上传按钮
 
     String SubjectID="";
+
+    private int id;
+
+    private SamplingDetails mSamplingDetails;
+
+    public SamplingDetails getSamplingDetails() {
+        return mSamplingDetails;
+    }
+
+    public void setSamplingDetails(SamplingDetails samplingDetails) {
+        mSamplingDetails = samplingDetails;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getSubjectID() {
         return SubjectID;
