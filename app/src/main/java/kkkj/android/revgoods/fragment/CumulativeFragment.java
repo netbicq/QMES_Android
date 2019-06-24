@@ -18,12 +18,15 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import org.litepal.LitePal;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.CumulativeAdapter;
 import kkkj.android.revgoods.bean.Cumulative;
+import kkkj.android.revgoods.bean.Deduction;
 
 /**
  * 累计
@@ -51,13 +54,17 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
 
     private void initData() {
         cumulativeList = new ArrayList<>();
-        for (int i = 0;i<10;i++) {
+        List<Deduction> deductionList = LitePal.findAll(Deduction.class,true);
+        for (int i = 0;i<deductionList.size();i++) {
             Cumulative cumulative = new Cumulative();
-            cumulative.setCount(i+1);
-            cumulative.setCategory("测试");
-            cumulative.setWeight(i+20+"");
+            cumulative.setCount(i + 1);
+            cumulative.setCategory(deductionList.get(i).getCategory().getCategory());
+            cumulative.setWeight(deductionList.get(i).getWeight());
             cumulativeList.add(cumulative);
         }
+
+        cumulativeList.addAll(LitePal.findAll(Cumulative.class));
+
         adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
     }
 

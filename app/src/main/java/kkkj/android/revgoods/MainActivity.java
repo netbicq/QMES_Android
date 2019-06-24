@@ -7,12 +7,12 @@ import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -39,6 +39,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
+import org.litepal.crud.LitePalSupport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +54,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
+import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Device;
-import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.bean.SamplingDetails;
+import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
@@ -68,6 +70,7 @@ import kkkj.android.revgoods.conn.socket.SocketListener;
 import kkkj.android.revgoods.conn.socket.WriteData;
 import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
+import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.fragment.BillListFragment;
 import kkkj.android.revgoods.fragment.CumulativeFragment;
 import kkkj.android.revgoods.fragment.DeductionFragment;
@@ -124,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView mChooseSpecsImageView;
     @BindView(R.id.id_iv_setting)
     ImageView mSettingImageView;
+    @BindView(R.id.tv_specs)
+    EditText mTvSpecs;
 
     private String mSampling = "(0)";//采样累计默认数字
 
@@ -186,6 +191,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (deviceEvent.getSamplingNumber() >= 0) {
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
+        }
+
+        if (deviceEvent.getSpecsId() >= 0) {
+            Specs specs = new Specs();
+            specs = LitePal.find(Specs.class,deviceEvent.getSpecsId());
+            mTvSpecs.setText(specs.getName());
         }
 
         switch (device.getType()) {
@@ -272,7 +283,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 }
                                                 mWeightTextView.setText(str);
                                                 double weight = Double.parseDouble(str);
-                                                if (weight > 3 && manager != null && manager.isConnect()) {
+                                                double compareWeight = Double.parseDouble(SharedPreferenceUtil
+                                                        .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+
+                                                if (weight > compareWeight && manager != null && manager.isConnect()) {
+
+                                                    Cumulative cumulative = new Cumulative();
+                                                    cumulative.setCategory("净重");
+                                                    cumulative.setWeight(str);
+
+                                                    if (!LitePal.isExist(Cumulative.class)) {
+                                                        cumulative.setCount(1);
+                                                    } else {
+                                                        Cumulative cumulative1 = LitePal.findLast(Cumulative.class);
+                                                        cumulative.setCount(cumulative1.getCount() + 1);
+                                                    }
+                                                    cumulative.save();
+
                                                     manager.send(new WriteData(Order.TURN_ON_3));
                                                     manager.send(new WriteData(Order.TURN_ON_2));
                                                     Observable.timer(2, TimeUnit.SECONDS)
@@ -912,7 +939,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 FragmentTransaction ft7 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft7.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                settingFragment.show(ft7,"settingFragment");
+                settingFragment.show(ft7, "settingFragment");
 
                 break;
 

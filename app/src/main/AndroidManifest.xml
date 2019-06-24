@@ -99,7 +99,7 @@
 
         <activity
             android:name=".ui.DeductionCategoryActivity"
-            android:windowSoftInputMode="adjustPan"
+            android:windowSoftInputMode="adjustResize"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar"/>
     </application>

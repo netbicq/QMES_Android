@@ -1,9 +1,15 @@
 package kkkj.android.revgoods.bean;
 
+import org.litepal.LitePal;
+import org.litepal.crud.LitePalSupport;
+
 /**
  * 累计
  */
-public class Cumulative {
+public class Cumulative extends LitePalSupport {
+
+    private int id;
+
     private int count;
     /**
      * 类别
@@ -14,6 +20,14 @@ public class Cumulative {
      * 重量
      */
     private String weight;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public int getCount() {
         return count;

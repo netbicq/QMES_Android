@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -36,9 +37,10 @@ import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
 /**
  * 添加扣重类别
  */
-public class ShowSamplingPictureFragment extends DialogFragment {
+public class ShowSamplingPictureFragment extends DialogFragment implements View.OnClickListener {
 
     private int id;
+    private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
     private List<GetPicModel> mList;
     private PicOrMp4Adapter picOrMp4Adapter;
@@ -73,7 +75,8 @@ public class ShowSamplingPictureFragment extends DialogFragment {
     }
 
     private void initView(View view) {
-
+        mBackImageView = view.findViewById(R.id.iv_sampling_back);
+        mBackImageView.setOnClickListener(this);
         mRecyclerView = view.findViewById(R.id.id_recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mRecyclerView.setAdapter(picOrMp4Adapter);
@@ -81,7 +84,7 @@ public class ShowSamplingPictureFragment extends DialogFragment {
 
     private void initData() {
         mList = new ArrayList<>();
-        SamplingDetails samplingDetails = LitePal.find(SamplingDetails.class,id,true);
+        SamplingDetails samplingDetails = LitePal.find(SamplingDetails.class, id, true);
         mList = samplingDetails.getModelList();
 
         picOrMp4Adapter = new PicOrMp4Adapter(R.layout.item_picormp4, mList);
@@ -110,8 +113,8 @@ public class ShowSamplingPictureFragment extends DialogFragment {
                         }
                         break;
                     case R.id.iv_delete:
-                        mList.remove(position);
-                        picOrMp4Adapter.notifyDataSetChanged();
+                        //mList.remove(position);
+                        //picOrMp4Adapter.notifyDataSetChanged();
                         break;
 
                     case R.id.ed_content:
@@ -151,5 +154,17 @@ public class ShowSamplingPictureFragment extends DialogFragment {
         window.setAttributes(wlp);
         return dialog;
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.iv_sampling_back:
+                dismiss();
+                break;
+
+            default:
+                break;
+        }
     }
 }

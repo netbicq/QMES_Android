@@ -1,24 +1,30 @@
 package kkkj.android.revgoods.ui;
 
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
 import org.litepal.LitePal;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,11 +55,57 @@ public class DeductionCategoryActivity extends AppCompatActivity {
     private View mAddCategoryView;
     private EditText mEditTextCategory;
     private EditText mEditTextPrice;
+    private LinearLayoutManager linearLayoutManager;
+
+
+    public static int keyboardHeight = 0;
+    boolean isVisiableForLast = false;
+    ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = null;
+
+    public void addOnSoftKeyBoardVisibleListener() {
+        if (keyboardHeight > 0) {
+            return;
+        }
+        final View decorView = getWindow().getDecorView();
+        onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                Rect rect = new Rect();
+                decorView.getWindowVisibleDisplayFrame(rect);
+                //计算出可见屏幕的高度
+                int displayHight = rect.bottom - rect.top;
+                //获得屏幕整体的高度
+                int hight = decorView.getHeight();
+                boolean visible = (double) displayHight / hight < 0.8;
+                int statusBarHeight = 0;
+                try {
+                    Class<?> c = Class.forName("com.android.internal.R$dimen");
+                    Object obj = c.newInstance();
+                    Field field = c.getField("status_bar_height");
+                    int x = Integer.parseInt(field.get(obj).toString());
+                    statusBarHeight = getApplicationContext().getResources().getDimensionPixelSize(x);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (visible && visible != isVisiableForLast) {
+                    //获得键盘高度
+                    keyboardHeight = hight - displayHight - statusBarHeight;
+                    Logger.d("keyboardHeight==1213=" + keyboardHeight);
+
+                }
+                isVisiableForLast = visible;
+            }
+        };
+        decorView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         setContentView(R.layout.activity_deduction_category);
         ButterKnife.bind(this);
 
@@ -64,6 +116,7 @@ public class DeductionCategoryActivity extends AppCompatActivity {
         lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
         getWindow().setAttributes(lp);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
 
         initData();
         initView();
@@ -99,8 +152,11 @@ public class DeductionCategoryActivity extends AppCompatActivity {
         mEditTextCategory = mAddCategoryView.findViewById(R.id.id_et_category);
         mEditTextPrice = mAddCategoryView.findViewById(R.id.id_et_price);
 
+        linearLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL,false);
+        linearLayoutManager.setStackFromEnd(true);
 
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setLayoutManager(linearLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
                 DividerItemDecoration.VERTICAL));
         mRecyclerView.setCanMove(true);
@@ -120,6 +176,11 @@ public class DeductionCategoryActivity extends AppCompatActivity {
                 adapter.setFooterView(mAddCategoryView);
                 adapter.notifyDataSetChanged();
                 mRecyclerView.smoothScrollToPosition(deductionCategoryList.size());
+                if (mEditTextCategory.isFocused()) {
+                    addOnSoftKeyBoardVisibleListener();
+                    mRecyclerView.scrollTo(0,keyboardHeight);
+                    //mRecyclerView.scrollToPosition(keyboardHeight);
+                }
                 break;
 
             case R.id.button:
@@ -145,4 +206,7 @@ public class DeductionCategoryActivity extends AppCompatActivity {
                 break;
         }
     }
+
+
+
 }

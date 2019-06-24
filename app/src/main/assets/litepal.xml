@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
     <dbname value="revGoods"/>
-    <version value="6"/>
+    <version value="8"/>
     <list>
         <mapping class="kkkj.android.revgoods.bean.SamplingDetails"/>
         <mapping class="kkkj.android.revgoods.bean.Deduction"/>
         <mapping class="kkkj.android.revgoods.bean.DeductionCategory"/>
+        <mapping class="kkkj.android.revgoods.bean.Matter"/>
+        <mapping class="kkkj.android.revgoods.bean.Specs"/>
+        <mapping class="kkkj.android.revgoods.bean.Supplier"/>
+        <mapping class="kkkj.android.revgoods.bean.Cumulative"/>
         <mapping class="kkkj.android.revgoods.common.getpic.GetPicModel"/>
     </list>
 </litepal>

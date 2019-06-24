@@ -2,35 +2,61 @@ package kkkj.android.revgoods.ui;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
+import org.greenrobot.eventbus.EventBus;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.adapter.SpecsAdapter;
+import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
  * 选择规格
  */
 public class ChooseSpecsActivity extends AppCompatActivity implements View.OnClickListener {
 
+    @BindView(R.id.et_search_matter)
+    EditText mEtSearchMatter;
     private ImageView mBackImageView;
     private ImageView mZXingImageView;
+    private RecyclerView mRecyclerView;
     /**
      * 扫描跳转Activity RequestCode
      */
     public static final int REQUEST_CODE = 111;
 
+    private List<Specs> mSpecs = new ArrayList<>();
+    private List<Specs> mTempSpecs = new ArrayList<>();
+    private SpecsAdapter mAdapter;
+    private LinearLayoutManager mLayoutManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_specs);
+        ButterKnife.bind(this);
 
         /**
          * 沉浸式
@@ -40,7 +66,35 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
         getWindow().setAttributes(lp);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
+
+        initData();
         initView();
+    }
+
+    private void initData() {
+
+        for (int i = 0; i < 20; i++) {
+            Specs specs = new Specs();
+            specs.setName("测试" + i);
+            mSpecs.add(specs);
+            mTempSpecs.add(specs);
+            specs.save();
+        }
+
+        mAdapter = new SpecsAdapter(R.layout.item_normal, mSpecs);
+        mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,
+                false);
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Specs specs = mSpecs.get(position);
+                int id = specs.getId();
+                DeviceEvent deviceEvent = new DeviceEvent();
+                deviceEvent.setSpecsId(id);
+                EventBus.getDefault().post(deviceEvent);
+                finish();
+            }
+        });
     }
 
     private void initView() {
@@ -48,6 +102,43 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
         mZXingImageView = findViewById(R.id.id_iv_zxing);
         mZXingImageView.setOnClickListener(this);
         mBackImageView.setOnClickListener(this);
+
+        mRecyclerView = findViewById(R.id.id_recyclerView);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
+                DividerItemDecoration.VERTICAL));
+        mRecyclerView.setAdapter(mAdapter);
+
+        mEtSearchMatter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String search = mEtSearchMatter.getText().toString().trim();
+                mSpecs.clear();
+
+                for (int i=0;i<mTempSpecs.size();i++) {
+                    Specs specs = mTempSpecs.get(i);
+                    String str = specs.getName();
+
+                    if (str.contains(search)) {
+                        mSpecs.add(specs);
+                    }
+                }
+
+                mAdapter.notifyDataSetChanged();
+
+            }
+        });
+
     }
 
     @Override
