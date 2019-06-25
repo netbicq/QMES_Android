@@ -32,7 +32,7 @@
             android:layout_toRightOf="@+id/id_iv_back"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="选择物料"
+            android:text="@string/choose_matter"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
@@ -45,7 +45,7 @@
             android:background="@drawable/text_background"
             android:drawableLeft="@drawable/ic_search_24dp"
             android:gravity="center"
-            android:hint="请输入物料信息"
+            android:hint="@string/input_matter"
             android:padding="8dp"
             android:textColor="@color/qmui_config_color_white"
             android:textColorHint="@color/qmui_config_color_white"
@@ -60,7 +60,6 @@
             android:background="@drawable/text_background"
             android:padding="8dp"
             app:srcCompat="@drawable/ic_zxing_24dp" />
-
 
     </RelativeLayout>
 

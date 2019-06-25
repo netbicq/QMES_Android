@@ -21,6 +21,7 @@ public class SamplingDetailsAdapter extends BaseQuickAdapter<SamplingDetails, Ba
         helper.setText(R.id.id_tv_number,item.getNumber());
         helper.setText(R.id.id_tv_count,item.getCount()+"");
         helper.setText(R.id.id_tv_weight,item.getWeight());
+        helper.setText(R.id.id_tv_specs,item.getSpecs());
         helper.addOnClickListener(R.id.tv_delete);
     }
 }

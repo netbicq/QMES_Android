@@ -11,6 +11,41 @@
     android:focusableInTouchMode="true"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
+        android:text="(kg)"
+        android:textColor="#F4FC14"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_tv_show_piece_weight"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_show_piece_weight"
+        app:layout_constraintTop_toTopOf="@+id/id_tv_show_piece_weight" />
+
+    <TextView
+        android:id="@+id/tv_cumulative_weight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
+        android:text="0"
+        android:textColor="#F4FC14"
+        android:textSize="28sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView3"
+        app:layout_constraintStart_toEndOf="@+id/textView3"
+        app:layout_constraintTop_toTopOf="@+id/textView3" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="累计重量："
+        android:textColor="@color/qmui_config_color_white"
+        app:layout_constraintStart_toStartOf="@+id/textView24"
+        app:layout_constraintTop_toBottomOf="@+id/textView24" />
+
     <ImageView
         android:id="@+id/id_iv_choose_specs"
         android:layout_width="wrap_content"
@@ -28,7 +63,6 @@
         android:id="@+id/id_tv_save_bill"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginStart="80dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/text_background"
         android:gravity="center"
@@ -38,10 +72,8 @@
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
         app:layout_constraintEnd_toStartOf="@+id/id_tv_save_bill2"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline7"
         app:layout_constraintTop_toTopOf="@+id/id_iv_print"
-        app:layout_constraintVertical_bias="0.0"/>
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/id_tv_save_bill2"
@@ -57,10 +89,10 @@
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_tv_save_bill"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.852"
+        app:layout_constraintHorizontal_bias="0.95"
         app:layout_constraintStart_toStartOf="@+id/guideline7"
         app:layout_constraintTop_toTopOf="@+id/id_tv_save_bill"
-        app:layout_constraintVertical_bias="0.0"/>
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/textView"
@@ -118,14 +150,16 @@
 
     <TextView
         android:id="@+id/textView24"
-        android:layout_width="30dp"
+        android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginStart="48dp"
-        android:text="@string/cumulative"
+        android:layout_marginStart="44dp"
+        android:gravity="center"
+        android:text="累计次数："
         android:textColor="@color/qmui_config_color_white"
         app:layout_constraintBottom_toBottomOf="@+id/id_tv_sampling_number"
         app:layout_constraintStart_toStartOf="@+id/guideline7"
-        app:layout_constraintTop_toTopOf="@+id/id_tv_sampling_number"/>
+        app:layout_constraintTop_toTopOf="@+id/id_tv_sampling_number"
+        app:layout_constraintVertical_bias="1.0" />
 
 
     <TextView
@@ -159,25 +193,26 @@
         android:id="@+id/textView14"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="3dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
         android:text="(kg)"
         android:textColor="#F4FC14"
         android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="@+id/id_tv_show_piece_weight"
-        app:layout_constraintStart_toEndOf="@+id/id_tv_show_piece_weight"
-        app:layout_constraintTop_toTopOf="@+id/id_tv_show_piece_weight"/>
+        app:layout_constraintBottom_toBottomOf="@+id/tv_cumulative_weight"
+        app:layout_constraintStart_toEndOf="@+id/tv_cumulative_weight" />
 
     <TextView
-        android:id="@+id/textView11"
+        android:id="@+id/tv_cumulative_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="3dp"
-        android:text="0(0)kg"
+        android:text="0"
         android:textColor="#F4FC14"
         android:textSize="28sp"
         app:layout_constraintBottom_toBottomOf="@+id/textView24"
         app:layout_constraintStart_toEndOf="@+id/textView24"
-        app:layout_constraintTop_toTopOf="@+id/textView24"/>
+        app:layout_constraintTop_toTopOf="@+id/textView24"
+        app:layout_constraintVertical_bias="0.5" />
 
     <TextView
         android:id="@+id/id_tv_sampling_count"

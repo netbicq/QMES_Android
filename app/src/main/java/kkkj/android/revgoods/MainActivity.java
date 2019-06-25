@@ -39,8 +39,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
-import org.litepal.crud.LitePalSupport;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +54,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
+import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.SamplingDetails;
@@ -129,6 +130,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView mSettingImageView;
     @BindView(R.id.tv_specs)
     EditText mTvSpecs;
+    @BindView(R.id.tv_cumulative_weight)
+    TextView tvCumulativeWeight;
+    @BindView(R.id.tv_cumulative_count)
+    TextView tvCumulativeCount;
+    @BindView(R.id.id_tv_save_bill)
+    TextView mTvSaveBill;
+
 
     private String mSampling = "(0)";//采样累计默认数字
 
@@ -179,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         if (manager != null) {
+            manager.send(new WriteData(Order.TURN_OFF_ALL));
             manager.unRegisterReceiver(listener);
         }
         EventBus.getDefault().unregister(this);
@@ -195,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (deviceEvent.getSpecsId() >= 0) {
             Specs specs = new Specs();
-            specs = LitePal.find(Specs.class,deviceEvent.getSpecsId());
+            specs = LitePal.find(Specs.class, deviceEvent.getSpecsId());
             mTvSpecs.setText(specs.getName());
         }
 
@@ -262,6 +271,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             .subscribe(new Consumer<Long>() {
                                 @Override
                                 public void accept(@NonNull Long aLong) throws Exception {
+
                                     bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
                                         @Override
                                         public void onSubscribe(Disposable d) {
@@ -276,8 +286,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         public void onNext(String s) {
                                             Logger.d("读取到数据:" + s);
                                             if (s.length() == 8) {
-                                                //去掉前面的零和“=”号
-                                                String str = s.replaceFirst("^0*", "").replace("=", "");
+                                                //去掉前面的“=”号和零
+                                                String str1 = s.replace("=", "");
+                                                String str = str1.replaceFirst("^0*", "");
                                                 if (str.startsWith(".")) {
                                                     str = "0" + str;
                                                 }
@@ -288,20 +299,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                                 if (weight > compareWeight && manager != null && manager.isConnect()) {
 
-                                                    Cumulative cumulative = new Cumulative();
-                                                    cumulative.setCategory("净重");
-                                                    cumulative.setWeight(str);
+                                                    if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+                                                        Cumulative cumulative = new Cumulative();
+                                                        cumulative.setCategory("净重");
+                                                        cumulative.setWeight(str);
 
-                                                    if (!LitePal.isExist(Cumulative.class)) {
-                                                        cumulative.setCount(1);
-                                                    } else {
-                                                        Cumulative cumulative1 = LitePal.findLast(Cumulative.class);
-                                                        cumulative.setCount(cumulative1.getCount() + 1);
+                                                        if (!LitePal.isExist(Cumulative.class)) {
+                                                            cumulative.setCount(1);
+                                                        } else {
+                                                            Cumulative cumulative1 = LitePal.findLast(Cumulative.class);
+                                                            cumulative.setCount(cumulative1.getCount() + 1);
+                                                        }
+
+                                                        cumulative.save();
+
+                                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                                        double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                                        /**浮点数
+                                                         * 相加：b1.add(b2).doubleValue();
+                                                         * 相减：b1.subtract(b2).doubleValue();
+                                                         * 相乘：b1.multiply(b2).doubleValue();
+                                                         */
+                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                                        BigDecimal b2 = new BigDecimal(Double.toString(weight));
+                                                        cWeight = b1.add(b2).doubleValue();
+                                                        count = count + 1;
+
+                                                        tvCumulativeCount.setText(count + "");
+                                                        tvCumulativeWeight.setText(cWeight + "");
                                                     }
-                                                    cumulative.save();
 
-                                                    manager.send(new WriteData(Order.TURN_ON_3));
+                                                    manager.send(new WriteData(Order.TURN_OFF_1));
                                                     manager.send(new WriteData(Order.TURN_ON_2));
+
                                                     Observable.timer(2, TimeUnit.SECONDS)
                                                             .subscribe(new Observer<Long>() {
                                                                 @Override
@@ -311,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                                                 @Override
                                                                 public void onNext(Long aLong) {
-                                                                    manager.send(new WriteData(Order.TURN_OFF_3));
+                                                                    manager.send(new WriteData(Order.TURN_ON_1));
                                                                     manager.send(new WriteData(Order.TURN_OFF_2));
 
                                                                 }
@@ -326,10 +357,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                                                 }
                                                             });
-
                                                 }
-
-
                                             }
                                         }
 
@@ -340,9 +368,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                         @Override
                                         public void onComplete() {
-
                                         }
                                     });
+
                                 }
                             });
                 }
@@ -407,6 +435,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (manager != null) {
             manager.connect();
+            manager.send(new WriteData(Order.TURN_ON_1));
         }
     }
 
@@ -577,8 +606,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChooseMatterImageView.setOnClickListener(this);
         mChooseSpecsImageView.setOnClickListener(this);
         mSettingImageView.setOnClickListener(this);
+        mTvSaveBill.setOnClickListener(this);
 
         mSamplingNumber.setText(mSampling);
+        mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+
+        if (LitePal.isExist(Cumulative.class)) {
+            tvCumulativeCount.setText(LitePal.findLast(Cumulative.class).getCount() + "");
+            List<Cumulative> cumulatives = LitePal.findAll(Cumulative.class);
+            String weight = "0";
+            for (int i = 0; i < cumulatives.size(); i++) {
+                BigDecimal b1 = new BigDecimal(weight);
+                BigDecimal b2 = new BigDecimal(cumulatives.get(i).getWeight());
+                weight = String.valueOf(b1.add(b2).doubleValue());
+            }
+            tvCumulativeWeight.setText(weight);
+        }
 
         spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
                 R.layout.spinner_style, getDataSource());
@@ -884,7 +927,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_deduction://扣重
-
                 deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
                 FragmentTransaction ft4 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft4.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -940,13 +982,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 FragmentTransaction ft7 = MainActivity.this.getSupportFragmentManager().beginTransaction();
                 ft7.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 settingFragment.show(ft7, "settingFragment");
-
                 break;
 
             case R.id.id_iv_takePicture:
                 takePicture();
                 break;
 
+            case R.id.id_tv_save_bill:
+                List<SamplingDetails> samplingDetails = LitePal.findAll(SamplingDetails.class);
+                Bill bill = new Bill();
+                bill.setSamplingDetailsList(samplingDetails);
+                bill.save();
+                int id = bill.getId();
+                LitePal.deleteAll(SamplingDetails.class);
+                Logger.d(LitePal.find(Bill.class,id,true).getSamplingDetailsList().size());
+
+                break;
             default:
                 break;
         }

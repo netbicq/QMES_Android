@@ -58,7 +58,7 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
         for (int i = 0;i<deductionList.size();i++) {
             Cumulative cumulative = new Cumulative();
             cumulative.setCount(i + 1);
-            cumulative.setCategory(deductionList.get(i).getCategory().getCategory());
+            cumulative.setCategory("扣重·" + deductionList.get(i).getCategory().getCategory());
             cumulative.setWeight(deductionList.get(i).getWeight());
             cumulativeList.add(cumulative);
         }
@@ -104,9 +104,7 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
         wlp.height = (2 * height) / 3;
         // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         window.setAttributes(wlp);
-
         return dialog;
-
     }
 
     @Override

@@ -32,7 +32,7 @@
             android:layout_toRightOf="@+id/id_iv_back"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="选择供应商"
+            android:text="@string/choose_supplier"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
@@ -45,7 +45,7 @@
             android:background="@drawable/text_background"
             android:drawableLeft="@drawable/ic_search_24dp"
             android:gravity="center"
-            android:hint="请输入供应商信息"
+            android:hint="@string/input_supplier"
             android:padding="8dp"
             android:textColor="@color/qmui_config_color_white"
             android:textColorHint="@color/qmui_config_color_white"

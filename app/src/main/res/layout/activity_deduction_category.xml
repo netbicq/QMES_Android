@@ -30,7 +30,7 @@ app:layout_constraintTop_toTopOf="parent">
     android:layout_centerHorizontal="true"
     android:gravity="center"
     android:paddingVertical="8dp"
-    android:text="扣重类别"
+    android:text="@string/deduction_category"
     android:textColor="@color/qmui_config_color_white"
     android:textSize="18sp"/>
 
@@ -43,7 +43,7 @@ app:layout_constraintTop_toTopOf="parent">
     android:layout_marginEnd="8dp"
     android:gravity="center"
     android:padding="8dp"
-    android:text="添加"
+    android:text="@string/add"
     android:textColor="@color/qmui_config_color_white"/>
 
 </RelativeLayout>
@@ -54,7 +54,7 @@ android:layout_width="0dp"
 android:layout_height="wrap_content"
 android:layout_margin="8dp"
 android:background="@drawable/bg_style"
-android:text="确定"
+android:text="@string/enter"
 android:textColor="@color/qmui_config_color_white"
 app:layout_constraintBottom_toBottomOf="parent"
 app:layout_constraintEnd_toEndOf="parent"
@@ -81,28 +81,29 @@ app:layout_constraintTop_toBottomOf="@+id/relativeLayout">
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:gravity="center"
-    android:text="扣重类别"/>
+    android:text="@string/deduction_category"/>
 
 <TextView
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:gravity="center"
-    android:text="单价(元)"/>
+    android:text="@string/price"/>
 
 </LinearLayout>
 
-<kkkj.android.revgoods.customer.SlideRecyclerView
-android:id="@+id/id_recyclerView"
-android:layout_width="0dp"
-android:layout_height="0dp"
-android:layout_marginStart="8dp"
-android:layout_marginTop="8dp"
-android:layout_marginEnd="8dp"
-android:layout_marginBottom="8dp"
-app:layout_constraintBottom_toTopOf="@+id/button"
-app:layout_constraintEnd_toEndOf="parent"
-app:layout_constraintStart_toStartOf="parent"
-app:layout_constraintTop_toBottomOf="@+id/id_recyclerview"/>
+    <kkkj.android.revgoods.customer.SlideRecyclerView
+        android:id="@+id/id_recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/id_recyclerview"
+        app:layout_constraintVertical_bias="0.0" />
 
     </android.support.constraint.ConstraintLayout>

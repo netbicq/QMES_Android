@@ -57,51 +57,6 @@ public class DeductionCategoryActivity extends AppCompatActivity {
     private EditText mEditTextPrice;
     private LinearLayoutManager linearLayoutManager;
 
-
-    public static int keyboardHeight = 0;
-    boolean isVisiableForLast = false;
-    ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = null;
-
-    public void addOnSoftKeyBoardVisibleListener() {
-        if (keyboardHeight > 0) {
-            return;
-        }
-        final View decorView = getWindow().getDecorView();
-        onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                Rect rect = new Rect();
-                decorView.getWindowVisibleDisplayFrame(rect);
-                //计算出可见屏幕的高度
-                int displayHight = rect.bottom - rect.top;
-                //获得屏幕整体的高度
-                int hight = decorView.getHeight();
-                boolean visible = (double) displayHight / hight < 0.8;
-                int statusBarHeight = 0;
-                try {
-                    Class<?> c = Class.forName("com.android.internal.R$dimen");
-                    Object obj = c.newInstance();
-                    Field field = c.getField("status_bar_height");
-                    int x = Integer.parseInt(field.get(obj).toString());
-                    statusBarHeight = getApplicationContext().getResources().getDimensionPixelSize(x);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                if (visible && visible != isVisiableForLast) {
-                    //获得键盘高度
-                    keyboardHeight = hight - displayHight - statusBarHeight;
-                    Logger.d("keyboardHeight==1213=" + keyboardHeight);
-
-                }
-                isVisiableForLast = visible;
-            }
-        };
-        decorView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
-    }
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -176,11 +131,7 @@ public class DeductionCategoryActivity extends AppCompatActivity {
                 adapter.setFooterView(mAddCategoryView);
                 adapter.notifyDataSetChanged();
                 mRecyclerView.smoothScrollToPosition(deductionCategoryList.size());
-                if (mEditTextCategory.isFocused()) {
-                    addOnSoftKeyBoardVisibleListener();
-                    mRecyclerView.scrollTo(0,keyboardHeight);
-                    //mRecyclerView.scrollToPosition(keyboardHeight);
-                }
+                //mRecyclerView.scrollToPosition(keyboardHeight);
                 break;
 
             case R.id.button:

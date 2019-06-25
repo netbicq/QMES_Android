@@ -2,6 +2,7 @@
     <string name="app_name">RevGoods</string>
     <string name="sampling">采样</string>
     <string name="sampling_cumulative">采样累计</string>
+    <string name="weight">重量</string>
     <string name="piece_weight">单重</string>
     <string name="deduction">扣重</string>
     <string name="cumulative">累计</string>
@@ -9,4 +10,16 @@
     <string name="gross_weight">毛重</string>
     <string name="supplier">供应商</string>
     <string name="matter">物料</string>
+    <string name="choose_produce_line">请选择生产线</string>
+    <string name="choose_specs">请选择规格</string>
+    <string name="input_specs">请输入规格信息</string>
+    <string name="choose_matter">请选择品类</string>
+    <string name="input_matter">请输入品类信息</string>
+    <string name="choose_supplier">请选择供应商</string>
+    <string name="input_supplier">请输入供应商信息</string>
+    <string name="add">添加</string>
+    <string name="deduction_category">扣重类别</string>
+    <string name="price">单价</string>
+    <string name="enter">确定</string>
+    <string name="category">类别</string>
 </resources>

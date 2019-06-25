@@ -84,6 +84,18 @@
             android:gravity="center"
             android:text="重量(kg)" />
 
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="规格" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -116,6 +128,15 @@
             android:imeOptions="flagNoExtractUi"
             android:inputType="number"
             android:text="0" />
+
+        <EditText
+            android:id="@+id/id_et_specs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:imeOptions="flagNoExtractUi"
+            tools:text="规格" />
 
     </LinearLayout>
 

@@ -56,6 +56,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private Button mSaveButton;
     private EditText mEtNumber;
     private EditText mEtWeight;
+    private EditText mEtSpecs;
     private ImageView mBackImageView;
     private ImageView mTakePictureImageView;
     private RecyclerView recyclerView;
@@ -146,7 +147,9 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private void initView(View view) {
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
+        mEtSpecs = view.findViewById(R.id.id_et_specs);
         mSaveButton = view.findViewById(R.id.button);
+
         mEtWeight.setText(weight);
 
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
@@ -203,14 +206,17 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 break;
 
             case R.id.button:
-                if (!TextUtils.isEmpty(mEtWeight.getText().toString().trim()) && !TextUtils.isEmpty(mEtNumber.getText().toString().trim())) { //不能为空
+                if (!TextUtils.isEmpty(mEtWeight.getText().toString().trim())
+                        && !TextUtils.isEmpty(mEtNumber.getText().toString().trim())
+                        && !TextUtils.isEmpty(mEtSpecs.getText().toString().trim())) { //不能为空
 
-                    if (Integer.parseInt(mEtWeight.getText().toString().trim()) != 0 && Integer.parseInt(mEtNumber.getText().toString().trim()) != 0) { //不能为零
+                    if (Double.parseDouble(mEtWeight.getText().toString().trim()) != 0 && Integer.parseInt(mEtNumber.getText().toString().trim()) != 0) { //不能为零
                         LitePal.saveAll(mList);
 
                         SamplingDetails samplingDetails = new SamplingDetails();
                         samplingDetails.setWeight(mEtWeight.getText().toString().trim());
                         samplingDetails.setNumber(mEtNumber.getText().toString().trim());
+                        samplingDetails.setSpecs(mEtSpecs.getText().toString().trim());
                         for (int i = 0;i<mList.size();i++) {
                             samplingDetails.getModelList().add(mList.get(i));
                         }
