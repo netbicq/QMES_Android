@@ -10,6 +10,8 @@ public class Cumulative extends LitePalSupport {
 
     private int id;
 
+    private int hasBill = -1;
+
     private int count;
     /**
      * 类别
@@ -29,6 +31,14 @@ public class Cumulative extends LitePalSupport {
      * 所属单据
      */
     private Bill bill;
+
+    public int isHasBill() {
+        return hasBill;
+    }
+
+    public void setHasBill(int hasBill) {
+        this.hasBill = hasBill;
+    }
 
     public String getPrice() {
         return price;

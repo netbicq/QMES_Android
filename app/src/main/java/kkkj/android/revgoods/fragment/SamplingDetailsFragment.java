@@ -61,7 +61,9 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
 
     private void initData() {
         samplingDetailsList = new ArrayList<>();
-        samplingDetailsList = LitePal.findAll(SamplingDetails.class,true);
+        //samplingDetailsList = LitePal.findAll(SamplingDetails.class,true);
+        samplingDetailsList = LitePal.where("hasBill < ?","0")
+                                     .find(SamplingDetails.class,true);
 
         adapter = new SamplingDetailsAdapter(R.layout.item_sampling_deatils,samplingDetailsList);
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {

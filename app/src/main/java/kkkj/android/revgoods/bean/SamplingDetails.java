@@ -10,21 +10,46 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 
 public class SamplingDetails extends LitePalSupport {
     private int id;
-    private int count;//采样次数
-    private String number;//单次数量
-    private String weight;//单次重量
-    private Specs specs;//单次规格
+
+    private int hasBill = -1;
+
+    /**
+     * 采样次数
+     */
+    private int count;
+    /**
+     * 单次数量
+     */
+    private String number;
+    /**
+     * 单次重量
+     */
+    private String weight;
+    /**
+     * 单次规格
+     */
+    private Specs specs;
+
     private List<GetPicModel> modelList = new ArrayList<GetPicModel>();
 
     private Bill mBill;
 
-    public Bill getmBill() {
+    public int isHasBill() {
+        return hasBill;
+    }
+
+    public void setHasBill(int hasBill) {
+        this.hasBill = hasBill;
+    }
+
+    public Bill getBill() {
         return mBill;
     }
 
-    public void setmBill(Bill mBill) {
-        this.mBill = mBill;
+    public void setBill(Bill bill) {
+        mBill = bill;
     }
+
 
     public Specs getSpecs() {
         return specs;

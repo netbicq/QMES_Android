@@ -58,9 +58,6 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
 
     private void initData() {
         mBills = new ArrayList<>();
-        LitePalDB litePalDB = new LitePalDB("Bills",1);
-        LitePal.use(litePalDB);
-        mBills = LitePal.findAll(Bill.class);
 
     }
 
@@ -124,6 +121,5 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
     @Override
     public void onDestroy() {
         super.onDestroy();
-        LitePal.useDefault();
     }
 }

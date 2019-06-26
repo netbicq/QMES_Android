@@ -60,13 +60,6 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
 
-        //第一次运行 getBoolean 默认false
-        /**
-        if (!SharedPreferenceUtil.getBoolean(SharedPreferenceUtil.SP_ISFIRST)) {
-            Logger.d("------>isFirst");
-            SharedPreferenceUtil.setBoolean(SharedPreferenceUtil.SP_ISFIRST,true);
-        }
-        */
         initData();
         initView(view);
         return view;
@@ -81,7 +74,6 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
 
         cumulativeList = LitePal.findAll(Cumulative.class,true);
         samplingDetailsList = LitePal.findAll(SamplingDetails.class,true);
-        Logger.d("size--------->" + cumulativeList.size());
 
 
     }
@@ -154,26 +146,7 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
                 break;
 
             case R.id.button:
-                LitePalDB litePalDB = new LitePalDB("Bills",1);
-                litePalDB.addClassName(Bill.class.getName());
-                litePalDB.addClassName(SamplingDetails.class.getName());
-                litePalDB.addClassName(Cumulative.class.getName());
-                litePalDB.addClassName(Supplier.class.getName());
-                litePalDB.addClassName(Matter.class.getName());
-                litePalDB.addClassName(Specs.class.getName());
-                LitePal.use(litePalDB);
-                Bill bill = new Bill();
-                bill.setName("测试3");
-                for (int i = 0;i<cumulativeList.size();i++) {
-                    Cumulative cumulative = new Cumulative();
-                    cumulative = cumulativeList.get(i);
-                    cumulative.save();
-                    bill.getCumulativeList().add(cumulative);
-                }
-                LitePal.saveAll(samplingDetailsList);
-                bill.setSamplingDetailsList(samplingDetailsList);
 
-                bill.save();
 
                 break;
 
@@ -185,6 +158,6 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
     @Override
     public void onDestroy() {
         super.onDestroy();
-        LitePal.useDefault();
+
     }
 }

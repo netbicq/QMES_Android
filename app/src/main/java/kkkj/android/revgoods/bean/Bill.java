@@ -9,6 +9,7 @@ import java.util.List;
  * 单据
  */
 public class Bill extends LitePalSupport {
+
     private int id;
     /**
      * 单据名称
@@ -21,15 +22,15 @@ public class Bill extends LitePalSupport {
     /**
      * 供应商
      */
-    private String supplier;
+    private Supplier supplier;
     /**
      *品类
      */
-    private String matter;
+    private Matter matter;
     /**
      * 规格
      */
-    private String specs;
+    private Specs specs;
     /**
      * 累计明细
      */
@@ -48,27 +49,27 @@ public class Bill extends LitePalSupport {
         this.purchaser = purchaser;
     }
 
-    public String getSupplier() {
+    public Supplier getSupplier() {
         return supplier;
     }
 
-    public void setSupplier(String supplier) {
+    public void setSupplier(Supplier supplier) {
         this.supplier = supplier;
     }
 
-    public String getMatter() {
+    public Matter getMatter() {
         return matter;
     }
 
-    public void setMatter(String matter) {
+    public void setMatter(Matter matter) {
         this.matter = matter;
     }
 
-    public String getSpecs() {
+    public Specs getSpecs() {
         return specs;
     }
 
-    public void setSpecs(String specs) {
+    public void setSpecs(Specs specs) {
         this.specs = specs;
     }
 
