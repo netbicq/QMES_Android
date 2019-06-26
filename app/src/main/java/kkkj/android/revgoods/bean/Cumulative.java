@@ -21,6 +21,31 @@ public class Cumulative extends LitePalSupport {
      */
     private String weight;
 
+    /**
+     *单价
+     */
+    private String price = "0";
+    /**
+     * 所属单据
+     */
+    private Bill bill;
+
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+    }
+
     public int getId() {
         return id;
     }

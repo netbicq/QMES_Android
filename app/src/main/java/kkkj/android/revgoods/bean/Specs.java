@@ -19,9 +19,22 @@ public class Specs extends LitePalSupport {
     private String name;
 
     /**
+     * 规格占比
+     */
+    private double specsProportion;
+
+    /**
      * 所属的品类
      */
     private Matter matter;
+
+    public double getSpecsProportion() {
+        return specsProportion;
+    }
+
+    public void setSpecsProportion(double specsProportion) {
+        this.specsProportion = specsProportion;
+    }
 
     public int getId() {
         return id;

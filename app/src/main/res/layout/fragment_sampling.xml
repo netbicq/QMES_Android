@@ -56,7 +56,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
-        android:id="@+id/id_recyclerview"
+        android:id="@+id/id_ll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -106,7 +106,7 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_recyclerview">
+        app:layout_constraintTop_toBottomOf="@+id/id_ll">
 
         <EditText
             android:id="@+id/id_et_number"

@@ -77,14 +77,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".elcscale.view.ElcScaleActivity" />
+        <activity
+            android:name=".elcscale.view.ElcScaleActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity android:name=".relay.wifi.view.SocketTestActivity" />
         <activity android:name=".relay.wifi.view.WifiRelayActivity" />
         <activity android:name=".relay.wifi.view.BlueToothRelayActivity" />
         <activity
             android:name=".common.getpic.PhotoViewActivity"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar"/>
+            android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity android:name=".common.getpic.GetPicOrMP4Activity" />
         <activity android:name=".HomeActivity" />
         <activity
@@ -103,7 +106,7 @@
         <activity
             android:name=".ui.DeductionCategoryActivity"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar"/>
+            android:theme="@style/QMUI.Compat.NoActionBar" />
     </application>
 
 </manifest>

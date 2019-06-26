@@ -34,7 +34,7 @@
     </RelativeLayout>
 
     <LinearLayout
-        android:id="@+id/id_recyclerview"
+        android:id="@+id/id_ll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -85,7 +85,7 @@
         android:background="@color/qmui_config_color_black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_recyclerview" />
+        app:layout_constraintTop_toBottomOf="@+id/id_ll" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/id_sampling_recyclerView"

@@ -39,7 +39,7 @@ public class SharedPreferenceUtil {
 
     public static String getString(String key)
     {
-        return getAppSp().getString(key,"");
+        return getAppSp().getString(key,"0");
     }
     public static void setString(String key,String value)
     {

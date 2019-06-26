@@ -71,9 +71,9 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
         /**
          * 强制竖屏
          */
-        if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
+        //if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+       // }
         /*
          *透明状态栏
          */

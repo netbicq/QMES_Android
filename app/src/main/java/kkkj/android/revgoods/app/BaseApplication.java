@@ -19,6 +19,7 @@ import com.tencent.smtt.sdk.QbSdk;
 import com.uuzuche.lib_zxing.ZApplication;
 
 import org.litepal.LitePal;
+import org.litepal.LitePalDB;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.bean.Bill;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 
 public class BaseApplication extends ZApplication {
@@ -72,6 +75,7 @@ public class BaseApplication extends ZApplication {
 
         Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(mContext));
         LitePal.initialize(this);
+
         instance = this;
         FormatStrategy formatStrategy = PrettyFormatStrategy.newBuilder()
                 .tag("BaseApplication")

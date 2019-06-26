@@ -42,6 +42,7 @@ import butterknife.Unbinder;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.PicOrMp4Adapter;
 import kkkj.android.revgoods.bean.SamplingDetails;
+import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
@@ -216,7 +217,10 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                         SamplingDetails samplingDetails = new SamplingDetails();
                         samplingDetails.setWeight(mEtWeight.getText().toString().trim());
                         samplingDetails.setNumber(mEtNumber.getText().toString().trim());
-                        samplingDetails.setSpecs(mEtSpecs.getText().toString().trim());
+                        Specs specs = new Specs();
+                        specs.setName(mEtSpecs.getText().toString().trim());
+                        specs.save();
+                        samplingDetails.setSpecs(specs);
                         for (int i = 0;i<mList.size();i++) {
                             samplingDetails.getModelList().add(mList.get(i));
                         }

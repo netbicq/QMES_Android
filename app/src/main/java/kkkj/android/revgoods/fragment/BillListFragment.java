@@ -19,6 +19,9 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.litepal.LitePal;
+import org.litepal.LitePalDB;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,11 +58,10 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
 
     private void initData() {
         mBills = new ArrayList<>();
-        for (int i=0;i<4;i++) {
-            Bill bill = new Bill();
-            bill.setName("测试");
-            mBills.add(bill);
-        }
+        LitePalDB litePalDB = new LitePalDB("Bills",1);
+        LitePal.use(litePalDB);
+        mBills = LitePal.findAll(Bill.class);
+
     }
 
 
@@ -117,5 +119,11 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LitePal.useDefault();
     }
 }

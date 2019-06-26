@@ -123,7 +123,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                mDeductionCategory = deductionCategories.get(0);
             }
         });
 
@@ -166,20 +166,26 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
                 break;
 
             case R.id.button:
-                String wt = mEtWeight.getText().toString().trim();
-                String price = mEtPrice.getText().toString().trim();
-                if (!TextUtils.isEmpty(wt) && !TextUtils.isEmpty(price)) {
-
-                    mDeductionCategory.setPrice(price);
-                    Deduction deduction = new Deduction();
-                    deduction.setCategory(mDeductionCategory);
-                    deduction.setWeight(wt);
-                    deduction.save();
-                    dismiss();
-
+                if (deductionCategories.size() == 0) {
+                    Toast.makeText(getContext(),"请先添加扣重类别！",Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(getContext(),"输入框不能为空！",Toast.LENGTH_LONG).show();
+
+                    String wt = mEtWeight.getText().toString().trim();
+                    String price = mEtPrice.getText().toString().trim();
+                    if (!TextUtils.isEmpty(wt) && !TextUtils.isEmpty(price)) {
+
+                        mDeductionCategory.setPrice(price);
+                        Deduction deduction = new Deduction();
+                        deduction.setCategory(mDeductionCategory);
+                        deduction.setWeight(wt);
+                        deduction.save();
+                        dismiss();
+
+                    } else {
+                        Toast.makeText(getContext(),"输入框不能为空！",Toast.LENGTH_LONG).show();
+                    }
                 }
+
 
                 break;
 

@@ -13,16 +13,24 @@ public class SamplingDetails extends LitePalSupport {
     private int count;//采样次数
     private String number;//单次数量
     private String weight;//单次重量
-    private String specs;//单次规格
+    private Specs specs;//单次规格
     private List<GetPicModel> modelList = new ArrayList<GetPicModel>();
 
     private Bill mBill;
 
-    public String getSpecs() {
+    public Bill getmBill() {
+        return mBill;
+    }
+
+    public void setmBill(Bill mBill) {
+        this.mBill = mBill;
+    }
+
+    public Specs getSpecs() {
         return specs;
     }
 
-    public void setSpecs(String specs) {
+    public void setSpecs(Specs specs) {
         this.specs = specs;
     }
 

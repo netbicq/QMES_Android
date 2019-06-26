@@ -15,6 +15,10 @@ public class Bill extends LitePalSupport {
      */
     private String name;
     /**
+     * 采购人
+     */
+    private String purchaser;
+    /**
      * 供应商
      */
     private String supplier;
@@ -27,22 +31,54 @@ public class Bill extends LitePalSupport {
      */
     private String specs;
     /**
-     * 采样次数
+     * 累计明细
      */
-    private List<Integer> samplingCount;
-    /**
-     * 采样数量
-     */
-    private int  samplingNumber;
-    /**
-     *采样重量
-     */
-    private String samplingWeight;
+    private List<Cumulative> cumulativeList = new ArrayList<>();
 
     /**
      *采样详情
      */
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
+
+    public String getPurchaser() {
+        return purchaser;
+    }
+
+    public void setPurchaser(String purchaser) {
+        this.purchaser = purchaser;
+    }
+
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
+    }
+
+    public String getMatter() {
+        return matter;
+    }
+
+    public void setMatter(String matter) {
+        this.matter = matter;
+    }
+
+    public String getSpecs() {
+        return specs;
+    }
+
+    public void setSpecs(String specs) {
+        this.specs = specs;
+    }
+
+    public List<Cumulative> getCumulativeList() {
+        return cumulativeList;
+    }
+
+    public void setCumulativeList(List<Cumulative> cumulativeList) {
+        this.cumulativeList = cumulativeList;
+    }
 
     public List<SamplingDetails> getSamplingDetailsList() {
         return samplingDetailsList;

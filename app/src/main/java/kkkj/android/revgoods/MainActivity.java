@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -39,6 +40,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
+import org.litepal.LitePalDB;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -54,7 +56,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
-import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.SamplingDetails;
@@ -71,6 +72,7 @@ import kkkj.android.revgoods.conn.socket.SocketListener;
 import kkkj.android.revgoods.conn.socket.WriteData;
 import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
+import kkkj.android.revgoods.elcscale.view.ElcScaleActivity;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.fragment.BillListFragment;
 import kkkj.android.revgoods.fragment.CumulativeFragment;
@@ -78,6 +80,7 @@ import kkkj.android.revgoods.fragment.DeductionFragment;
 import kkkj.android.revgoods.fragment.DeviceListFragment;
 import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
 import kkkj.android.revgoods.fragment.SamplingFragment;
+import kkkj.android.revgoods.fragment.SaveBillFragment;
 import kkkj.android.revgoods.fragment.SettingFragment;
 import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
@@ -129,13 +132,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @BindView(R.id.id_iv_setting)
     ImageView mSettingImageView;
     @BindView(R.id.tv_specs)
-    EditText mTvSpecs;
+    TextView mTvSpecs;
     @BindView(R.id.tv_cumulative_weight)
     TextView tvCumulativeWeight;
     @BindView(R.id.tv_cumulative_count)
     TextView tvCumulativeCount;
     @BindView(R.id.id_tv_save_bill)
     TextView mTvSaveBill;
+    @BindView(R.id.id_tv_hand)
+    TextView mTvHand;//手动计重
 
 
     private String mSampling = "(0)";//采样累计默认数字
@@ -159,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CumulativeFragment cumulativeFragment;
     private DeductionFragment deductionFragment;
     private SettingFragment settingFragment;
+    private SaveBillFragment saveBillFragment;
 
     private Observer<String> stateOB;
     private double weight = 0;
@@ -190,6 +196,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             manager.send(new WriteData(Order.TURN_OFF_ALL));
             manager.unRegisterReceiver(listener);
         }
+
+        if (pinBlueReceiver != null) {
+            unregisterReceiver(pinBlueReceiver);
+        }
+
         EventBus.getDefault().unregister(this);
     }
 
@@ -295,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 mWeightTextView.setText(str);
                                                 double weight = Double.parseDouble(str);
                                                 double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                                        .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+                                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
                                                 if (weight > compareWeight && manager != null && manager.isConnect()) {
 
@@ -607,6 +618,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChooseSpecsImageView.setOnClickListener(this);
         mSettingImageView.setOnClickListener(this);
         mTvSaveBill.setOnClickListener(this);
+        mTvHand.setOnClickListener(this);
 
         mSamplingNumber.setText(mSampling);
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
@@ -634,16 +646,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     case 0:
                         break;
 
-                    case 1:
+                    case 1://手动计重
+
+                        mTvHand.setVisibility(View.VISIBLE);
+                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+                        break;
+
+                    case 2:
                         if (deviceListFragment == null) {
                             deviceListFragment = new DeviceListFragment();
                         }
                         FragmentTransaction ft = MainActivity.this.getSupportFragmentManager().beginTransaction();
                         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                         deviceListFragment.show(ft, "deviceFragment");
-                        break;
-
-                    case 2:
 
                         break;
 
@@ -702,6 +717,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public List<String> getDataSource() {
         List<String> list = new ArrayList<String>();
         list.add("请选择生产线");
+        list.add("移动称重");
         list.add("一号生产线");
         list.add("二号生产线");
         list.add("三号生产线");
@@ -988,14 +1004,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 takePicture();
                 break;
 
-            case R.id.id_tv_save_bill:
-                List<SamplingDetails> samplingDetails = LitePal.findAll(SamplingDetails.class);
-                Bill bill = new Bill();
-                bill.setSamplingDetailsList(samplingDetails);
-                bill.save();
-                int id = bill.getId();
-                LitePal.deleteAll(SamplingDetails.class);
-                Logger.d(LitePal.find(Bill.class,id,true).getSamplingDetailsList().size());
+            case R.id.id_tv_save_bill://保存单据
+                if (saveBillFragment == null) {
+                    saveBillFragment = new SaveBillFragment();
+                }
+                FragmentTransaction ft8 = MainActivity.this.getSupportFragmentManager().beginTransaction();
+                ft8.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                saveBillFragment.show(ft8, "saveBillFragment");
+
+                break;
+
+            case R.id.id_tv_hand:
+                Cumulative cumulative = new Cumulative();
+                cumulative.setCategory("净重");
+                cumulative.setWeight(mWeightTextView.getText().toString());
+
+                if (!LitePal.isExist(Cumulative.class)) {
+                    cumulative.setCount(1);
+                } else {
+                    Cumulative cumulative1 = LitePal.findLast(Cumulative.class);
+                    cumulative.setCount(cumulative1.getCount() + 1);
+                }
+
+                cumulative.save();
+
+                int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                /**浮点数
+                 * 相加：b1.add(b2).doubleValue();
+                 * 相减：b1.subtract(b2).doubleValue();
+                 * 相乘：b1.multiply(b2).doubleValue();
+                 */
+                BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                BigDecimal b2 = new BigDecimal(mWeightTextView.getText().toString());
+                cWeight = b1.add(b2).doubleValue();
+                count = count + 1;
+
+                tvCumulativeCount.setText(count + "");
+                tvCumulativeWeight.setText(cWeight + "");
 
                 break;
             default:
