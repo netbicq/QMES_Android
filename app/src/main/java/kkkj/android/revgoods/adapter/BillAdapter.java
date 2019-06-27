@@ -16,5 +16,6 @@ public class BillAdapter extends BaseQuickAdapter<Bill, BaseViewHolder> {
     @Override
     protected void convert(BaseViewHolder helper, Bill item) {
         helper.setText(R.id.id_tv_device,item.getName());
+        helper.addOnClickListener(R.id.tv_delete);
     }
 }

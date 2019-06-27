@@ -75,7 +75,8 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
 
         for (int i = 0; i < 20; i++) {
             Specs specs = new Specs();
-            specs.setName("测试" + i);
+            specs.setSpecs("测试" + i);
+            specs.save();
             mSpecs.add(specs);
             mTempSpecs.add(specs);
             specs.save();
@@ -127,7 +128,7 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
 
                 for (int i=0;i<mTempSpecs.size();i++) {
                     Specs specs = mTempSpecs.get(i);
-                    String str = specs.getName();
+                    String str = specs.getSpecs();
 
                     if (str.contains(search)) {
                         mSpecs.add(specs);

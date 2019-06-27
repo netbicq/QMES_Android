@@ -26,7 +26,7 @@ public class Cumulative extends LitePalSupport {
     /**
      *单价
      */
-    private String price = "0";
+    private String price = "—";
     /**
      * 所属单据
      */

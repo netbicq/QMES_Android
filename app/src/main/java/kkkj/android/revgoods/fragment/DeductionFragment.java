@@ -23,6 +23,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
 import org.litepal.LitePal;
@@ -175,8 +176,11 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
                     if (!TextUtils.isEmpty(wt) && !TextUtils.isEmpty(price)) {
 
                         mDeductionCategory.setPrice(price);
+                        mDeductionCategory.save();
+
                         Deduction deduction = new Deduction();
-                        deduction.setCategory(mDeductionCategory);
+                        deduction.setCategory(mDeductionCategory.getCategory());
+                        deduction.setPrice(price);
                         deduction.setWeight(wt);
                         deduction.save();
                         dismiss();

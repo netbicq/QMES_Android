@@ -20,10 +20,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -35,6 +37,7 @@ import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,15 +58,21 @@ import kkkj.android.revgoods.event.DeviceEvent;
 public class SamplingFragment extends DialogFragment implements View.OnClickListener {
 
     private Button mSaveButton;
+    private Button mEnterButton;
     private EditText mEtNumber;
     private EditText mEtWeight;
-    private EditText mEtSpecs;
+    private Spinner mSpSpecs;
     private ImageView mBackImageView;
     private ImageView mTakePictureImageView;
     private RecyclerView recyclerView;
     private ArrayAdapter adapter;
     private String weight;
     private List<GetPicModel> mList;
+    private List<Specs> specsList;
+    private List<String> specsNameList;
+    private Specs specs;
+    private Specs tempSpecs;
+    private int position = -1;
     private PicOrMp4Adapter picOrMp4Adapter;
 
 
@@ -101,6 +110,22 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private void initData() {
 
         mList = new ArrayList<>();
+        specsList = new ArrayList<>();
+        specsNameList = new ArrayList<>();
+        specs = new Specs();
+        tempSpecs = new Specs();
+        tempSpecs.setSpecs("请选择规格");
+        specsList.add(tempSpecs);
+        specsList.addAll(LitePal.findAll(Specs.class));
+
+        for (int i = 0; i < specsList.size(); i++) {
+            specsNameList.add(specsList.get(i).getSpecs());
+        }
+
+        adapter = new ArrayAdapter<String>(getActivity().getApplication(),
+                android.R.layout.simple_spinner_item, specsNameList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
 
         picOrMp4Adapter = new PicOrMp4Adapter(R.layout.item_picormp4, mList);
         picOrMp4Adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
@@ -148,9 +173,10 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private void initView(View view) {
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
-        mEtSpecs = view.findViewById(R.id.id_et_specs);
+        mSpSpecs = view.findViewById(R.id.id_sp_specs);
+        mSpSpecs.setAdapter(adapter);
         mSaveButton = view.findViewById(R.id.button);
-
+        mEnterButton = view.findViewById(R.id.button_enter);
         mEtWeight.setText(weight);
 
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
@@ -158,11 +184,25 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
         mBackImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
         mSaveButton.setOnClickListener(this);
+        mEnterButton.setOnClickListener(this);
 
         recyclerView = view.findViewById(R.id.id_recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         recyclerView.setAdapter(picOrMp4Adapter);
 
+        mSpSpecs.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                specs = specsList.get(i);
+                position = i;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                specs = tempSpecs;
+                position = 0;
+            }
+        });
 
     }
 
@@ -206,43 +246,55 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 takePicture();
                 break;
 
-            case R.id.button:
-                if (!TextUtils.isEmpty(mEtWeight.getText().toString().trim())
-                        && !TextUtils.isEmpty(mEtNumber.getText().toString().trim())
-                        && !TextUtils.isEmpty(mEtSpecs.getText().toString().trim())) { //不能为空
+            case R.id.button://提交
 
-                    if (Double.parseDouble(mEtWeight.getText().toString().trim()) != 0 && Integer.parseInt(mEtNumber.getText().toString().trim()) != 0) { //不能为零
-                        LitePal.saveAll(mList);
+                LitePal.saveAll(mList);
 
-                        SamplingDetails samplingDetails = new SamplingDetails();
-                        samplingDetails.setWeight(mEtWeight.getText().toString().trim());
-                        samplingDetails.setNumber(mEtNumber.getText().toString().trim());
-                        Specs specs = new Specs();
-                        specs.setName(mEtSpecs.getText().toString().trim());
-                        specs.save();
-                        samplingDetails.setSpecs(specs);
-                        for (int i = 0;i<mList.size();i++) {
-                            samplingDetails.getModelList().add(mList.get(i));
-                        }
+                SamplingDetails samplingDetails = new SamplingDetails();
+                samplingDetails.setWeight(mEtWeight.getText().toString().trim());
+                samplingDetails.setNumber(mEtNumber.getText().toString().trim());
 
-                        DeviceEvent deviceEvent = new DeviceEvent();
+                if (position != 0) {
+                    samplingDetails.setSpecs(specs);
+                } else {
+                    Toast.makeText(getContext(),"请选择系统默认提供的规格！",Toast.LENGTH_LONG).show();
+                    return;
+                }
 
-                        if (!LitePal.isExist(SamplingDetails.class)) {
-                            samplingDetails.setCount(1);
-                            deviceEvent.setSamplingNumber(1);
-                        } else {
-                            SamplingDetails lastDetails = LitePal.findLast(SamplingDetails.class);
-                            samplingDetails.setCount(lastDetails.getCount() + 1);
-                            deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
-                        }
+                for (int i = 0; i < mList.size(); i++) {
+                    samplingDetails.getModelList().add(mList.get(i));
+                }
 
-                        EventBus.getDefault().post(deviceEvent);
-                        samplingDetails.save();
-                        dismiss();
+                DeviceEvent deviceEvent = new DeviceEvent();
+
+                if (!LitePal.isExist(SamplingDetails.class)) {
+                    samplingDetails.setCount(1);
+                    deviceEvent.setSamplingNumber(1);
+                } else {
+                    SamplingDetails lastDetails = LitePal.findLast(SamplingDetails.class);
+                    samplingDetails.setCount(lastDetails.getCount() + 1);
+                    deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
+                }
+
+                EventBus.getDefault().post(deviceEvent);
+                samplingDetails.save();
+                dismiss();
+
+                break;
+
+            case R.id.button_enter://确定
+                String weight = mEtWeight.getText().toString().trim();
+                String number = mEtNumber.getText().toString().trim();
+                if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
+                    if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
+
+                        double specs = Double.parseDouble(weight) / Integer.parseInt(number);
+                        specsNameList.set(0, String.valueOf(specs));
+                        adapter.notifyDataSetChanged();
+
                     } else {
-                        Toast.makeText(getActivity(), "输入框不能为零！请重新输入！", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), "输入不能为零！请重新输入！", Toast.LENGTH_LONG).show();
                     }
-
                 } else {
                     Toast.makeText(getActivity(), "输入框不能为空！", Toast.LENGTH_LONG).show();
                 }

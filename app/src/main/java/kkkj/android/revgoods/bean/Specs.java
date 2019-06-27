@@ -2,6 +2,9 @@ package kkkj.android.revgoods.bean;
 
 import org.litepal.crud.LitePalSupport;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 项目名:   RevGoods
  * 包名:     kkkj.android.revgoods.bean
@@ -14,26 +17,24 @@ public class Specs extends LitePalSupport {
     private int id;
 
     /**
-     * 名称
+     * 规格
      */
-    private String name;
-
-    /**
-     * 规格占比
-     */
-    private double specsProportion;
-
+    private String specs;
     /**
      * 所属的品类
      */
     private Matter matter;
+    /**
+     * 一对多
+     */
+    private List<SamplingDetails> detailsList = new ArrayList<>();
 
-    public double getSpecsProportion() {
-        return specsProportion;
+    public String getSpecs() {
+        return specs;
     }
 
-    public void setSpecsProportion(double specsProportion) {
-        this.specsProportion = specsProportion;
+    public void setSpecs(String specs) {
+        this.specs = specs;
     }
 
     public int getId() {
@@ -44,13 +45,7 @@ public class Specs extends LitePalSupport {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public Matter getMatter() {
         return matter;

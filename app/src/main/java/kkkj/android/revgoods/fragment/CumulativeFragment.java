@@ -38,6 +38,7 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
     private LinearLayoutManager mLayoutManager;
     private CumulativeAdapter adapter;
     private List<Cumulative> cumulativeList;
+    private List<Deduction> deductionList;
 
     @Nullable
     @Override
@@ -54,16 +55,21 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
 
     private void initData() {
         cumulativeList = new ArrayList<>();
-        List<Deduction> deductionList = LitePal.findAll(Deduction.class,true);
+        deductionList = new ArrayList<>();
+        deductionList = LitePal.where("hasBill < ?","0")
+                                               .find(Deduction.class);
+
         for (int i = 0;i<deductionList.size();i++) {
             Cumulative cumulative = new Cumulative();
             cumulative.setCount(i + 1);
-            cumulative.setCategory("扣重·" + deductionList.get(i).getCategory().getCategory());
+            cumulative.setCategory("扣重·" + deductionList.get(i).getCategory());
             cumulative.setWeight(deductionList.get(i).getWeight());
+            cumulative.setPrice(deductionList.get(i).getPrice());
             cumulativeList.add(cumulative);
         }
 
-        cumulativeList.addAll(LitePal.findAll(Cumulative.class));
+        cumulativeList.addAll(LitePal.where("hasBill < ?","0")
+                                     .find(Cumulative.class));
 
         adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
     }

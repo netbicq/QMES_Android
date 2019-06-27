@@ -36,7 +36,8 @@
 
     </RelativeLayout>
 
-    <android.support.v7.widget.RecyclerView
+    <kkkj.android.revgoods.customer.SlideRecyclerView
+        android:background="@color/qmui_config_color_white"
         android:id="@+id/id_device_recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"

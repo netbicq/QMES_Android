@@ -30,11 +30,24 @@ public class SamplingDetails extends LitePalSupport {
      */
     private Specs specs;
 
+    /**
+     * 规格占比
+     */
+    private double specsProportion;
+
     private List<GetPicModel> modelList = new ArrayList<GetPicModel>();
 
     private Bill mBill;
 
-    public int isHasBill() {
+    public double getSpecsProportion() {
+        return specsProportion;
+    }
+
+    public void setSpecsProportion(double specsProportion) {
+        this.specsProportion = specsProportion;
+    }
+
+    public int getHasBill() {
         return hasBill;
     }
 

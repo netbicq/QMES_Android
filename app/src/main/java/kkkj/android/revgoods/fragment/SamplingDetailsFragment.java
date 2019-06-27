@@ -25,6 +25,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,9 +62,23 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
 
     private void initData() {
         samplingDetailsList = new ArrayList<>();
-        //samplingDetailsList = LitePal.findAll(SamplingDetails.class,true);
         samplingDetailsList = LitePal.where("hasBill < ?","0")
                                      .find(SamplingDetails.class,true);
+
+        //采样总重量
+        double total = 0d;
+        for (int i = 0;i<samplingDetailsList.size();i++) {
+            BigDecimal b1 = new BigDecimal(Double.toString(total));
+            BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
+            total = b1.add(b2).doubleValue();
+        }
+
+        //计算占比
+        for (int i = 0;i<samplingDetailsList.size();i++) {
+            double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
+            samplingDetailsList.get(i).setSpecsProportion(specsProportion);
+        }
+        LitePal.saveAll(samplingDetailsList);
 
         adapter = new SamplingDetailsAdapter(R.layout.item_sampling_deatils,samplingDetailsList);
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {

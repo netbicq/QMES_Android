@@ -43,17 +43,7 @@
 
     </RelativeLayout>
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:textColor="@color/qmui_config_color_white"
-        android:text="提交"
-        android:background="@drawable/bg_style"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+
 
     <LinearLayout
         android:id="@+id/id_ll"
@@ -82,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="重量(kg)" />
+            android:text="@string/weight" />
 
         <View
             android:layout_width="1dp"
@@ -126,17 +116,18 @@
             android:layout_weight="1"
             android:gravity="center"
             android:imeOptions="flagNoExtractUi"
-            android:inputType="number"
+            android:inputType="number|numberDecimal"
             android:text="0" />
 
-        <EditText
-            android:id="@+id/id_et_specs"
+        <Spinner
+            android:id="@+id/id_sp_specs"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:imeOptions="flagNoExtractUi"
             tools:text="规格" />
+
 
     </LinearLayout>
 
@@ -146,9 +137,40 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@+id/ll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+
+    <LinearLayout
+        android:id="@+id/ll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_style"
+            android:text="提交"
+            android:textColor="@color/qmui_config_color_white" />
+
+        <Button
+            android:id="@+id/button_enter"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_style"
+            android:text="确定"
+            android:textColor="@color/qmui_config_color_white" />
+
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

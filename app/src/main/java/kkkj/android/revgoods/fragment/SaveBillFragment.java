@@ -1,6 +1,7 @@
 package kkkj.android.revgoods.fragment;
 
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.support.v4.app.DialogFragment;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -19,22 +20,30 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.orhanobut.logger.Logger;
+import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
+import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 import org.litepal.LitePalDB;
+import org.litepal.crud.LitePalSupport;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
+import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
+import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
@@ -50,6 +59,7 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
 
     private List<Cumulative> cumulativeList = new ArrayList<>();
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
+    private List<Deduction> deductionList = new ArrayList<>();
 
 
     @Nullable
@@ -72,9 +82,11 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
                 android.R.layout.simple_spinner_item, getDataSource());
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        cumulativeList = LitePal.findAll(Cumulative.class,true);
-        samplingDetailsList = LitePal.findAll(SamplingDetails.class,true);
+        deductionList = LitePal.where("hasBill < ?" ,"0")
+                .find(Deduction.class);
 
+        samplingDetailsList = LitePal.where("hasBill < ?" ,"0")
+                .find(SamplingDetails.class,true);
 
     }
 
@@ -146,7 +158,56 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
                 break;
 
             case R.id.button:
+                String billName = mETBillName.getText().toString().trim();
 
+                if (!TextUtils.isEmpty(billName)) {
+
+                    Bill bill = new Bill();
+                    bill.setName(billName);
+
+                    //获取当前时间 HH:mm:ss
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                    Date date = new Date(System.currentTimeMillis());
+
+                    bill.setTime(simpleDateFormat.format(date));
+
+                    for (int i = 0;i<deductionList.size();i++) {
+                        Cumulative cumulative = new Cumulative();
+                        Deduction deduction = new Deduction();
+                        deduction = deductionList.get(i);
+
+                        cumulative.setCount(i + 1);
+                        cumulative.setCategory("扣重·" + deduction.getCategory());
+                        cumulative.setWeight(deduction.getWeight());
+                        cumulative.setPrice(deduction.getPrice());
+                        cumulative.save();
+
+                        LitePal.delete(Deduction.class,deduction.getId());
+                    }
+
+                    cumulativeList = LitePal.where("hasBill < ?" ,"0")
+                            .find(Cumulative.class,true);
+
+                    ContentValues values = new ContentValues();
+                    values.put("hasBill",0);
+                    LitePal.updateAll(Cumulative.class,values);
+                    LitePal.updateAll(Deduction.class,values);
+                    LitePal.updateAll(SamplingDetails.class,values);
+
+                    bill.setCumulativeList(cumulativeList);
+                    bill.setSamplingDetailsList(samplingDetailsList);
+                    bill.save();
+
+
+                    DeviceEvent deviceEvent = new DeviceEvent();
+                    deviceEvent.setReset(true);
+                    EventBus.getDefault().post(deviceEvent);
+                    dismiss();
+
+                }else {
+
+                    Toast.makeText(getContext(),"请输入单据名称！",Toast.LENGTH_LONG).show();
+                }
 
                 break;
 

@@ -12,9 +12,19 @@ public class Bill extends LitePalSupport {
 
     private int id;
     /**
+     * 当前时间
+     */
+    String time;
+    /**
      * 单据名称
      */
     private String name;
+
+    /**
+     * 是否已上传
+     * 默认-1未上传
+     */
+    private int  isUpload = -1;
     /**
      * 采购人
      */
@@ -40,6 +50,22 @@ public class Bill extends LitePalSupport {
      *采样详情
      */
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public int getIsUpload() {
+        return isUpload;
+    }
+
+    public void setIsUpload(int isUpload) {
+        this.isUpload = isUpload;
+    }
 
     public String getPurchaser() {
         return purchaser;

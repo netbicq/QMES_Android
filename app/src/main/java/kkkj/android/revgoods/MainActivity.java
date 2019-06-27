@@ -16,7 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -40,7 +39,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
-import org.litepal.LitePalDB;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,6 +54,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
+import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.SamplingDetails;
@@ -141,6 +140,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvSaveBill;
     @BindView(R.id.id_tv_hand)
     TextView mTvHand;//手动计重
+    @BindView(R.id.id_tv_is_upload)
+    TextView mTvIsUpload;
 
 
     private String mSampling = "(0)";//采样累计默认数字
@@ -168,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Observer<String> stateOB;
     private double weight = 0;
+    private String isUploadCount = "0/0";
 
 
     @Override
@@ -216,7 +218,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (deviceEvent.getSpecsId() >= 0) {
             Specs specs = new Specs();
             specs = LitePal.find(Specs.class, deviceEvent.getSpecsId());
-            mTvSpecs.setText(specs.getName());
+            mTvSpecs.setText(specs.getSpecs());
+        }
+
+        if (deviceEvent.isReset()) {
+            mSamplingNumber.setText("(0)");
+            tvCumulativeCount.setText("0");
+            tvCumulativeWeight.setText("0");
         }
 
         switch (device.getType()) {
@@ -306,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 mWeightTextView.setText(str);
                                                 double weight = Double.parseDouble(str);
                                                 double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+                                                        .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
                                                 if (weight > compareWeight && manager != null && manager.isConnect()) {
 
@@ -327,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         int count = Integer.parseInt(tvCumulativeCount.getText().toString());
                                                         double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
 
-                                                        /**浮点数
+                                                        /**
                                                          * 相加：b1.add(b2).doubleValue();
                                                          * 相减：b1.subtract(b2).doubleValue();
                                                          * 相乘：b1.multiply(b2).doubleValue();
@@ -620,12 +628,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTvSaveBill.setOnClickListener(this);
         mTvHand.setOnClickListener(this);
 
+        mTvIsUpload.setText(isUploadCount);
         mSamplingNumber.setText(mSampling);
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
-        if (LitePal.isExist(Cumulative.class)) {
-            tvCumulativeCount.setText(LitePal.findLast(Cumulative.class).getCount() + "");
-            List<Cumulative> cumulatives = LitePal.findAll(Cumulative.class);
+
+        if (LitePal.where("hasBill > ?", "0").find(Cumulative.class).size() > 0) {
+            tvCumulativeCount.setText(LitePal.where("hasBill > ?", "0").findLast(Cumulative.class).getCount() + "");
+            List<Cumulative> cumulatives = LitePal.where("hasBill > ?", "0").find(Cumulative.class);
             String weight = "0";
             for (int i = 0; i < cumulatives.size(); i++) {
                 BigDecimal b1 = new BigDecimal(weight);
@@ -685,8 +695,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initData() {
 
-        if (LitePal.isExist(SamplingDetails.class)) {
-            mSampling = "(" + LitePal.findLast(SamplingDetails.class).getCount() + ")";
+        if (LitePal.where("hasBill > ?", "0").find(SamplingDetails.class).size() > 0) {
+            mSampling = "(" + LitePal.where("hasBill > ?", "0").findLast(SamplingDetails.class).getCount() + ")";
+        }
+
+        if (LitePal.isExist(Bill.class)) {
+            int total = LitePal.findAll(Bill.class).size();
+            //小于0，未上传
+            int isUpload = LitePal.where("isUpload > ?","0").find(Bill.class).size();
+            isUploadCount = isUpload + "/" + total;
         }
 
 
@@ -969,7 +986,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.id_tv_piece_weight://单重
                 final EditText editText = new EditText(MainActivity.this);
-                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                 AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
                 inputDialog.setTitle("请输入单重").setView(editText);

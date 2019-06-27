@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="类别"/>
+        android:text="@string/category"/>
 
     <View
         android:background="@color/qmui_config_color_pure_black"
@@ -36,6 +36,19 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="重量"/>
+        android:text="@string/weight"/>
+
+    <View
+        android:background="@color/qmui_config_color_pure_black"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/id_tv_price"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/price"/>
 
 </LinearLayout>

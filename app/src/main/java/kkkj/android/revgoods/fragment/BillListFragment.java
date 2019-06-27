@@ -18,6 +18,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 
 import org.litepal.LitePal;
 import org.litepal.LitePalDB;
@@ -29,6 +33,8 @@ import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillAdapter;
 import kkkj.android.revgoods.adapter.DeviceAdapter;
 import kkkj.android.revgoods.bean.Bill;
+import kkkj.android.revgoods.bean.SamplingDetails;
+import kkkj.android.revgoods.customer.SlideRecyclerView;
 
 /**
  * 单据列表
@@ -37,7 +43,7 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
 
     private ImageView mBackImageView;
     private TextView mTitle;
-    private RecyclerView mRecyclerView;
+    private SlideRecyclerView mRecyclerView;
     private DeviceAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
     private BillAdapter billAdapter;
@@ -58,6 +64,7 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
 
     private void initData() {
         mBills = new ArrayList<>();
+        mBills = LitePal.findAll(Bill.class,true);
 
     }
 
@@ -66,7 +73,7 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
         mBackImageView = view.findViewById(R.id.iv_back);
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
         mTitle = view.findViewById(R.id.id_tv_title);
-        mTitle.setText("请选择要打印的单据");
+        mTitle.setText("单据列表");
         mBackImageView.setOnClickListener(this);
 
         billAdapter = new BillAdapter(R.layout.item_device_list,mBills);
@@ -75,6 +82,27 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
         mRecyclerView.setAdapter(billAdapter);
+
+        billAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+
+            }
+        });
+
+        billAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                int id = mBills.get(position).getId();
+                LitePal.delete(Bill.class,id);
+                mBills.remove(position);
+                billAdapter.notifyDataSetChanged();
+                mRecyclerView.closeMenu();
+
+                Logger.d("Bill-------" + LitePal.findAll(SamplingDetails.class).size());
+            }
+        });
 
     }
 

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
     <dbname value="revGoods"/>
-    <version value="1"/>
+    <version value="4"/>
+
     <list>
         <mapping class="kkkj.android.revgoods.bean.SamplingDetails"/>
         <mapping class="kkkj.android.revgoods.bean.Deduction"/>

@@ -7,6 +7,11 @@ public class DeviceEvent {
     public Device device;
 
     /**
+     * 重置采样累计和累计计数
+     */
+    private boolean reset = false;
+
+    /**
      * 采样累计（samplingNumber）
      */
     public int samplingNumber = -1;
@@ -15,6 +20,14 @@ public class DeviceEvent {
      * 规格Specs Id
      */
     public int specsId = -1;
+
+    public boolean isReset() {
+        return reset;
+    }
+
+    public void setReset(boolean reset) {
+        this.reset = reset;
+    }
 
     public int getSpecsId() {
         return specsId;
