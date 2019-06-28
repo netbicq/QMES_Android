@@ -28,7 +28,7 @@
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="扣重"
+            android:text="@string/deduction"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:textColor="@color/qmui_config_color_white"
-        android:text="确定"
+        android:text="@string/enter"
         android:background="@drawable/bg_style"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -61,7 +61,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="扣重类别"/>
+            android:text="@string/deduction_category"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -73,7 +73,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="重量(kg)"/>
+            android:text="@string/weight"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="单价(元)"/>
+            android:text="@string/price"/>
 
     </LinearLayout>
 

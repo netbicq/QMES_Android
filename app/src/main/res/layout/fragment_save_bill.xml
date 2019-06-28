@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:tools="http://schemas.android.com/tools"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="match_parent"
-                                             android:background="@color/qmui_config_color_white"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/qmui_config_color_white">
 
     <RelativeLayout
         android:id="@+id/relativeLayout"
@@ -28,7 +28,7 @@
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="保存单据"
+            android:text="@string/save_bill"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
@@ -39,12 +39,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:textColor="@color/qmui_config_color_white"
-        android:text="确定"
         android:background="@drawable/bg_style"
+        android:text="@string/enter"
+        android:textColor="@color/qmui_config_color_white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/id_ll"
@@ -58,22 +58,22 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:gravity="center"
-            android:text="采购人"/>
+            android:text="@string/purchaser" />
 
         <View
-            android:background="@color/qmui_config_color_pure_black"
             android:layout_width="1dp"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="单据名称"/>
+            android:text="@string/bill_name" />
 
     </LinearLayout>
 
@@ -89,19 +89,19 @@
         <Spinner
             android:id="@+id/id_sp_user"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:gravity="center"/>
+            android:layout_weight="1"
+            android:gravity="center" />
 
 
         <EditText
             android:id="@+id/id_et_bill_name"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:imeOptions="flagNoExtractUi"
+            android:layout_weight="1"
             android:gravity="center"
-            android:hint="请输入单据名称"/>
+            android:hint="@string/input_bill_name"
+            android:imeOptions="flagNoExtractUi" />
 
     </LinearLayout>
 

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -26,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
@@ -87,6 +89,7 @@ import kkkj.android.revgoods.relay.wifi.model.Order;
 import kkkj.android.revgoods.ui.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.ChooseSupplierActivity;
+import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
 
@@ -142,6 +145,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvHand;//手动计重
     @BindView(R.id.id_tv_is_upload)
     TextView mTvIsUpload;
+    @BindView(R.id.iv_switch_left)
+    ImageView ivSwitchLeft;//左侧开关
+    @BindView(R.id.iv_switch_right)
+    ImageView ivSwitchRight;//右侧开关
 
 
     private String mSampling = "(0)";//采样累计默认数字
@@ -170,6 +177,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Observer<String> stateOB;
     private double weight = 0;
     private String isUploadCount = "0/0";
+    private int total = 0;
+    private int isUpload = 0;
 
 
     @Override
@@ -225,6 +234,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSamplingNumber.setText("(0)");
             tvCumulativeCount.setText("0");
             tvCumulativeWeight.setText("0");
+
+            total = total + 1;
+            isUploadCount = isUpload + "/" + total;
+            mTvIsUpload.setText(isUploadCount);
+
         }
 
         switch (device.getType()) {
@@ -323,11 +337,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         cumulative.setCategory("净重");
                                                         cumulative.setWeight(str);
 
-                                                        if (!LitePal.isExist(Cumulative.class)) {
-                                                            cumulative.setCount(1);
+                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                                            Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
                                                         } else {
-                                                            Cumulative cumulative1 = LitePal.findLast(Cumulative.class);
-                                                            cumulative.setCount(cumulative1.getCount() + 1);
+                                                            cumulative.setCount(1);
                                                         }
 
                                                         cumulative.save();
@@ -454,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (manager != null) {
             manager.connect();
-            manager.send(new WriteData(Order.TURN_ON_1));
+            manager.send(new WriteData(Order.TURN_ON_1));//第一次连接无法打开，有待解决
         }
     }
 
@@ -688,6 +702,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay, mWifiList);
+        wifiAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                switch (view.getId()) {
+                    case R.id.tv_open:
+                        switch (position) { //position 哪个继电器
+                            case 0:
+                                manager.send(new WriteData(Order.TURN_ON_1));
+                                break;
+                            case 1:
+                                manager.send(new WriteData(Order.TURN_ON_2));
+                                break;
+                            case 2:
+                                manager.send(new WriteData(Order.TURN_ON_3));
+                                break;
+                            case 3:
+                                manager.send(new WriteData(Order.TURN_ON_4));
+                                break;
+                            case 4:
+                                manager.send(new WriteData(Order.TURN_ON_5));
+                                break;
+                            case 5:
+                                manager.send(new WriteData(Order.TURN_ON_6));
+                                break;
+                            case 6:
+                                manager.send(new WriteData(Order.TURN_ON_7));
+                                break;
+                            case 7:
+                                manager.send(new WriteData(Order.TURN_ON_8));
+                                break;
+                        }
+                        break;
+                    case R.id.tv_close:
+                        switch (position) {
+                            case 0:
+                                manager.send(new WriteData(Order.TURN_OFF_1));
+                                break;
+                            case 1:
+                                manager.send(new WriteData(Order.TURN_OFF_2));
+                                break;
+                            case 2:
+                                manager.send(new WriteData(Order.TURN_OFF_3));
+                                break;
+                            case 3:
+                                manager.send(new WriteData(Order.TURN_OFF_4));
+                                break;
+                            case 4:
+                                manager.send(new WriteData(Order.TURN_OFF_5));
+                                break;
+                            case 5:
+                                manager.send(new WriteData(Order.TURN_OFF_6));
+                                break;
+                            case 6:
+                                manager.send(new WriteData(Order.TURN_OFF_7));
+                                break;
+                            case 7:
+                                manager.send(new WriteData(Order.TURN_OFF_8));
+                                break;
+                        }
+                        break;
+                }
+
+            }
+        });
+        // mWifiRelayRecyclerView.setClickable(true);
         mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         mWifiRelayRecyclerView.setAdapter(wifiAdapter);
 
@@ -695,14 +774,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initData() {
 
-        if (LitePal.where("hasBill > ?", "0").find(SamplingDetails.class).size() > 0) {
-            mSampling = "(" + LitePal.where("hasBill > ?", "0").findLast(SamplingDetails.class).getCount() + ")";
+        if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
+            mSampling = "(" + LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class).getCount() + ")";
         }
 
         if (LitePal.isExist(Bill.class)) {
-            int total = LitePal.findAll(Bill.class).size();
-            //小于0，未上传
-            int isUpload = LitePal.where("isUpload > ?","0").find(Bill.class).size();
+            total = LitePal.findAll(Bill.class).size();
+            //大于等于0，已上传
+            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
             isUploadCount = isUpload + "/" + total;
         }
 
@@ -713,11 +792,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Wifi继电器
         mWifiList = new ArrayList<>();
 
-        for (int i = 0; i < 8; i++) {
-            RelayBean relayBean = new RelayBean();
-            relayBean.setName(i + 1 + "号开关");
-            mWifiList.add(relayBean);
-        }
+
+       initRelayBean();
+
 
         if (!mBluetooth.isSupportBlue()) {
             Toast.makeText(this, "当前设备不支持蓝牙", Toast.LENGTH_LONG).show();
@@ -731,9 +808,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         registerReceiver();
     }
 
+
+
     public List<String> getDataSource() {
         List<String> list = new ArrayList<String>();
-        list.add("请选择生产线");
+        list.add(getResources().getString(R.string.choose_produce_line));
         list.add("移动称重");
         list.add("一号生产线");
         list.add("二号生产线");
@@ -989,8 +1068,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                 AlertDialog.Builder inputDialog = new AlertDialog.Builder(MainActivity.this);
-                inputDialog.setTitle("请输入单重").setView(editText);
-                inputDialog.setPositiveButton("确定",
+                inputDialog.setTitle(R.string.input_piece_weight).setView(editText);
+                inputDialog.setPositiveButton(R.string.enter,
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -1000,7 +1079,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             }
                         })
-                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                             }
@@ -1008,7 +1087,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
 
-            case R.id.id_iv_setting:
+            case R.id.id_iv_setting://左侧设置界面
                 if (settingFragment == null) {
                     settingFragment = new SettingFragment();
                 }
@@ -1031,16 +1110,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
 
-            case R.id.id_tv_hand:
+            case R.id.id_tv_hand://手动计重
                 Cumulative cumulative = new Cumulative();
                 cumulative.setCategory("净重");
                 cumulative.setWeight(mWeightTextView.getText().toString());
 
-                if (!LitePal.isExist(Cumulative.class)) {
-                    cumulative.setCount(1);
+                if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                    Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                    cumulative.setCount(cumulativeLast.getCount() + 1);
+
                 } else {
-                    Cumulative cumulative1 = LitePal.findLast(Cumulative.class);
-                    cumulative.setCount(cumulative1.getCount() + 1);
+                    cumulative.setCount(1);
                 }
 
                 cumulative.save();
@@ -1087,6 +1167,60 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //showToast("请在权限管理中打开相关权限");
                     }
                 });
+    }
+
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+    }
+
+
+    private void initRelayBean() {
+        RelayBean relayBean = new RelayBean();
+        relayBean.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean);
+
+        RelayBean relayBean1 = new RelayBean();
+        relayBean1.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean1.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean1);
+
+        RelayBean relayBean2 = new RelayBean();
+        relayBean2.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean2.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean2);
+
+        RelayBean relayBean3 = new RelayBean();
+        relayBean3.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean3.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean3);
+
+        RelayBean relayBean4 = new RelayBean();
+        relayBean4.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean4.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean4);
+
+        RelayBean relayBean5 = new RelayBean();
+        relayBean5.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean5.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean5);
+
+        RelayBean relayBean6 = new RelayBean();
+        relayBean6.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean6.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean6);
+
+        RelayBean relayBean7 = new RelayBean();
+        relayBean7.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean7.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean7);
+
+        RelayBean relayBean8 = new RelayBean();
+        relayBean8.setLeftIamgeView(R.drawable.ic_one_red);
+        relayBean8.setRightImageView(R.drawable.ic_one_green);
+        mWifiList.add(relayBean8);
     }
 
 }

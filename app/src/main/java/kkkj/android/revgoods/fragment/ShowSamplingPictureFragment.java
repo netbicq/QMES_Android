@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -40,6 +41,7 @@ import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
 public class ShowSamplingPictureFragment extends DialogFragment implements View.OnClickListener {
 
     private int id;
+    private Button mButton;
     private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
     private List<GetPicModel> mList;
@@ -75,8 +77,10 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
     }
 
     private void initView(View view) {
+        mButton = view.findViewById(R.id.button);
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mBackImageView.setOnClickListener(this);
+        mButton.setOnClickListener(this);
         mRecyclerView = view.findViewById(R.id.id_recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mRecyclerView.setAdapter(picOrMp4Adapter);
@@ -92,6 +96,7 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
                 mList = picOrMp4Adapter.getData();
+
                 switch (view.getId()) {
                     case R.id.img:
                     case R.id.mp4:
@@ -113,8 +118,7 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
                         }
                         break;
                     case R.id.iv_delete:
-                        //mList.remove(position);
-                        //picOrMp4Adapter.notifyDataSetChanged();
+
                         break;
 
                     case R.id.ed_content:
@@ -160,6 +164,7 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.iv_sampling_back:
+            case R.id.button:
                 dismiss();
                 break;
 

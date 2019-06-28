@@ -105,8 +105,24 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
                  */
                 for (int i=0;i<samplingDetailsList.size();i++) {
                     samplingDetailsList.get(i).setCount(i+1);
-                    samplingDetailsList.get(i).save();
+                    //samplingDetailsList.get(i).save();
                 }
+                //重新计算占比
+                //采样总重量
+                double total = 0d;
+                for (int i = 0;i<samplingDetailsList.size();i++) {
+                    BigDecimal b1 = new BigDecimal(Double.toString(total));
+                    BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
+                    total = b1.add(b2).doubleValue();
+                }
+
+                //计算占比
+                for (int i = 0;i<samplingDetailsList.size();i++) {
+                    double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
+                    samplingDetailsList.get(i).setSpecsProportion(specsProportion);
+                }
+                LitePal.saveAll(samplingDetailsList);
+
                 adapter.notifyDataSetChanged();
                 mRecyclerView.closeMenu();
             }

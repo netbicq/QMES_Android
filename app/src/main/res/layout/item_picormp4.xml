@@ -39,7 +39,7 @@
         android:layout_marginEnd="60dp"
         android:background="@drawable/rad4_bor_d2d2d2"
         android:imeOptions="flagNoExtractUi"
-        android:hint="请输入相关描述"
+        android:hint="@string/enter_description"
         android:gravity="start"
         android:inputType="text"
         android:padding="5dp"

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:tools="http://schemas.android.com/tools"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="match_parent"
-                                             android:background="@color/qmui_config_color_white"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/qmui_config_color_white">
 
     <RelativeLayout
         android:id="@+id/relativeLayout"
@@ -28,7 +28,7 @@
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="采样详情"
+            android:text="@string/sampling_details"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
@@ -39,12 +39,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:textColor="@color/qmui_config_color_white"
-        android:text="确定"
         android:background="@drawable/bg_style"
+        android:text="@string/enter"
+        android:textColor="@color/qmui_config_color_white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/id_recyclerView"

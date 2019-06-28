@@ -27,7 +27,7 @@
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="采样明细"
+            android:text="@string/sampling_details"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
@@ -48,7 +48,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="次数"/>
+            android:text="@string/count"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -60,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="数量"/>
+            android:text="@string/quantity"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="重量"/>
+            android:text="@string/weight"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -84,7 +84,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="规格"/>
+            android:text="@string/specs"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -96,7 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="占比"/>
+            android:text="@string/percentage"/>
 
     </LinearLayout>
 

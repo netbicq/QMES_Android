@@ -114,7 +114,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
         specsNameList = new ArrayList<>();
         specs = new Specs();
         tempSpecs = new Specs();
-        tempSpecs.setSpecs("请选择规格");
+        tempSpecs.setSpecs(getResources().getString(R.string.choose_specs));
         specsList.add(tempSpecs);
         specsList.addAll(LitePal.findAll(Specs.class));
 
@@ -267,13 +267,13 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
                 DeviceEvent deviceEvent = new DeviceEvent();
 
-                if (!LitePal.isExist(SamplingDetails.class)) {
-                    samplingDetails.setCount(1);
-                    deviceEvent.setSamplingNumber(1);
-                } else {
-                    SamplingDetails lastDetails = LitePal.findLast(SamplingDetails.class);
+                if (LitePal.where("hasBill < ?","0").find(SamplingDetails.class).size() > 0) {
+                    SamplingDetails lastDetails = LitePal.where("hasBill < ?","0").findLast(SamplingDetails.class);
                     samplingDetails.setCount(lastDetails.getCount() + 1);
                     deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
+                } else {
+                    samplingDetails.setCount(1);
+                    deviceEvent.setSamplingNumber(1);
                 }
 
                 EventBus.getDefault().post(deviceEvent);

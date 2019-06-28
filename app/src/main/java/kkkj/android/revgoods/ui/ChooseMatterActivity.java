@@ -1,6 +1,7 @@
 package kkkj.android.revgoods.ui;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,8 @@ import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.utils.LangUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 选择品类
@@ -117,5 +120,8 @@ public class ChooseMatterActivity extends AppCompatActivity implements View.OnCl
                 });
     }
 
-
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+    }
 }

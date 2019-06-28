@@ -1,5 +1,6 @@
 package kkkj.android.revgoods.ui;
 
+import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -35,6 +36,8 @@ import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeductionCategoryAdapter;
 import kkkj.android.revgoods.bean.DeductionCategory;
 import kkkj.android.revgoods.customer.SlideRecyclerView;
+import kkkj.android.revgoods.utils.LangUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class DeductionCategoryActivity extends AppCompatActivity {
 
@@ -158,6 +161,9 @@ public class DeductionCategoryActivity extends AppCompatActivity {
         }
     }
 
-
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+    }
 
 }

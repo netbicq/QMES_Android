@@ -8,6 +8,7 @@ public class DeviceEvent {
 
     /**
      * 重置采样累计和累计计数
+     * 更新单据：已上传/未上传
      */
     private boolean reset = false;
 

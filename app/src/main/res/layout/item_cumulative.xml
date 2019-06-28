@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tolls="http://schemas.android.com/tools"
     android:orientation="horizontal">
 
     <TextView
@@ -10,7 +11,7 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="次数"/>
+        tolls:text="次数"/>
 
     <View
         android:background="@color/qmui_config_color_pure_black"

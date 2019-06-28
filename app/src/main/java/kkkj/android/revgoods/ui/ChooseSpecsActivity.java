@@ -1,12 +1,12 @@
 package kkkj.android.revgoods.ui;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -30,7 +30,10 @@ import butterknife.ButterKnife;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SpecsAdapter;
 import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.customer.GridItemDecoration;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.utils.LangUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 选择规格
@@ -50,7 +53,7 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
     private List<Specs> mSpecs = new ArrayList<>();
     private List<Specs> mTempSpecs = new ArrayList<>();
     private SpecsAdapter mAdapter;
-    private LinearLayoutManager mLayoutManager;
+    private GridLayoutManager mLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +85,8 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
             specs.save();
         }
 
-        mAdapter = new SpecsAdapter(R.layout.item_normal, mSpecs);
-        mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,
-                false);
+        mAdapter = new SpecsAdapter(R.layout.item_card_view, mSpecs);
+        mLayoutManager = new GridLayoutManager(this,4);
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -106,8 +108,10 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
 
         mRecyclerView = findViewById(R.id.id_recyclerView);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
-                DividerItemDecoration.VERTICAL));
+        GridItemDecoration divider = new GridItemDecoration.Builder(this)
+                .setShowLastLine(true)
+                .build();
+        //mRecyclerView.addItemDecoration(divider);
         mRecyclerView.setAdapter(mAdapter);
 
         mEtSearchMatter.addTextChangedListener(new TextWatcher() {
@@ -206,5 +210,10 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
                         //showToast("请在权限管理中打开相关权限");
                     }
                 });
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
     }
 }

@@ -8,6 +8,7 @@ import kkkj.android.revgoods.app.BaseApplication;
 
 public class SharedPreferenceUtil {
     private static final String SHAREDPREFERENCES_NAME = "NDRestructure_sp";
+    public static final String SP_USER_LANG = "SP_USER_LANG";
     public static final String SP_ISFIRST = "isFirst";
     public static final String SP_USER_NAME = "SP_USER_NAME";
     public static final String SP_USER_PWD = "SP_USER_PWD";

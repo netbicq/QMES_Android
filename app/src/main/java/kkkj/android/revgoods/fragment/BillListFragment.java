@@ -73,7 +73,7 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
         mBackImageView = view.findViewById(R.id.iv_back);
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
         mTitle = view.findViewById(R.id.id_tv_title);
-        mTitle.setText("单据列表");
+        mTitle.setText(R.string.bill_list);
         mBackImageView.setOnClickListener(this);
 
         billAdapter = new BillAdapter(R.layout.item_device_list,mBills);
@@ -100,7 +100,6 @@ public class BillListFragment extends DialogFragment implements View.OnClickList
                 billAdapter.notifyDataSetChanged();
                 mRecyclerView.closeMenu();
 
-                Logger.d("Bill-------" + LitePal.findAll(SamplingDetails.class).size());
             }
         });
 
