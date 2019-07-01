@@ -30,5 +30,8 @@ public class SwitchAdapter extends BaseQuickAdapter<RelayBean, BaseViewHolder> {
             imageViewLeft.setVisibility(View.VISIBLE);
             imageViewRight.setVisibility(View.GONE);
         }
+
+        helper.addOnClickListener(R.id.iv_switch_left);
+        helper.addOnClickListener(R.id.iv_switch_right);
     }
 }

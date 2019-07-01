@@ -47,4 +47,5 @@
     <string name="change_language">切换语言</string>
     <string name="chinese">中文</string>
     <string name="english">英文</string>
+    <string name="hand_switch">手动开关</string>
 </resources>

@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
+import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.DeductionCategory;
+import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
  * 扣重
@@ -92,7 +94,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
 
         adapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, getDataSource());
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_spinner);
 
     }
 
@@ -183,6 +185,11 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
                         deduction.setPrice(price);
                         deduction.setWeight(wt);
                         deduction.save();
+
+                        DeviceEvent deviceEvent = new DeviceEvent();
+                        deviceEvent.setAdd(true);
+                        EventBus.getDefault().post(deviceEvent);
+
                         dismiss();
 
                     } else {

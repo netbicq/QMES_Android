@@ -17,6 +17,7 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import kkkj.android.revgoods.conn.socket.SocketListener;
 
 public class BluetoothManager {
     BluetoothDevice mDevice;
@@ -179,6 +180,7 @@ public class BluetoothManager {
     }
 
 
+
     /**
      * 获取 读取 观察者
      *
@@ -241,5 +243,31 @@ public class BluetoothManager {
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
         return writeOb;
+    }
+
+
+    public Observable<String> getReadObservable() {
+        Observable<String> readObservable = Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                InputStream inputStream = null;
+                int num = 0;
+                byte[] buffer = new byte[1024];
+                String smsg = "";
+                inputStream = mSocket.getInputStream();
+                while (true) {
+                    num = inputStream.read(buffer);         //读入数据
+                    if (num != -1) {
+                        smsg = new String(buffer, 0, num);
+                    }
+                    if (inputStream.available() == 0)
+                        break;  //短时间没有数据才跳出进行显示
+                }
+                //发送显示消息
+                emitter.onNext(smsg);
+                emitter.onComplete();
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+        return readObservable;
     }
 }

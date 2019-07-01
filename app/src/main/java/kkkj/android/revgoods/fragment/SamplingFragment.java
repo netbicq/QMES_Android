@@ -124,7 +124,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
         adapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, specsNameList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_spinner);
 
 
         picOrMp4Adapter = new PicOrMp4Adapter(R.layout.item_picormp4, mList);

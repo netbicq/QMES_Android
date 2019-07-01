@@ -17,7 +17,9 @@ public class CumulativeAdapter extends BaseQuickAdapter<Cumulative, BaseViewHold
 
     @Override
     protected void convert(BaseViewHolder helper, Cumulative item) {
-        helper.setText(R.id.id_tv_count,item.getCount()+"");
+        //helper.getAdapterPosition();
+        helper.setText(R.id.id_tv_count,helper.getAdapterPosition() + 1 + "");
+        //helper.setText(R.id.id_tv_count,item.getCount()+"");
         helper.setText(R.id.id_tv_category,item.getCategory());
         helper.setText(R.id.id_tv_weight,item.getWeight());
         helper.setText(R.id.id_tv_price,item.getPrice());

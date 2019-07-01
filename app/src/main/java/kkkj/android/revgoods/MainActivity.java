@@ -22,8 +22,10 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,11 +58,14 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
+import kkkj.android.revgoods.adapter.SwitchAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
+import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.bean.SwitchIcon;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
@@ -145,10 +150,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvHand;//手动计重
     @BindView(R.id.id_tv_is_upload)
     TextView mTvIsUpload;
-    @BindView(R.id.iv_switch_left)
-    ImageView ivSwitchLeft;//左侧开关
-    @BindView(R.id.iv_switch_right)
-    ImageView ivSwitchRight;//右侧开关
+    @BindView(R.id.id_tv_hand_switch)
+    Switch mTvHandSwitch;
 
 
     private String mSampling = "(0)";//采样累计默认数字
@@ -163,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //蓝牙电子秤
     private BluetoothBean bluetoothScale = new BluetoothBean();
     private RelayAdapter wifiAdapter;
+    private SwitchAdapter switchAdapter;
     private ArrayAdapter spinnerAdapter;
 
     private BillListFragment billListFragment;
@@ -179,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String isUploadCount = "0/0";
     private int total = 0;
     private int isUpload = 0;
+    private boolean isClickable = false;
 
 
     @Override
@@ -219,6 +224,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
         Device device = deviceEvent.getDevice();
+
+        if (deviceEvent.isAdd()) {
+            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+            count = count + 1;
+            tvCumulativeCount.setText(count + "");
+        }
 
         if (deviceEvent.getSamplingNumber() >= 0) {
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
@@ -454,7 +465,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                      mWifiList.get(m).setChangeFlag(flag);
                      adapter.notifyItemChanged(m);
                      */
-                    // bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_1).subscribe(stateOB);
+                     //bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_1).subscribe(stateOB);
                     //manager.send(new WriteData(Order.TURN_ON_1));
                 }
             });
@@ -529,7 +540,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     mWifiList.get(i).setState(bin[i] + "");
                                 }
                             }
-                            wifiAdapter.notifyDataSetChanged();
+                            //wifiAdapter.notifyDataSetChanged();
+                            switchAdapter.notifyDataSetChanged();
                         } else if (message.getData().indexOf("01 05 00 ") == 0) {
                             //收到状态
                             //第几个继电器
@@ -600,7 +612,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                     break;
                             }
-                            wifiAdapter.notifyDataSetChanged();
+                            //wifiAdapter.notifyDataSetChanged();
+                            switchAdapter.notifyDataSetChanged();
                         }
                         Logger.d("收到:" + message.getData());
                         break;
@@ -641,15 +654,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSettingImageView.setOnClickListener(this);
         mTvSaveBill.setOnClickListener(this);
         mTvHand.setOnClickListener(this);
+        mTvHandSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    isClickable = true;
+                }else {
+                    isClickable = false;
+                }
+            }
+        });
 
         mTvIsUpload.setText(isUploadCount);
         mSamplingNumber.setText(mSampling);
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
-
-        if (LitePal.where("hasBill > ?", "0").find(Cumulative.class).size() > 0) {
-            tvCumulativeCount.setText(LitePal.where("hasBill > ?", "0").findLast(Cumulative.class).getCount() + "");
-            List<Cumulative> cumulatives = LitePal.where("hasBill > ?", "0").find(Cumulative.class);
+        if (LitePal.isExist(Cumulative.class) && LitePal.isExist(Deduction.class)) {
+            int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
+            int deductionSize = LitePal.where("hasBill < ?","0").find(Deduction.class).size();
+            tvCumulativeCount.setText(cumulativeSize + deductionSize + "");
+        }
+        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+            List<Cumulative> cumulatives = LitePal.where("hasBill < ?", "0").find(Cumulative.class);
             String weight = "0";
             for (int i = 0; i < cumulatives.size(); i++) {
                 BigDecimal b1 = new BigDecimal(weight);
@@ -661,7 +687,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
                 R.layout.spinner_style, getDataSource());
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerAdapter.setDropDownViewResource(R.layout.item_spinner);
         mChooseProductionLine.setAdapter(spinnerAdapter);
         mChooseProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -702,73 +728,82 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay, mWifiList);
-        wifiAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+        switchAdapter = new SwitchAdapter(R.layout.item_switch, mWifiList);
+        switchAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                switch (view.getId()) {
-                    case R.id.tv_open:
-                        switch (position) { //position 哪个继电器
-                            case 0:
-                                manager.send(new WriteData(Order.TURN_ON_1));
+                if (manager != null && manager.isConnect()) {
+                    if (isClickable) {
+                        switch (view.getId()) {
+                            case R.id.iv_switch_left:
+                                switch (position) { //position 哪个继电器
+                                    case 0:
+                                        manager.send(new WriteData(Order.TURN_ON_1));
+                                        break;
+                                    case 1:
+                                        manager.send(new WriteData(Order.TURN_ON_2));
+                                        break;
+                                    case 2:
+                                        manager.send(new WriteData(Order.TURN_ON_3));
+                                        break;
+                                    case 3:
+                                        manager.send(new WriteData(Order.TURN_ON_4));
+                                        break;
+                                    case 4:
+                                        manager.send(new WriteData(Order.TURN_ON_5));
+                                        break;
+                                    case 5:
+                                        manager.send(new WriteData(Order.TURN_ON_6));
+                                        break;
+                                    case 6:
+                                        manager.send(new WriteData(Order.TURN_ON_7));
+                                        break;
+                                    case 7:
+                                        manager.send(new WriteData(Order.TURN_ON_8));
+                                        break;
+                                }
                                 break;
-                            case 1:
-                                manager.send(new WriteData(Order.TURN_ON_2));
-                                break;
-                            case 2:
-                                manager.send(new WriteData(Order.TURN_ON_3));
-                                break;
-                            case 3:
-                                manager.send(new WriteData(Order.TURN_ON_4));
-                                break;
-                            case 4:
-                                manager.send(new WriteData(Order.TURN_ON_5));
-                                break;
-                            case 5:
-                                manager.send(new WriteData(Order.TURN_ON_6));
-                                break;
-                            case 6:
-                                manager.send(new WriteData(Order.TURN_ON_7));
-                                break;
-                            case 7:
-                                manager.send(new WriteData(Order.TURN_ON_8));
+                            case R.id.iv_switch_right:
+                                switch (position) {
+                                    case 0:
+                                        manager.send(new WriteData(Order.TURN_OFF_1));
+                                        break;
+                                    case 1:
+                                        manager.send(new WriteData(Order.TURN_OFF_2));
+                                        break;
+                                    case 2:
+                                        manager.send(new WriteData(Order.TURN_OFF_3));
+                                        break;
+                                    case 3:
+                                        manager.send(new WriteData(Order.TURN_OFF_4));
+                                        break;
+                                    case 4:
+                                        manager.send(new WriteData(Order.TURN_OFF_5));
+                                        break;
+                                    case 5:
+                                        manager.send(new WriteData(Order.TURN_OFF_6));
+                                        break;
+                                    case 6:
+                                        manager.send(new WriteData(Order.TURN_OFF_7));
+                                        break;
+                                    case 7:
+                                        manager.send(new WriteData(Order.TURN_OFF_8));
+                                        break;
+                                }
                                 break;
                         }
-                        break;
-                    case R.id.tv_close:
-                        switch (position) {
-                            case 0:
-                                manager.send(new WriteData(Order.TURN_OFF_1));
-                                break;
-                            case 1:
-                                manager.send(new WriteData(Order.TURN_OFF_2));
-                                break;
-                            case 2:
-                                manager.send(new WriteData(Order.TURN_OFF_3));
-                                break;
-                            case 3:
-                                manager.send(new WriteData(Order.TURN_OFF_4));
-                                break;
-                            case 4:
-                                manager.send(new WriteData(Order.TURN_OFF_5));
-                                break;
-                            case 5:
-                                manager.send(new WriteData(Order.TURN_OFF_6));
-                                break;
-                            case 6:
-                                manager.send(new WriteData(Order.TURN_OFF_7));
-                                break;
-                            case 7:
-                                manager.send(new WriteData(Order.TURN_OFF_8));
-                                break;
-                        }
-                        break;
+                    } else {
+                        Toast.makeText(MainActivity.this,"请先打开手动开关！",Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this,"继电器未连接，请先连接继电器！",Toast.LENGTH_LONG).show();
                 }
-
             }
         });
-        // mWifiRelayRecyclerView.setClickable(true);
-        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        mWifiRelayRecyclerView.setAdapter(wifiAdapter);
+
+        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false));
+        //mWifiRelayRecyclerView.setAdapter(wifiAdapter);
+        mWifiRelayRecyclerView.setAdapter(switchAdapter);
 
     }
 
@@ -792,8 +827,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Wifi继电器
         mWifiList = new ArrayList<>();
 
-
-       initRelayBean();
+        //初始化wifi继电器实体类
+        List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
+        List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
+        for (int i=0;i<leftIcon.size();i++) {
+            RelayBean relayBean = new RelayBean();
+            relayBean.setLeftIamgeView(leftIcon.get(i));
+            relayBean.setRightImageView(rightIcon.get(i));
+            mWifiList.add(relayBean);
+        }
 
 
         if (!mBluetooth.isSupportBlue()) {
@@ -807,7 +849,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //注册蓝牙广播
         registerReceiver();
     }
-
 
 
     public List<String> getDataSource() {
@@ -1142,6 +1183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 tvCumulativeWeight.setText(cWeight + "");
 
                 break;
+
             default:
                 break;
         }
@@ -1177,50 +1219,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void initRelayBean() {
-        RelayBean relayBean = new RelayBean();
-        relayBean.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean);
 
-        RelayBean relayBean1 = new RelayBean();
-        relayBean1.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean1.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean1);
 
-        RelayBean relayBean2 = new RelayBean();
-        relayBean2.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean2.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean2);
-
-        RelayBean relayBean3 = new RelayBean();
-        relayBean3.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean3.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean3);
-
-        RelayBean relayBean4 = new RelayBean();
-        relayBean4.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean4.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean4);
-
-        RelayBean relayBean5 = new RelayBean();
-        relayBean5.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean5.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean5);
-
-        RelayBean relayBean6 = new RelayBean();
-        relayBean6.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean6.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean6);
-
-        RelayBean relayBean7 = new RelayBean();
-        relayBean7.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean7.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean7);
-
-        RelayBean relayBean8 = new RelayBean();
-        relayBean8.setLeftIamgeView(R.drawable.ic_one_red);
-        relayBean8.setRightImageView(R.drawable.ic_one_green);
-        mWifiList.add(relayBean8);
     }
 
 }

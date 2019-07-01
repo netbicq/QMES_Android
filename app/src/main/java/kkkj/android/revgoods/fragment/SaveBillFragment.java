@@ -80,7 +80,7 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
 
         adapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, getDataSource());
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_spinner);
 
         deductionList = LitePal.where("hasBill < ?" ,"0")
                 .find(Deduction.class);

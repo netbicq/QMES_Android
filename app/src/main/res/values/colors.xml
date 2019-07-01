@@ -6,5 +6,7 @@
     <color name="theme"> #5CACEE</color>
     <color name="background">#243D5F</color>
     <color name="light">#1F75C5</color>
+    <color name="red">#FF0000</color>
+    <color name="green">#1afa29</color>
 
 </resources>

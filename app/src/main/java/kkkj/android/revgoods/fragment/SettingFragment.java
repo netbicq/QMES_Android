@@ -80,7 +80,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
         int width = outMetrics.widthPixels;
         int height = outMetrics.heightPixels;
 
-        wlp.width = width / 4;
+        wlp.width = width / 3;
         //wlp.height = (2 * height) / 3;
         wlp.height = WindowManager.LayoutParams.MATCH_PARENT;
         window.setAttributes(wlp);

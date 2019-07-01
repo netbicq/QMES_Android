@@ -47,4 +47,5 @@
     <string name="change_language">Change Language</string>
     <string name="chinese">Chinese</string>
     <string name="english">English</string>
+    <string name="hand_switch">Switch</string>
 </resources>

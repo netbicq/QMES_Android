@@ -22,6 +22,19 @@ public class DeviceEvent {
      */
     public int specsId = -1;
 
+    /**
+     *扣重数 + 1
+     */
+    public boolean add = false;
+
+    public boolean isAdd() {
+        return add;
+    }
+
+    public void setAdd(boolean add) {
+        this.add = add;
+    }
+
     public boolean isReset() {
         return reset;
     }
