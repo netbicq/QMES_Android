@@ -255,19 +255,19 @@ public class BluetoothManager {
                 byte[] buffer = new byte[1024];
                 String smsg = "";
                 inputStream = mSocket.getInputStream();
-                while (true) {
+                while (num != -1) {
                     num = inputStream.read(buffer);         //读入数据
                     if (num != -1) {
                         smsg = new String(buffer, 0, num);
                     }
-                    if (inputStream.available() == 0)
-                        break;  //短时间没有数据才跳出进行显示
+                    //if (inputStream.available() == 0)
+                       // break;  //短时间没有数据才跳出进行显示
                 }
                 //发送显示消息
                 emitter.onNext(smsg);
                 emitter.onComplete();
             }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+        }).repeat().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
         return readObservable;
     }
 }

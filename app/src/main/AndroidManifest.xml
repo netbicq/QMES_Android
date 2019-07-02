@@ -24,6 +24,10 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <uses-permission android:name="android.permission.READ_LOGS" />
+
+
+
     <application
         android:name=".app.BaseApplication"
         android:allowBackup="true"

@@ -1,6 +1,7 @@
 package kkkj.android.revgoods;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -157,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String mSampling = "(0)";//采样累计默认数字
 
     private PinBlueReceiver pinBlueReceiver;
-    private Bluetooth mBluetooth;
     private List<BluetoothBean> mList_b;
     private List<RelayBean> mWifiList;
     SocketListener listener;
@@ -167,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private BluetoothBean bluetoothScale = new BluetoothBean();
     private RelayAdapter wifiAdapter;
     private SwitchAdapter switchAdapter;
-    private ArrayAdapter spinnerAdapter;
+
 
     private BillListFragment billListFragment;
     private DeviceListFragment deviceListFragment;
@@ -179,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SaveBillFragment saveBillFragment;
 
     private Observer<String> stateOB;
-    private double weight = 0;
     private String isUploadCount = "0/0";
     private int total = 0;
     private int isUpload = 0;
@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
         getWindow().setAttributes(lp);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
 
         initData();
         initView();
@@ -228,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (deviceEvent.isAdd()) {
             int count = Integer.parseInt(tvCumulativeCount.getText().toString());
             count = count + 1;
-            tvCumulativeCount.setText(count + "");
+            tvCumulativeCount.setText(String.valueOf(count));
         }
 
         if (deviceEvent.getSamplingNumber() >= 0) {
@@ -300,6 +301,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this, "蓝牙电子秤连接失败！", Toast.LENGTH_LONG).show();
                 }
 
+                @SuppressLint("CheckResult")
                 @Override
                 public void onComplete() {
                     /**
@@ -370,13 +372,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         cWeight = b1.add(b2).doubleValue();
                                                         count = count + 1;
 
-                                                        tvCumulativeCount.setText(count + "");
-                                                        tvCumulativeWeight.setText(cWeight + "");
+                                                        tvCumulativeCount.setText(String.valueOf(count));
+                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
                                                     }
 
-                                                    manager.send(new WriteData(Order.TURN_OFF_1));
-                                                    manager.send(new WriteData(Order.TURN_ON_2));
+                                                    manager.send(new WriteData(Order.getTurnOff().get(0)));
+                                                    manager.send(new WriteData(Order.getTurnOn().get(1)));
 
+                                                    //两秒之后开关置反
                                                     Observable.timer(2, TimeUnit.SECONDS)
                                                             .subscribe(new Observer<Long>() {
                                                                 @Override
@@ -386,8 +389,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                                                 @Override
                                                                 public void onNext(Long aLong) {
-                                                                    manager.send(new WriteData(Order.TURN_ON_1));
-                                                                    manager.send(new WriteData(Order.TURN_OFF_2));
+                                                                    manager.send(new WriteData(Order.getTurnOn().get(0)));
+                                                                    manager.send(new WriteData(Order.getTurnOff().get(1)));
 
                                                                 }
 
@@ -461,10 +464,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onComplete() {
-                    /**  boolean flag = !mWifiList.get(m).isChangeFlag();
-                     mWifiList.get(m).setChangeFlag(flag);
-                     adapter.notifyItemChanged(m);
-                     */
                      //bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_1).subscribe(stateOB);
                     //manager.send(new WriteData(Order.TURN_ON_1));
                 }
@@ -479,7 +478,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (manager != null) {
             manager.connect();
-            manager.send(new WriteData(Order.TURN_ON_1));//第一次连接无法打开，有待解决
         }
     }
 
@@ -520,6 +518,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 .setPulseSendable(mPulseData)//只需要设置一次,下一次可以直接调用pulse()
                                 .pulse();//开始心跳,开始心跳后,心跳管理器会自动进行心跳触发
                         manager.send(new WriteData(Order.GET_STATE));
+                        //连接成功之后就打开某个开关
+                        manager.send(new WriteData(Order.getTurnOn().get(0)));
                         break;
                     case IAction.ACTION_DISCONNECTION:
                         Toast.makeText(MainActivity.this, "Wifi继电器连接已断开！", Toast.LENGTH_LONG).show();
@@ -551,7 +551,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     "01 05 00 ".length() + 5);
                             Logger.d("---" + index + "---" + state + "---");
 
-                            /**
+                            /*
                              * 获取继电器各个开关的状态
                              */
                             switch (index) {
@@ -672,7 +672,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (LitePal.isExist(Cumulative.class) && LitePal.isExist(Deduction.class)) {
             int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
             int deductionSize = LitePal.where("hasBill < ?","0").find(Deduction.class).size();
-            tvCumulativeCount.setText(cumulativeSize + deductionSize + "");
+            tvCumulativeCount.setText(String.valueOf(cumulativeSize + deductionSize));
         }
         if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
             List<Cumulative> cumulatives = LitePal.where("hasBill < ?", "0").find(Cumulative.class);
@@ -685,7 +685,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tvCumulativeWeight.setText(weight);
         }
 
-        spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
+        ArrayAdapter spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
                 R.layout.spinner_style, getDataSource());
         spinnerAdapter.setDropDownViewResource(R.layout.item_spinner);
         mChooseProductionLine.setAdapter(spinnerAdapter);
@@ -694,6 +694,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 0:
+                        mTvHand.setVisibility(View.GONE);
                         break;
 
                     case 1://手动计重
@@ -703,6 +704,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
 
                     case 2:
+                        mTvHand.setVisibility(View.GONE);
                         if (deviceListFragment == null) {
                             deviceListFragment = new DeviceListFragment();
                         }
@@ -713,7 +715,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
 
                     case 3:
-
+                        mTvHand.setVisibility(View.GONE);
                         break;
 
                     default:
@@ -821,7 +823,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
 
-        mBluetooth = new Bluetooth();
+        Bluetooth mBluetooth = new Bluetooth();
         //蓝牙继电器
         mList_b = new ArrayList<>();
         //Wifi继电器
@@ -852,7 +854,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     public List<String> getDataSource() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add(getResources().getString(R.string.choose_produce_line));
         list.add("移动称重");
         list.add("一号生产线");
@@ -1179,8 +1181,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 cWeight = b1.add(b2).doubleValue();
                 count = count + 1;
 
-                tvCumulativeCount.setText(count + "");
-                tvCumulativeWeight.setText(cWeight + "");
+                tvCumulativeCount.setText(String.valueOf(count));
+                tvCumulativeWeight.setText(String.valueOf(cWeight));
 
                 break;
 
@@ -1217,10 +1219,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
     }
 
-
-    private void initRelayBean() {
-
-
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && Build.VERSION.SDK_INT >= 19) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
+
 
 }
