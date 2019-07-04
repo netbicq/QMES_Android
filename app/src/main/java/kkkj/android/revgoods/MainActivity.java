@@ -5,10 +5,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -78,6 +80,7 @@ import kkkj.android.revgoods.conn.socket.ModbusProtocol;
 import kkkj.android.revgoods.conn.socket.PulseData;
 import kkkj.android.revgoods.conn.socket.SocketListener;
 import kkkj.android.revgoods.conn.socket.WriteData;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
 import kkkj.android.revgoods.elcscale.view.ElcScaleActivity;
@@ -184,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int total = 0;
     private int isUpload = 0;
     private boolean isClickable = false;
+    private MyToasty myToasty;
 
 
     @Override
@@ -292,13 +296,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onNext(Boolean aBoolean) {
                     isConnect[0] = aBoolean;
-                    Toast.makeText(MainActivity.this, "蓝牙电子秤连接成功！", Toast.LENGTH_LONG).show();
+                    myToasty.showSuccess("蓝牙电子秤连接成功！");
                 }
 
                 @Override
                 public void onError(Throwable e) {
                     isConnect[0] = false;
-                    Toast.makeText(MainActivity.this, "蓝牙电子秤连接失败！", Toast.LENGTH_LONG).show();
+                    myToasty.showError("蓝牙电子秤连接失败！");
                 }
 
                 @SuppressLint("CheckResult")
@@ -450,16 +454,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onNext(Boolean aBoolean) {
                     if (aBoolean) {
                         initBluetoothRelay();
-                        Logger.d("与" + bluetoothDevice.getName() + "成功建立连接");
-                        Toast.makeText(MainActivity.this, "蓝牙继电器连接成功！", Toast.LENGTH_LONG).show();
+                        myToasty.showSuccess("蓝牙继电器连接成功！");
                     }
                 }
 
                 @Override
                 public void onError(Throwable e) {
                     e.printStackTrace();
-                    Logger.d("与" + bluetoothDevice.getName() + "连接失败");
-                    Toast.makeText(MainActivity.this, "蓝牙电子秤连接失败！", Toast.LENGTH_LONG).show();
+                    myToasty.showError("蓝牙继电器连接失败！");
                 }
 
                 @Override
@@ -474,6 +476,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //连接Wifi继电器
     private void connectWifi(Device device) {
+        //打开Wifi
+        WifiManager wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (!wifiManager.isWifiEnabled()) {
+            myToasty.showError("请先打开Wifi！");
+            Intent it = new Intent();
+            ComponentName cn = new ComponentName("com.android.settings","com.android.settings.wifi.WifiSettings");
+            it.setComponent(cn);
+            startActivity(it);
+            return;
+        }
         initWifiDevice(device);
 
         if (manager != null) {
@@ -508,11 +520,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Logger.d("Action:" + message.getAction());
                 switch (message.getAction()) {
                     case IAction.ACTION_CONNECTION_FAILED:
-                        Toast.makeText(MainActivity.this, "Wifi继电器连接失败！", Toast.LENGTH_LONG).show();
+                        myToasty.showError("Wifi继电器连接失败！");
+
                         break;
 
                     case IAction.ACTION_CONNECTION_SUCCESS://连接成功
-                        Toast.makeText(MainActivity.this, "Wifi继电器连接成功！", Toast.LENGTH_LONG).show();
+                        myToasty.showSuccess("Wifi继电器连接成功！");
                         Logger.d("mac地址：" + getMacFromArpCache(manager.getRemoteConnectionInfo().getIp()));
                         manager.getPulseManager()
                                 .setPulseSendable(mPulseData)//只需要设置一次,下一次可以直接调用pulse()
@@ -522,7 +535,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         manager.send(new WriteData(Order.getTurnOn().get(0)));
                         break;
                     case IAction.ACTION_DISCONNECTION:
-                        Toast.makeText(MainActivity.this, "Wifi继电器连接已断开！", Toast.LENGTH_LONG).show();
+                        myToasty.showWarning("Wifi继电器连接已断开！");
                     case ACTION_READ_THREAD_SHUTDOWN://断开
                         break;
                     case ACTION_READ_COMPLETE:
@@ -795,10 +808,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 break;
                         }
                     } else {
-                        Toast.makeText(MainActivity.this,"请先打开手动开关！",Toast.LENGTH_LONG).show();
+                        myToasty.showInfo("请先打开手动开关！");
                     }
                 } else {
-                    Toast.makeText(MainActivity.this,"继电器未连接，请先连接继电器！",Toast.LENGTH_LONG).show();
+                    myToasty.showInfo("继电器未连接，请先连接继电器！");
                 }
             }
         });
@@ -811,6 +824,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initData() {
 
+        myToasty = new MyToasty(this);
         if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
             mSampling = "(" + LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class).getCount() + ")";
         }
@@ -829,22 +843,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Wifi继电器
         mWifiList = new ArrayList<>();
 
+
         //初始化wifi继电器实体类
         List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
         List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
+
         for (int i=0;i<leftIcon.size();i++) {
             RelayBean relayBean = new RelayBean();
             relayBean.setLeftIamgeView(leftIcon.get(i));
             relayBean.setRightImageView(rightIcon.get(i));
             mWifiList.add(relayBean);
+
         }
 
-
+        //打开蓝牙
         if (!mBluetooth.isSupportBlue()) {
-            Toast.makeText(this, "当前设备不支持蓝牙", Toast.LENGTH_LONG).show();
+            myToasty.showWarning("当前设备不支持蓝牙！");
             return;
         } else if (!mBluetooth.isBlueEnable()) {
-            Toast.makeText(this, "请先打开蓝牙蓝牙", Toast.LENGTH_LONG).show();
+            myToasty.showInfo("请先打开蓝牙！");
             //直接打开
             mBluetooth.openBlueAsyn();
         }

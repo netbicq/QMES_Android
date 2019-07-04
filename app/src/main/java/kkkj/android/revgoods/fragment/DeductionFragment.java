@@ -39,6 +39,7 @@ import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.DeductionCategory;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
@@ -57,6 +58,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
     private String weight;
     private List<DeductionCategory> deductionCategories;
     private DeductionCategory mDeductionCategory;
+    private MyToasty myToasty;
 
     public static DeductionFragment newInstance(String weight) {
         Bundle args = new Bundle();
@@ -89,6 +91,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
     }
 
     private void initData() {
+        myToasty = new MyToasty(getContext());
         deductionCategories = LitePal.findAll(DeductionCategory.class);
         mDeductionCategory = new DeductionCategory();
 
@@ -170,7 +173,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
 
             case R.id.button:
                 if (deductionCategories.size() == 0) {
-                    Toast.makeText(getContext(),"请先添加扣重类别！",Toast.LENGTH_LONG).show();
+                    myToasty.showWarning("请先添加扣重类别！");
                 } else {
 
                     String wt = mEtWeight.getText().toString().trim();
@@ -193,10 +196,9 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
                         dismiss();
 
                     } else {
-                        Toast.makeText(getContext(),"输入框不能为空！",Toast.LENGTH_LONG).show();
+                        myToasty.showError("输入框不能为空！");
                     }
                 }
-
 
                 break;
 

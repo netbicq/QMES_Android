@@ -49,6 +49,7 @@ import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
@@ -74,6 +75,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     private Specs tempSpecs;
     private int position = -1;
     private PicOrMp4Adapter picOrMp4Adapter;
+    private MyToasty myToasty;
 
 
     public static SamplingFragment newInstance(String weight) {
@@ -108,7 +110,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
 
     private void initData() {
-
+        myToasty = new MyToasty(getContext());
         mList = new ArrayList<>();
         specsList = new ArrayList<>();
         specsNameList = new ArrayList<>();
@@ -148,7 +150,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                                 TbsVideo.openVideo(getActivity().getApplicationContext(),
                                         mList.get(position).getMp4Path());
                             } else {
-                                Toast.makeText(getActivity(), "TBS视频播放器异常", Toast.LENGTH_LONG);
+                                myToasty.showError("TBS视频播放器异常");
                             }
                         }
                         break;
@@ -257,7 +259,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 if (position != 0) {
                     samplingDetails.setSpecs(specs);
                 } else {
-                    Toast.makeText(getContext(),"请选择系统默认提供的规格！",Toast.LENGTH_LONG).show();
+                    myToasty.showWarning("请选择系统默认提供的规格！");
                     return;
                 }
 
@@ -293,10 +295,10 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                         adapter.notifyDataSetChanged();
 
                     } else {
-                        Toast.makeText(getActivity(), "输入不能为零！请重新输入！", Toast.LENGTH_LONG).show();
+                        myToasty.showError("输入不能为零！请重新输入！");
                     }
                 } else {
-                    Toast.makeText(getActivity(), "输入框不能为空！", Toast.LENGTH_LONG).show();
+                    myToasty.showError("输入框不能为空！");
                 }
 
                 break;

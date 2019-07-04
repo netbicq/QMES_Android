@@ -416,7 +416,7 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/id_wifiRelay_recyclerView"
-        android:layout_width="76dp"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="8dp"

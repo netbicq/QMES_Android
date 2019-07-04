@@ -8,12 +8,14 @@ import android.util.Log;
 
 import com.uuzuche.lib_zxing.R;
 
+import me.jessyan.autosize.internal.CancelAdapt;
+
 /**
  * Initial the camera
  * <p>
  * 默认的二维码扫描Activity
  */
-public class CaptureActivity extends AppCompatActivity {
+public class CaptureActivity extends AppCompatActivity implements CancelAdapt {
 
 
     @Override

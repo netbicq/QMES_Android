@@ -15,6 +15,7 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
+import com.squareup.leakcanary.LeakCanary;
 import com.tencent.bugly.Bugly;
 import com.tencent.smtt.sdk.QbSdk;
 import com.uuzuche.lib_zxing.ZApplication;
@@ -28,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import kkkj.android.revgoods.R;
-import kkkj.android.revgoods.bean.Bill;
-import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 
 public class BaseApplication extends ZApplication {
@@ -73,6 +72,14 @@ public class BaseApplication extends ZApplication {
     public void onCreate() {
         super.onCreate();
         mContext = this;
+
+        //内存泄露检测
+        //if (LeakCanary.isInAnalyzerProcess(this)) {
+            // This process is dedicated to LeakCanary for heap analysis.
+            // You should not init your app in this process.
+           // return;
+       // }
+       // LeakCanary.install(this);
 
         Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(mContext));
         LitePal.initialize(this);

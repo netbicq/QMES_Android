@@ -30,28 +30,36 @@ public class SwitchIcon {
 
 
     public static List<Integer> getRedIcon() {
-        redIcon.add(oneRed);
-        redIcon.add(twoRed);
-        redIcon.add(threeRed);
-        redIcon.add(forRed);
-        redIcon.add(fiveRed);
-        redIcon.add(sixRed);
-        redIcon.add(sevenRed);
-        redIcon.add(eightRed);
+        if (redIcon.size() > 0) {
+            return redIcon;
+        } else {
+            redIcon.add(oneRed);
+            redIcon.add(twoRed);
+            redIcon.add(threeRed);
+            redIcon.add(forRed);
+            redIcon.add(fiveRed);
+            redIcon.add(sixRed);
+            redIcon.add(sevenRed);
+            redIcon.add(eightRed);
+            return redIcon;
+        }
 
-        return redIcon;
     }
 
     public static List<Integer> getGreenIcon() {
-        greenIcon.add(oneGreen);
-        greenIcon.add(twoGreen);
-        greenIcon.add(threeGreen);
-        greenIcon.add(forGreen);
-        greenIcon.add(fiveGreen);
-        greenIcon.add(sixGreen);
-        greenIcon.add(sevenGreen);
-        greenIcon.add(eightGreen);
+        if (greenIcon.size() > 0) {
+            return greenIcon;
+        }else {
+            greenIcon.add(oneGreen);
+            greenIcon.add(twoGreen);
+            greenIcon.add(threeGreen);
+            greenIcon.add(forGreen);
+            greenIcon.add(fiveGreen);
+            greenIcon.add(sixGreen);
+            greenIcon.add(sevenGreen);
+            greenIcon.add(eightGreen);
+            return greenIcon;
+        }
 
-        return greenIcon;
     }
 }

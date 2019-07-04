@@ -16,21 +16,21 @@ public class MyToasty {
 
     public void showError(String msg)
     {
-        Toasty.error(mContext, msg, Toast.LENGTH_SHORT, true).show();
+        Toasty.error(mContext, msg, Toast.LENGTH_LONG, true).show();
     }
 
     public void showSuccess(String msg)
     {
-        Toasty.success(mContext, msg, Toast.LENGTH_SHORT, true).show();
+        Toasty.success(mContext, msg, Toast.LENGTH_LONG, true).show();
     }
 
     public void showInfo(String msg)
     {
-        Toasty.info(mContext, msg, Toast.LENGTH_SHORT, true).show();
+        Toasty.info(mContext, msg, Toast.LENGTH_LONG, true).show();
     }
 
     public void showWarning(String msg)
     {
-        Toasty.warning(mContext, msg, Toast.LENGTH_SHORT, true).show();
+        Toasty.warning(mContext, msg, Toast.LENGTH_LONG, true).show();
     }
 }

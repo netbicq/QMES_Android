@@ -20,9 +20,10 @@ import butterknife.BindView;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.mvpInterface.MvpBaseActivity;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
+import me.jessyan.autosize.internal.CancelAdapt;
 
 
-public class GetPicOrMP4Activity extends MvpBaseActivity {
+public class GetPicOrMP4Activity extends MvpBaseActivity implements CancelAdapt {
     @BindView(R.id.jcameraview)
     JCameraView mJCameraView;
     boolean isPermited = false;

@@ -43,6 +43,7 @@ import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
@@ -206,7 +207,7 @@ public class SaveBillFragment extends DialogFragment implements View.OnClickList
 
                 }else {
 
-                    Toast.makeText(getContext(),"请输入单据名称！",Toast.LENGTH_LONG).show();
+                    new MyToasty(getContext()).showWarning("请输入单据名称！");
                 }
 
                 break;
