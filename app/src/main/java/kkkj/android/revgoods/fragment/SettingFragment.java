@@ -3,15 +3,12 @@ package kkkj.android.revgoods.fragment;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.support.v4.app.DialogFragment;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -23,9 +20,6 @@ import android.widget.TextView;
 
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 
-import java.util.Locale;
-
-import butterknife.ButterKnife;
 import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.ui.DeductionCategoryActivity;
@@ -33,7 +27,7 @@ import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class SettingFragment extends DialogFragment implements View.OnClickListener {
 
-    private TextView mSettingDeuctionCategoryTextView;
+    private TextView mSettingDeductionCategoryTextView;
     private TextView mChangeLanguageTv;
 
     @Nullable
@@ -55,8 +49,8 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
 
     private void initView(View view) {
         mChangeLanguageTv = view.findViewById(R.id.id_tv_change_language);
-        mSettingDeuctionCategoryTextView = view.findViewById(R.id.id_tv_deduction_category);
-        mSettingDeuctionCategoryTextView.setOnClickListener(this);
+        mSettingDeductionCategoryTextView = view.findViewById(R.id.id_tv_deduction_category);
+        mSettingDeductionCategoryTextView.setOnClickListener(this);
         mChangeLanguageTv.setOnClickListener(this);
     }
 

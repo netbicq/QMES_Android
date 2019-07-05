@@ -45,13 +45,12 @@ import kkkj.android.revgoods.event.DeviceEvent;
 /**
  * 扣重
  */
-public class DeductionFragment extends DialogFragment implements View.OnClickListener {
+public class DeductionFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private Button mSaveButton;
     private Spinner mSpinner;
     private EditText mEtWeight;
     private EditText mEtPrice;
-    Unbinder unbinder;
     private ImageView mBackImageView;
 
     private ArrayAdapter adapter;
@@ -75,22 +74,8 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
         weight = (String)getArguments().getSerializable("weight");
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_deduction, container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        initData();
-        initView(view);
-        unbinder = ButterKnife.bind(this, view);
-        return view;
-
-    }
-
-    private void initData() {
+    public void initData() {
         myToasty = new MyToasty(getContext());
         deductionCategories = LitePal.findAll(DeductionCategory.class);
         mDeductionCategory = new DeductionCategory();
@@ -109,7 +94,7 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
         return list;
     }
 
-    private void initView(View view) {
+    public void initView(View view) {
         mSaveButton = view.findViewById(R.id.button);
         mEtPrice = view.findViewById(R.id.id_et_price);
         mEtWeight = view.findViewById(R.id.id_et_weight);
@@ -135,34 +120,11 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
 
     }
 
-
-    @NonNull
     @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity());
-        // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.fragment_deduction);
-        dialog.setCanceledOnTouchOutside(true);
-
-        // 设置弹出框布局参数，宽度铺满全屏，底部。
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.BOTTOM;
-
-        WindowManager manager = getActivity().getWindowManager();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        int width = outMetrics.widthPixels;
-        int height = outMetrics.heightPixels;
-
-        wlp.width = (2 * width) / 3;
-        wlp.height = (2 * height) / 3;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        window.setAttributes(wlp);
-
-        return dialog;
-
+    public int setLayout() {
+        return R.layout.fragment_deduction;
     }
+
 
     @Override
     public void onClick(View view) {
@@ -210,6 +172,6 @@ public class DeductionFragment extends DialogFragment implements View.OnClickLis
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+
     }
 }

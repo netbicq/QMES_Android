@@ -79,7 +79,7 @@ public class PicOrMp4Adapter extends BaseQuickAdapter<GetPicModel, BaseViewHolde
         helper.addOnClickListener(R.id.mp4);
         helper.addOnClickListener(R.id.ed_content);
 
-        /**if(item.getIsDwon()==1)
+        if(item.getIsDwon()==1)//不可编辑
         {
             ed_content.setEnabled(false);
             ed_content.setBackground(null);
@@ -90,7 +90,7 @@ public class PicOrMp4Adapter extends BaseQuickAdapter<GetPicModel, BaseViewHolde
             ed_content.setEnabled(true);
             delete.setVisibility(View.VISIBLE);
         }
-         */
+
 
         if(item.getIsUpload()==0)
         {

@@ -48,4 +48,9 @@
     <string name="chinese">中文</string>
     <string name="english">英文</string>
     <string name="hand_switch">手动开关</string>
+    <string name="hand_weight">手动计重</string>
+
+    <string name="Electronic_scale_is_connected">蓝牙电子秤连接成功！</string>
+    <string name="Please_open_the_wifi">请先打开Wifi！</string>
+
 </resources>

@@ -48,4 +48,9 @@
     <string name="chinese">Chinese</string>
     <string name="english">English</string>
     <string name="hand_switch">Switch</string>
+    <string name="hand_weight">Make Weight</string>
+
+    <string name="Electronic_scale_is_connected">Electronic scale is connected!</string>
+    <string name="Please_open_the_wifi">Please open the Wifi!</string>
+
 </resources>

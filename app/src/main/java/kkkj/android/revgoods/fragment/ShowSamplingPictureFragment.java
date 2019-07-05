@@ -2,6 +2,7 @@ package kkkj.android.revgoods.fragment;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.DialogFragment;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -38,12 +39,13 @@ import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
 /**
  * 添加扣重类别
  */
-public class ShowSamplingPictureFragment extends DialogFragment implements View.OnClickListener {
+public class ShowSamplingPictureFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private int id;
     private Button mButton;
     private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
+    private ConstraintLayout mConstraintLayput;
     private List<GetPicModel> mList;
     private PicOrMp4Adapter picOrMp4Adapter;
 
@@ -61,22 +63,8 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
         id = (int) getArguments().getSerializable("id");
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_show_sampling_picture, container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-        initData();
-        initView(view);
-
-        return view;
-
-    }
-
-    private void initView(View view) {
+    public void initView(View view) {
+        mConstraintLayput = view.findViewById(R.id.id_constraintLayout);
         mButton = view.findViewById(R.id.button);
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mBackImageView.setOnClickListener(this);
@@ -86,11 +74,15 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
         mRecyclerView.setAdapter(picOrMp4Adapter);
     }
 
-    private void initData() {
+    @Override
+    public int setLayout() {
+        return R.layout.fragment_show_sampling_picture;
+    }
+
+    public void initData() {
         mList = new ArrayList<>();
         SamplingDetails samplingDetails = LitePal.find(SamplingDetails.class, id, true);
         mList = samplingDetails.getModelList();
-
         picOrMp4Adapter = new PicOrMp4Adapter(R.layout.item_picormp4, mList);
         picOrMp4Adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
@@ -132,33 +124,6 @@ public class ShowSamplingPictureFragment extends DialogFragment implements View.
         });
     }
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity());
-        // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        dialog.setContentView(R.layout.fragment_show_sampling_picture);
-        dialog.setCanceledOnTouchOutside(true);
-
-        // 设置弹出框布局参数，宽度铺满全屏，底部。
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.BOTTOM;
-
-        WindowManager manager = getActivity().getWindowManager();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        int width = outMetrics.widthPixels;
-        int height = outMetrics.heightPixels;
-
-        wlp.width = (2 * width) / 3;
-        wlp.height = (2 * height) / 3;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        window.setAttributes(wlp);
-        return dialog;
-
-    }
 
     @Override
     public void onClick(View v) {

@@ -34,7 +34,7 @@ import kkkj.android.revgoods.event.DeviceEvent;
 /**
  * 设备列表
  */
-public class DeviceListFragment extends DialogFragment implements View.OnClickListener {
+public class DeviceListFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
     private TextView mTitle;
@@ -47,25 +47,7 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
     //BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress);
 
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_device_list, container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-        initData();
-        initView(view);
-        return view;
-
-    }
-
-    private void initData() {
+    public void initData() {
         mDevices = new ArrayList<>();
         //蓝牙电子秤
         Device deviceBluetooth = new Device();
@@ -92,7 +74,7 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
 
     }
 
-    private void initView(View view) {
+    public void initView(View view) {
         mBackImageView = view.findViewById(R.id.iv_back);
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
         mTitle = view.findViewById(R.id.id_tv_title);
@@ -117,33 +99,11 @@ public class DeviceListFragment extends DialogFragment implements View.OnClickLi
 
     }
 
-    @NonNull
     @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity());
-        // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.fragment_device_list);
-        dialog.setCanceledOnTouchOutside(true);
-
-        // 设置弹出框布局参数，宽度铺满全屏，底部。
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.BOTTOM;
-
-        WindowManager manager = getActivity().getWindowManager();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        int width = outMetrics.widthPixels;
-        int height = outMetrics.heightPixels;
-
-        wlp.width = (2 * width) / 3;
-        wlp.height = (2 * height) / 3;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        window.setAttributes(wlp);
-
-        return dialog;
-
+    public int setLayout() {
+        return R.layout.fragment_device_list;
     }
+
 
     @Override
     public void onClick(View view) {

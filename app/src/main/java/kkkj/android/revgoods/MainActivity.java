@@ -57,11 +57,15 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
@@ -296,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onNext(Boolean aBoolean) {
                     isConnect[0] = aBoolean;
-                    myToasty.showSuccess("蓝牙电子秤连接成功！");
+                    myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
                 }
 
                 @Override
@@ -305,125 +309,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     myToasty.showError("蓝牙电子秤连接失败！");
                 }
 
-                @SuppressLint("CheckResult")
                 @Override
                 public void onComplete() {
                     /**
                      * 连接完成之后每隔100毫秒取一次电子秤的数据
                      */
-                    Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
-                            .takeWhile(new Predicate<Long>() {
-                                @Override
-                                public boolean test(Long integer) throws Exception {
-                                    return true;
-                                }
-                            })
-                            .subscribe(new Consumer<Long>() {
-                                @Override
-                                public void accept(@NonNull Long aLong) throws Exception {
-
-                                    bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
-                                        @Override
-                                        public void onSubscribe(Disposable d) {
-
-                                            if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
-                                                Logger.d("蓝牙断开");
-                                                d.dispose();
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onNext(String s) {
-                                            Logger.d("读取到数据:" + s);
-                                            if (s.length() == 8) {
-                                                //去掉前面的“=”号和零
-                                                String str1 = s.replace("=", "");
-                                                String str = str1.replaceFirst("^0*", "");
-                                                if (str.startsWith(".")) {
-                                                    str = "0" + str;
-                                                }
-                                                mWeightTextView.setText(str);
-                                                double weight = Double.parseDouble(str);
-                                                double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                                        .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
-
-                                                if (weight > compareWeight && manager != null && manager.isConnect()) {
-
-                                                    if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
-                                                        Cumulative cumulative = new Cumulative();
-                                                        cumulative.setCategory("净重");
-                                                        cumulative.setWeight(str);
-
-                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                            Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
-                                                        } else {
-                                                            cumulative.setCount(1);
-                                                        }
-
-                                                        cumulative.save();
-
-                                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                                        double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                                        /**
-                                                         * 相加：b1.add(b2).doubleValue();
-                                                         * 相减：b1.subtract(b2).doubleValue();
-                                                         * 相乘：b1.multiply(b2).doubleValue();
-                                                         */
-                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                                        BigDecimal b2 = new BigDecimal(Double.toString(weight));
-                                                        cWeight = b1.add(b2).doubleValue();
-                                                        count = count + 1;
-
-                                                        tvCumulativeCount.setText(String.valueOf(count));
-                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
-                                                    }
-
-                                                    manager.send(new WriteData(Order.getTurnOff().get(0)));
-                                                    manager.send(new WriteData(Order.getTurnOn().get(1)));
-
-                                                    //两秒之后开关置反
-                                                    Observable.timer(2, TimeUnit.SECONDS)
-                                                            .subscribe(new Observer<Long>() {
-                                                                @Override
-                                                                public void onSubscribe(Disposable d) {
-
-                                                                }
-
-                                                                @Override
-                                                                public void onNext(Long aLong) {
-                                                                    manager.send(new WriteData(Order.getTurnOn().get(0)));
-                                                                    manager.send(new WriteData(Order.getTurnOff().get(1)));
-
-                                                                }
-
-                                                                @Override
-                                                                public void onError(Throwable e) {
-
-                                                                }
-
-                                                                @Override
-                                                                public void onComplete() {
-
-                                                                }
-                                                            });
-                                                }
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onError(Throwable e) {
-                                            Logger.d("读取错误:" + e.getMessage());
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-                                        }
-                                    });
-
-                                }
-                            });
+                    getWeight(bluetoothBean);
                 }
             });
         }
@@ -433,6 +324,120 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return null;
         }
 
+    }
+
+    @SuppressLint("CheckResult")
+    private void getWeight(BluetoothBean bluetoothBean) {
+        /**
+         * 连接完成之后每隔100毫秒取一次电子秤的数据
+         */
+        Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+
+                        bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {
+
+                                if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
+                                    Logger.d("蓝牙断开");
+                                    d.dispose();
+                                }
+                            }
+
+                            @Override
+                            public void onNext(String s) {
+                                Logger.d("读取到数据:" + s);
+                                if (s.length() == 8) {
+                                    //去掉前面的“=”号和零
+                                    String str1 = s.replace("=", "");
+                                    String str = str1.replaceFirst("^0*", "");
+                                    if (str.startsWith(".")) {
+                                        str = "0" + str;
+                                    }
+                                    mWeightTextView.setText(str);
+                                    double weight = Double.parseDouble(str);
+                                    double compareWeight = Double.parseDouble(SharedPreferenceUtil
+                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+
+                                    if (weight > compareWeight && manager != null && manager.isConnect()) {
+
+                                        if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+                                            Cumulative cumulative = new Cumulative();
+                                            cumulative.setCategory("净重");
+                                            cumulative.setWeight(str);
+
+                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                                Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                cumulative.setCount(cumulativeLast.getCount() + 1);
+                                            } else {
+                                                cumulative.setCount(1);
+                                            }
+
+                                            cumulative.save();
+
+                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                            double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                            /**
+                                             * 相加：b1.add(b2).doubleValue();
+                                             * 相减：b1.subtract(b2).doubleValue();
+                                             * 相乘：b1.multiply(b2).doubleValue();
+                                             */
+                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                            BigDecimal b2 = new BigDecimal(Double.toString(weight));
+                                            cWeight = b1.add(b2).doubleValue();
+                                            count = count + 1;
+
+                                            tvCumulativeCount.setText(String.valueOf(count));
+                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                        }
+
+                                        manager.send(new WriteData(Order.getTurnOff().get(0)));
+                                        manager.send(new WriteData(Order.getTurnOn().get(1)));
+
+                                        //两秒之后开关置反
+                                        Observable.timer(2, TimeUnit.SECONDS)
+                                                .subscribe(new Observer<Long>() {
+                                                    @Override
+                                                    public void onSubscribe(Disposable d) {
+
+                                                    }
+
+                                                    @Override
+                                                    public void onNext(Long aLong) {
+                                                        manager.send(new WriteData(Order.getTurnOn().get(0)));
+                                                        manager.send(new WriteData(Order.getTurnOff().get(1)));
+
+                                                    }
+
+                                                    @Override
+                                                    public void onError(Throwable e) {
+
+                                                    }
+
+                                                    @Override
+                                                    public void onComplete() {
+
+                                                    }
+                                                });
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                Logger.d("读取错误:" + e.getMessage());
+                            }
+
+                            @Override
+                            public void onComplete() {
+                            }
+                        });
+
+                    }
+                });
     }
 
     //蓝牙继电器
@@ -479,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //打开Wifi
         WifiManager wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (!wifiManager.isWifiEnabled()) {
-            myToasty.showError("请先打开Wifi！");
+            myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
             Intent it = new Intent();
             ComponentName cn = new ComponentName("com.android.settings","com.android.settings.wifi.WifiSettings");
             it.setComponent(cn);
@@ -682,7 +687,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSamplingNumber.setText(mSampling);
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
-        if (LitePal.isExist(Cumulative.class) && LitePal.isExist(Deduction.class)) {
+        if (LitePal.isExist(Cumulative.class) || LitePal.isExist(Deduction.class)) {
             int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
             int deductionSize = LitePal.where("hasBill < ?","0").find(Deduction.class).size();
             tvCumulativeCount.setText(String.valueOf(cumulativeSize + deductionSize));
@@ -710,7 +715,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         mTvHand.setVisibility(View.GONE);
                         break;
 
-                    case 1://手动计重
+                    case 1://移动计重
 
                         mTvHand.setVisibility(View.VISIBLE);
                         startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
@@ -1171,35 +1176,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_hand://手动计重
-                Cumulative cumulative = new Cumulative();
-                cumulative.setCategory("净重");
-                cumulative.setWeight(mWeightTextView.getText().toString());
+                double weight = Double.parseDouble(mWeightTextView.getText().toString());
+                if (weight > 0d) {
+                    Cumulative cumulative = new Cumulative();
+                    cumulative.setCategory("净重");
+                    cumulative.setWeight(mWeightTextView.getText().toString());
 
-                if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                    Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                    cumulative.setCount(cumulativeLast.getCount() + 1);
+                    if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                        Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                        cumulative.setCount(cumulativeLast.getCount() + 1);
 
+                    } else {
+                        cumulative.setCount(1);
+                    }
+
+                    cumulative.save();
+
+                    int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                    double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                    /**浮点数
+                     * 相加：b1.add(b2).doubleValue();
+                     * 相减：b1.subtract(b2).doubleValue();
+                     * 相乘：b1.multiply(b2).doubleValue();
+                     */
+                    BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                    BigDecimal b2 = new BigDecimal(mWeightTextView.getText().toString());
+                    cWeight = b1.add(b2).doubleValue();
+                    count = count + 1;
+
+                    tvCumulativeCount.setText(String.valueOf(count));
+                    tvCumulativeWeight.setText(String.valueOf(cWeight));
                 } else {
-                    cumulative.setCount(1);
+                    myToasty.showWarning("当前重量为零，请勿计重！");
                 }
 
-                cumulative.save();
-
-                int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                /**浮点数
-                 * 相加：b1.add(b2).doubleValue();
-                 * 相减：b1.subtract(b2).doubleValue();
-                 * 相乘：b1.multiply(b2).doubleValue();
-                 */
-                BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                BigDecimal b2 = new BigDecimal(mWeightTextView.getText().toString());
-                cWeight = b1.add(b2).doubleValue();
-                count = count + 1;
-
-                tvCumulativeCount.setText(String.valueOf(count));
-                tvCumulativeWeight.setText(String.valueOf(cWeight));
 
                 break;
 

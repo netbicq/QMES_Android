@@ -56,7 +56,7 @@ import kkkj.android.revgoods.event.DeviceEvent;
  * 采样
  */
 
-public class SamplingFragment extends DialogFragment implements View.OnClickListener {
+public class SamplingFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private Button mSaveButton;
     private Button mEnterButton;
@@ -94,22 +94,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
         weight = (String) getArguments().getSerializable("weight");
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sampling, container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-        initData();
-        initView(view);
-        return view;
-
-    }
-
-
-    private void initData() {
+    public void initData() {
         myToasty = new MyToasty(getContext());
         mList = new ArrayList<>();
         specsList = new ArrayList<>();
@@ -172,7 +157,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
     }
 
 
-    private void initView(View view) {
+    public void initView(View view) {
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mSpSpecs = view.findViewById(R.id.id_sp_specs);
@@ -208,33 +193,9 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
 
     }
 
-
-    @NonNull
     @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity());
-        // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.fragment_sampling);
-        dialog.setCanceledOnTouchOutside(true);
-
-        // 设置弹出框布局参数，宽度铺满全屏，底部。
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.BOTTOM;
-
-        WindowManager manager = getActivity().getWindowManager();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        int width = outMetrics.widthPixels;
-        int height = outMetrics.heightPixels;
-
-        wlp.width = (2 * width) / 3;
-        wlp.height = (3 * height) / 4;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        window.setAttributes(wlp);
-
-        return dialog;
-
+    public int setLayout() {
+        return R.layout.fragment_sampling;
     }
 
     @Override
@@ -249,6 +210,9 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 break;
 
             case R.id.button://提交
+                for (int i=0;i<mList.size();i++) {
+                    mList.get(i).setIsDwon(1);//不可编辑
+                }
 
                 LitePal.saveAll(mList);
 
@@ -264,6 +228,7 @@ public class SamplingFragment extends DialogFragment implements View.OnClickList
                 }
 
                 for (int i = 0; i < mList.size(); i++) {
+
                     samplingDetails.getModelList().add(mList.get(i));
                 }
 

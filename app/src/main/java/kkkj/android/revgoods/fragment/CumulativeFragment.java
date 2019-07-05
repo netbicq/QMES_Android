@@ -31,7 +31,7 @@ import kkkj.android.revgoods.bean.Deduction;
 /**
  * 累计
  */
-public class CumulativeFragment extends DialogFragment implements View.OnClickListener {
+public class CumulativeFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
@@ -40,20 +40,8 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
     private List<Cumulative> cumulativeList;
     private List<Deduction> deductionList;
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_cumulative, container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        initData();
-        initView(view);
-        return view;
-
-    }
-
-    private void initData() {
+    public void initData() {
         cumulativeList = new ArrayList<>();
         deductionList = new ArrayList<>();
         deductionList = LitePal.where("hasBill < ?","0")
@@ -74,7 +62,7 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
         adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
     }
 
-    private void initView(View view) {
+    public void initView(View view) {
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mBackImageView.setOnClickListener(this);
@@ -86,31 +74,9 @@ public class CumulativeFragment extends DialogFragment implements View.OnClickLi
         mRecyclerView.setAdapter(adapter);
     }
 
-
-    @NonNull
     @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity());
-        // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.fragment_cumulative);
-        dialog.setCanceledOnTouchOutside(true);
-
-        // 设置弹出框布局参数，宽度铺满全屏，底部。
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.BOTTOM;
-
-        WindowManager manager = getActivity().getWindowManager();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        int width = outMetrics.widthPixels;
-        int height = outMetrics.heightPixels;
-
-        wlp.width = (2 * width) / 3;
-        wlp.height = (2 * height) / 3;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        window.setAttributes(wlp);
-        return dialog;
+    public int setLayout() {
+        return R.layout.fragment_cumulative;
     }
 
     @Override

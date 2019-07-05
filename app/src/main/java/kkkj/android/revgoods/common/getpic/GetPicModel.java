@@ -23,7 +23,7 @@ public class GetPicModel extends LitePalSupport implements Serializable {
 
     String content="";
 
-    int isDwon=0;
+    int isDwon=0;//是否可编辑，默认可编辑
 
     int isUpload = 0;//0表示不显示上传按钮
 

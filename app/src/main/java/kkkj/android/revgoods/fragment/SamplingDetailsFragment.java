@@ -38,7 +38,7 @@ import kkkj.android.revgoods.event.DeviceEvent;
 /**
  * 采样明细
  */
-public class SamplingDetailsFragment extends DialogFragment implements View.OnClickListener {
+public class SamplingDetailsFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private ImageView mBackImageView;
     private SlideRecyclerView mRecyclerView;
@@ -47,20 +47,8 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
     private List<SamplingDetails> samplingDetailsList;
     private ShowSamplingPictureFragment mFragment;
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sampling_details, container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        initData();
-        initView(view);
-        return view;
-
-    }
-
-    private void initData() {
+    public void initData() {
         samplingDetailsList = new ArrayList<>();
         samplingDetailsList = LitePal.where("hasBill < ?","0")
                                      .find(SamplingDetails.class,true);
@@ -129,7 +117,11 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
         });
     }
 
-    private void initView(View view) {
+    public void initView(View view) {
+        //点击透明区域不可取消
+        getDialog().setCanceledOnTouchOutside(false);
+        getDialog().setCancelable(false);
+
         mBackImageView = view.findViewById(R.id.iv_sampling_back);
         mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mBackImageView.setOnClickListener(this);
@@ -142,36 +134,11 @@ public class SamplingDetailsFragment extends DialogFragment implements View.OnCl
         mRecyclerView.setAdapter(adapter);
     }
 
-
-    @NonNull
     @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-
-        Dialog dialog = new Dialog(getActivity());
-        dialog.setContentView(R.layout.fragment_sampling_details);
-        //点击透明区域不可取消
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setCancelable(false);
-
-        // 设置弹出框布局参数，宽度铺满全屏，底部。
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams wlp = window.getAttributes();
-        //wlp.gravity = Gravity.LEFT;
-
-        WindowManager manager = getActivity().getWindowManager();
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        manager.getDefaultDisplay().getMetrics(outMetrics);
-        int width = outMetrics.widthPixels;
-        int height = outMetrics.heightPixels;
-
-        wlp.width = (2 * width) / 3;
-        wlp.height = (2 * height) / 3;
-        //wlp.height = WindowManager.LayoutParams.MATCH_PARENT;
-        window.setAttributes(wlp);
-
-        return dialog;
-
+    public int setLayout() {
+        return R.layout.fragment_sampling_details;
     }
+
 
     @Override
     public void onClick(View view) {
