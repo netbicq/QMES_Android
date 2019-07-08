@@ -34,6 +34,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.lxj.xpopup.XPopup;
+import com.lxj.xpopup.core.CenterPopupView;
+import com.lxj.xpopup.impl.LoadingPopupView;
 import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
@@ -292,9 +295,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             bluetoothBean.getMyBluetoothManager().pin();
         } else {
             bluetoothBean.getMyBluetoothManager().getConnectOB().subscribe(new Observer<Boolean>() {
+                LoadingPopupView xPopup = new XPopup.Builder(MainActivity.this)
+                        .dismissOnTouchOutside(false)
+                        .asLoading("正在链接中！");
                 @Override
                 public void onSubscribe(Disposable d) {
-
+                    xPopup.show();
                 }
 
                 @Override
@@ -307,10 +313,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onError(Throwable e) {
                     isConnect[0] = false;
                     myToasty.showError("蓝牙电子秤连接失败！");
+                    xPopup.dismiss();
                 }
 
                 @Override
                 public void onComplete() {
+                    xPopup.dismiss();
                     /**
                      * 连接完成之后每隔100毫秒取一次电子秤的数据
                      */
@@ -339,7 +347,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
                             @Override
                             public void onSubscribe(Disposable d) {
-
                                 if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
                                     Logger.d("蓝牙断开");
                                     d.dispose();
@@ -675,11 +682,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTvHandSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b) {
-                    isClickable = true;
-                }else {
-                    isClickable = false;
-                }
+                isClickable = b;
             }
         });
 
@@ -863,7 +866,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //打开蓝牙
         if (!mBluetooth.isSupportBlue()) {
-            myToasty.showWarning("当前设备不支持蓝牙！");
+            myToasty.showError("当前设备不支持蓝牙！");
             return;
         } else if (!mBluetooth.isBlueEnable()) {
             myToasty.showInfo("请先打开蓝牙！");

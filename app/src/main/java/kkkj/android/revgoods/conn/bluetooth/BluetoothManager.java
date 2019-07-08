@@ -137,7 +137,7 @@ public class BluetoothManager {
 
     /**
      * 获取 读取 观察者
-     *
+     * 蓝牙电子秤
      * @return
      */
     public Observable<String> getReadOB() {
@@ -183,7 +183,7 @@ public class BluetoothManager {
 
     /**
      * 获取 读取 观察者
-     *
+     * 蓝牙继电器
      * @return
      */
     public Observable<byte[]> getReadOBModbus() {
