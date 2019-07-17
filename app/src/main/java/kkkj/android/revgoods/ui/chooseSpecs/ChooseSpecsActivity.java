@@ -32,13 +32,14 @@ import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SpecsAdapter;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 选择规格
  */
-public class ChooseSpecsActivity extends AppCompatActivity implements View.OnClickListener {
+public class ChooseSpecsActivity extends BaseActivity<ChooseSpecsPresenter> implements ChooseSpecsContract.View,View.OnClickListener {
 
     @BindView(R.id.et_search_matter)
     EditText mEtSearchMatter;
@@ -50,40 +51,38 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
      */
     public static final int REQUEST_CODE = 111;
 
-    private List<Specs> mSpecs = new ArrayList<>();
-    private List<Specs> mTempSpecs = new ArrayList<>();
+    private List<Specs> mSpecs;
+    private List<Specs> mTempSpecs;
     private SpecsAdapter mAdapter;
     private GridLayoutManager mLayoutManager;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_choose_specs);
-        ButterKnife.bind(this);
+    public static final String MATTER_ID = "matterID";
+    private String matterId;
 
-        /**
-         * 沉浸式
-         */
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
-        lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-        getWindow().setAttributes(lp);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-
-        initData();
-        initView();
+    public static Intent newIntent(Context context, String matterId) {
+        Intent intent = new Intent(context, ChooseSpecsActivity.class);
+        intent.putExtra(MATTER_ID, matterId);
+        return intent;
     }
 
-    private void initData() {
+    @Override
+    protected ChooseSpecsPresenter getPresenter() {
+        return new ChooseSpecsPresenter();
+    }
 
-        for (int i = 0; i < 20; i++) {
-            Specs specs = new Specs();
-            specs.setSpecs("测试" + i);
-            specs.save();
-            mSpecs.add(specs);
-            mTempSpecs.add(specs);
-            specs.save();
+    protected void initData() {
+        mSpecs = new ArrayList<>();
+        mTempSpecs = new ArrayList<>();
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            matterId = intent.getStringExtra(MATTER_ID);
         }
+
+        ChooseSpecsModel.Request request = new ChooseSpecsModel.Request();
+        request.setMatterId(matterId);
+        mPresenter.getSpecsByMatterId(request);
+
 
         mAdapter = new SpecsAdapter(R.layout.item_card_view, mSpecs);
         mLayoutManager = new GridLayoutManager(this,4);
@@ -100,7 +99,12 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
         });
     }
 
-    private void initView() {
+    @Override
+    protected int setLayout() {
+        return R.layout.activity_choose_specs;
+    }
+
+    protected void initView() {
         mBackImageView = findViewById(R.id.id_iv_back);
         mZXingImageView = findViewById(R.id.id_iv_zxing);
         mZXingImageView.setOnClickListener(this);
@@ -140,6 +144,15 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
             }
         });
 
+    }
+
+    @Override
+    public void getSpecsSuc(List<Specs> data) {
+        mSpecs.clear();
+        mTempSpecs.clear();
+        mSpecs.addAll(data);
+        mTempSpecs.addAll(data);
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -206,26 +219,6 @@ public class ChooseSpecsActivity extends AppCompatActivity implements View.OnCli
                         //showToast("请在权限管理中打开相关权限");
                     }
                 });
-    }
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && Build.VERSION.SDK_INT >= 19) {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
     }
 
 }

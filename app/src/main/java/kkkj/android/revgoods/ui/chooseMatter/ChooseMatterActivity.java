@@ -9,8 +9,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -18,12 +21,15 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.MatterAdapter;
 import kkkj.android.revgoods.bean.Matter;
+import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
@@ -33,11 +39,13 @@ import kkkj.android.revgoods.utils.SharedPreferenceUtil;
  */
 public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> implements ChooseMatterContract.View,View.OnClickListener {
 
+    private EditText mEtSearchMatter;
     private ImageView mBackImageView;
     private ImageView mZXingImageView;
     private RecyclerView mRecyclerView;
     private MatterAdapter adapter;
     private List<Matter> matterList;
+    private List<Matter> matterTempList;
     /**
      * 扫描跳转Activity RequestCode
      */
@@ -59,6 +67,7 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
     protected void initView() {
         mBackImageView = findViewById(R.id.id_iv_back);
         mZXingImageView = findViewById(R.id.id_iv_zxing);
+        mEtSearchMatter = findViewById(R.id.et_search_matter);
 
         mRecyclerView = findViewById(R.id.id_recyclerView);
         mRecyclerView.setLayoutManager(new GridLayoutManager(this,4));
@@ -66,11 +75,41 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
 
         mZXingImageView.setOnClickListener(this);
         mBackImageView.setOnClickListener(this);
+
+        mEtSearchMatter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String search = mEtSearchMatter.getText().toString().trim();
+                matterList.clear();
+
+                for (int i=0;i<matterTempList.size();i++) {
+                    Matter matter = matterTempList.get(i);
+                    String str = matter.getName();
+
+                    if (str.contains(search)) {
+                        matterList.add(matter);
+                    }
+                }
+
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
     protected void initData() {
         matterList = new ArrayList<>();
+        matterTempList =new ArrayList<>();
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -85,7 +124,12 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
+                Matter matter = matterList.get(position);
+                int id = matter.getId();
+                DeviceEvent deviceEvent = new DeviceEvent();
+                deviceEvent.setMatterId(id);
+                EventBus.getDefault().post(deviceEvent);
+                finish();
             }
         });
     }

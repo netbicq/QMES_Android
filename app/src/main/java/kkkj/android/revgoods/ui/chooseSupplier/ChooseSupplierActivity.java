@@ -9,8 +9,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -18,12 +21,15 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SupplierAdapter;
 import kkkj.android.revgoods.bean.Supplier;
+import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
@@ -34,11 +40,13 @@ import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter> implements ChooseSupplierContract.View,View.OnClickListener {
 
+    private EditText mEtSearchSupplier;
     private ImageView mBackImageView;
     private ImageView mZXingImageView;
     private RecyclerView mRecyclerView;
     private SupplierAdapter adapter;
     private List<Supplier> supplierList;
+    private List<Supplier> supplierTempList;
     /**
      * 扫描跳转Activity RequestCode
      */
@@ -53,6 +61,7 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
     protected void initView() {
         mBackImageView = findViewById(R.id.id_iv_back);
         mZXingImageView = findViewById(R.id.id_iv_zxing);
+        mEtSearchSupplier = findViewById(R.id.et_search_matter);
 
         mRecyclerView = findViewById(R.id.id_recyclerView);
         mRecyclerView.setLayoutManager(new GridLayoutManager(this,4));
@@ -60,18 +69,54 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
         mZXingImageView.setOnClickListener(this);
         mBackImageView.setOnClickListener(this);
+
+        mEtSearchSupplier.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String search = mEtSearchSupplier.getText().toString().trim();
+                supplierList.clear();
+
+                for (int i=0;i<supplierTempList.size();i++) {
+                    Supplier supplier = supplierTempList.get(i);
+                    String str = supplier.getName();
+
+                    if (str.contains(search)) {
+                        supplierList.add(supplier);
+                    }
+                }
+
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
     protected void initData() {
         supplierList = new ArrayList<>();
+        supplierTempList = new ArrayList<>();
+
         mPresenter.getSupplier();
 
         adapter = new SupplierAdapter(R.layout.item_card_view,supplierList);
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
+                Supplier supplier = supplierList.get(position);
+                int id = supplier.getId();
+                DeviceEvent deviceEvent = new DeviceEvent();
+                deviceEvent.setSupplierId(id);
+                EventBus.getDefault().post(deviceEvent);
+                finish();
             }
         });
 

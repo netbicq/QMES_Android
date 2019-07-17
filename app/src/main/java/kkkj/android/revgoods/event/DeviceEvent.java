@@ -23,6 +23,16 @@ public class DeviceEvent {
     public int samplingNumber = -1;
 
     /**
+     * 供应商Supplier Id
+     */
+    public int supplierId = -1;
+
+    /**
+     * 品类Matter Id
+     */
+    public int matterId = -1;
+
+    /**
      * 规格Specs Id
      */
     public int specsId = -1;
@@ -31,6 +41,22 @@ public class DeviceEvent {
      *扣重数 + 1
      */
     public boolean add = false;
+
+    public int getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public int getMatterId() {
+        return matterId;
+    }
+
+    public void setMatterId(int matterId) {
+        this.matterId = matterId;
+    }
 
     public boolean isResetUploadCount() {
         return resetUploadCount;

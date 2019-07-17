@@ -121,7 +121,7 @@
         app:layout_constraintStart_toEndOf="@+id/textView16" />
 
     <TextView
-        android:id="@+id/textView6"
+        android:id="@+id/tv_matter"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
@@ -131,7 +131,7 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
-        app:layout_constraintStart_toEndOf="@+id/textView2"
+        app:layout_constraintStart_toEndOf="@+id/tv_supplier"
         app:layout_constraintTop_toTopOf="@+id/id_iv_choose_matter"
         app:layout_constraintVertical_bias="0.0" />
 
@@ -147,7 +147,7 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
-        app:layout_constraintStart_toEndOf="@+id/textView6"
+        app:layout_constraintStart_toEndOf="@+id/tv_matter"
         app:layout_constraintTop_toTopOf="@+id/id_iv_choose_matter"
         app:layout_constraintVertical_bias="0.0" />
 
@@ -326,7 +326,7 @@
         app:srcCompat="@drawable/ic_choose_matter_36dp" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/tv_supplier"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"

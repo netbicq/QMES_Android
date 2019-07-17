@@ -36,7 +36,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -70,8 +69,10 @@ import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Device;
+import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.SwitchIcon;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
@@ -160,6 +161,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvIsUpload;
     @BindView(R.id.id_tv_hand_switch)
     Switch mTvHandSwitch;
+    @BindView(R.id.tv_matter)
+    TextView mTvMatter;
+    @BindView(R.id.tv_supplier)
+    TextView mTvSupplier;
 
 
     private String mSampling = "(0)";//采样累计默认数字
@@ -192,6 +197,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isClickable = false;
     private MyToasty myToasty;
 
+    private Supplier supplier;
+    private Matter matter;
+    private Specs specs;
+
     private static final String SAMPLING = "samplingFragment";
     private static final String SAMPLING_DETAILS = "samplingDetailsFragment";
     private static final String CUMULATIVE = "cumulativeFragment";
@@ -200,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String BILL_LIST = "billListFragment";
     private static final String SETTING = "settingFragment";
     private static final String SAVE_BILL = "saveBillFragment";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -249,12 +259,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (deviceEvent.getSamplingNumber() >= 0) {
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
         }
+        //更新供应商
+        if (deviceEvent.getSupplierId() > 0) {
+            supplier = new Supplier();
+            supplier = LitePal.find(Supplier.class, deviceEvent.getSupplierId());
+            mTvSupplier.setText(supplier.getName());
+        }
+        //更新品类（物料）
+        if (deviceEvent.getMatterId() > 0) {
+            matter = new Matter();
+            matter = LitePal.find(Matter.class,deviceEvent.getMatterId());
+            mTvMatter.setText(matter.getName());
+        }
         //更新规格
         if (deviceEvent.getSpecsId() >= 0) {
-            Specs specs = new Specs();
+            specs = new Specs();
             specs = LitePal.find(Specs.class, deviceEvent.getSpecsId());
             mTvSpecs.setText(specs.getSpecs());
         }
+
         //保存单据后数据重置
         if (deviceEvent.isReset()) {
             mSamplingNumber.setText("(0)");
@@ -310,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                         .setTipWord("正在链接中！")
                         .create();
+
                 @Override
                 public void onSubscribe(Disposable d) {
                     qmuiTipDialog.show();
@@ -490,7 +514,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onComplete() {
-                     //bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_1).subscribe(stateOB);
+                    //bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_ON_1).subscribe(stateOB);
                     //manager.send(new WriteData(Order.TURN_ON_1));
                 }
             });
@@ -501,11 +525,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //连接Wifi继电器
     private void connectWifi(Device device) {
         //打开Wifi
-        WifiManager wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (!wifiManager.isWifiEnabled()) {
             myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
             Intent it = new Intent();
-            ComponentName cn = new ComponentName("com.android.settings","com.android.settings.wifi.WifiSettings");
+            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
             it.setComponent(cn);
             startActivity(it);
             return;
@@ -704,7 +728,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (LitePal.isExist(Cumulative.class) || LitePal.isExist(Deduction.class)) {
             int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
-            int deductionSize = LitePal.where("hasBill < ?","0").find(Deduction.class).size();
+            int deductionSize = LitePal.where("hasBill < ?", "0").find(Deduction.class).size();
             tvCumulativeCount.setText(String.valueOf(cumulativeSize + deductionSize));
         }
         if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
@@ -833,7 +857,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false));
+        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
         //mWifiRelayRecyclerView.setAdapter(wifiAdapter);
         mWifiRelayRecyclerView.setAdapter(switchAdapter);
 
@@ -865,7 +889,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
         List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
 
-        for (int i=0;i<leftIcon.size();i++) {
+        for (int i = 0; i < leftIcon.size(); i++) {
             RelayBean relayBean = new RelayBean();
             relayBean.setLeftIamgeView(leftIcon.get(i));
             relayBean.setRightImageView(rightIcon.get(i));
@@ -1078,7 +1102,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (view.getId()) {
             case R.id.id_iv_choose_matter://选择品类
-                startActivity(new Intent(MainActivity.this, ChooseMatterActivity.class));
+                if (supplier != null) {
+                    Intent intent = ChooseMatterActivity.newIntent(MainActivity.this, String.valueOf(supplier.getId()));
+                    startActivity(intent);
+                } else {
+                    myToasty.showWarning("请先选择供应商！");
+                }
+
                 break;
 
             case R.id.id_tv_choose_supplier://选择供应商
@@ -1086,12 +1116,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_iv_choose_specs://选择规格
-                startActivity(new Intent(MainActivity.this, ChooseSpecsActivity.class));
+                if (matter != null) {
+                    Intent intent = ChooseSpecsActivity.newIntent(MainActivity.this,String.valueOf(matter.getId()));
+                    startActivity(intent);
+                }else {
+                    myToasty.showWarning("请先选择品类！");
+                }
+
                 break;
 
             case R.id.id_tv_sampling://采样
                 samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
-                showDialogFragment(samplingFragment,SAMPLING);
+                showDialogFragment(samplingFragment, SAMPLING);
                 break;
 
 
@@ -1106,12 +1142,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (cumulativeFragment == null) {
                     cumulativeFragment = new CumulativeFragment();
                 }
-                showDialogFragment(cumulativeFragment,CUMULATIVE);
+                showDialogFragment(cumulativeFragment, CUMULATIVE);
                 break;
 
             case R.id.id_tv_deduction://扣重
                 deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
-                showDialogFragment(deductionFragment,DEDUCTION);
+                showDialogFragment(deductionFragment, DEDUCTION);
                 break;
 
             case R.id.id_iv_choose_printer://选择打印机
@@ -1156,7 +1192,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (settingFragment == null) {
                     settingFragment = new SettingFragment();
                 }
-                showDialogFragment(settingFragment,SETTING);
+                showDialogFragment(settingFragment, SETTING);
                 break;
 
             case R.id.id_iv_takePicture:
@@ -1213,7 +1249,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void showDialogFragment(DialogFragment dialogFragment,final String Tag) {
+    private void showDialogFragment(DialogFragment dialogFragment, final String Tag) {
         //清除已经存在的，相同的fragment
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         //动画，淡入淡出
@@ -1223,7 +1259,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ft.remove(fragment);
         }
         ft.addToBackStack(null);
-        dialogFragment.show(ft,Tag);
+        dialogFragment.show(ft, Tag);
     }
 
     /**
