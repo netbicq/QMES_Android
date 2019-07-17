@@ -15,6 +15,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -34,10 +36,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.lxj.xpopup.XPopup;
-import com.lxj.xpopup.core.CenterPopupView;
-import com.lxj.xpopup.impl.LoadingPopupView;
+
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
 import com.xuhao.didi.socket.client.sdk.OkSocket;
@@ -60,15 +61,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
@@ -103,9 +99,9 @@ import kkkj.android.revgoods.fragment.SettingFragment;
 import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.wifi.model.Order;
-import kkkj.android.revgoods.ui.ChooseMatterActivity;
-import kkkj.android.revgoods.ui.ChooseSpecsActivity;
-import kkkj.android.revgoods.ui.ChooseSupplierActivity;
+import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
+import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
+import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
@@ -196,7 +192,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isClickable = false;
     private MyToasty myToasty;
 
-
+    private static final String SAMPLING = "samplingFragment";
+    private static final String SAMPLING_DETAILS = "samplingDetailsFragment";
+    private static final String CUMULATIVE = "cumulativeFragment";
+    private static final String DEDUCTION = "deductionFragment";
+    private static final String DEVICE_LIST = "deviceFragment";
+    private static final String BILL_LIST = "billListFragment";
+    private static final String SETTING = "settingFragment";
+    private static final String SAVE_BILL = "saveBillFragment";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -236,23 +239,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
         Device device = deviceEvent.getDevice();
-
+        //更新累计数+1
         if (deviceEvent.isAdd()) {
             int count = Integer.parseInt(tvCumulativeCount.getText().toString());
             count = count + 1;
             tvCumulativeCount.setText(String.valueOf(count));
         }
-
+        //更新采样数
         if (deviceEvent.getSamplingNumber() >= 0) {
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
         }
-
+        //更新规格
         if (deviceEvent.getSpecsId() >= 0) {
             Specs specs = new Specs();
             specs = LitePal.find(Specs.class, deviceEvent.getSpecsId());
             mTvSpecs.setText(specs.getSpecs());
         }
-
+        //保存单据后数据重置
         if (deviceEvent.isReset()) {
             mSamplingNumber.setText("(0)");
             tvCumulativeCount.setText("0");
@@ -262,6 +265,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isUploadCount = isUpload + "/" + total;
             mTvIsUpload.setText(isUploadCount);
 
+        }
+        //删除单据后更新
+        if (deviceEvent.isResetUploadCount()) {
+            total = total - 1;
+            //大于等于0，已上传
+            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
+            isUploadCount = isUpload + "/" + total;
+            mTvIsUpload.setText(isUploadCount);
         }
 
         switch (device.getType()) {
@@ -295,12 +306,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             bluetoothBean.getMyBluetoothManager().pin();
         } else {
             bluetoothBean.getMyBluetoothManager().getConnectOB().subscribe(new Observer<Boolean>() {
-                LoadingPopupView xPopup = new XPopup.Builder(MainActivity.this)
-                        .dismissOnTouchOutside(false)
-                        .asLoading("正在链接中！");
+                QMUITipDialog qmuiTipDialog = new QMUITipDialog.Builder(MainActivity.this)
+                        .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                        .setTipWord("正在链接中！")
+                        .create();
                 @Override
                 public void onSubscribe(Disposable d) {
-                    xPopup.show();
+                    qmuiTipDialog.show();
                 }
 
                 @Override
@@ -313,12 +325,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onError(Throwable e) {
                     isConnect[0] = false;
                     myToasty.showError("蓝牙电子秤连接失败！");
-                    xPopup.dismiss();
+                    qmuiTipDialog.dismiss();
                 }
 
                 @Override
                 public void onComplete() {
-                    xPopup.dismiss();
+                    qmuiTipDialog.dismiss();
                     /**
                      * 连接完成之后每隔100毫秒取一次电子秤的数据
                      */
@@ -729,10 +741,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (deviceListFragment == null) {
                             deviceListFragment = new DeviceListFragment();
                         }
-                        FragmentTransaction ft = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                        deviceListFragment.show(ft, "deviceFragment");
-
+                        showDialogFragment(deviceListFragment, DEVICE_LIST);
                         break;
 
                     case 3:
@@ -1081,54 +1090,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_sampling://采样
-
                 samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
-                FragmentTransaction ft1 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft1.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);//动画 淡入淡出
-                samplingFragment.show(ft1, "samplingFragment");
+                showDialogFragment(samplingFragment,SAMPLING);
                 break;
+
 
             case R.id.id_tv_sampling_count://采样累计
                 if (samplingDetailsFragment == null) {
                     samplingDetailsFragment = new SamplingDetailsFragment();
                 }
-                FragmentTransaction ft2 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft2.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                samplingDetailsFragment.show(ft2, "samplingDetailsFragment");
+                showDialogFragment(samplingDetailsFragment, SAMPLING_DETAILS);
                 break;
 
             case R.id.id_tv_cumulative://累计
                 if (cumulativeFragment == null) {
                     cumulativeFragment = new CumulativeFragment();
                 }
-                FragmentTransaction ft3 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft3.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                cumulativeFragment.show(ft3, "cumulativeFragment");
+                showDialogFragment(cumulativeFragment,CUMULATIVE);
                 break;
 
             case R.id.id_tv_deduction://扣重
                 deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
-                FragmentTransaction ft4 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft4.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                deductionFragment.show(ft4, "deductionFragment");
+                showDialogFragment(deductionFragment,DEDUCTION);
                 break;
 
             case R.id.id_iv_choose_printer://选择打印机
                 if (deviceListFragment == null) {
                     deviceListFragment = new DeviceListFragment();
                 }
-                FragmentTransaction ft = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                deviceListFragment.show(ft, "deviceFragment");
+                showDialogFragment(deviceListFragment, DEVICE_LIST);
                 break;
 
             case R.id.id_iv_print://打印
                 if (billListFragment == null) {
                     billListFragment = new BillListFragment();
                 }
-                FragmentTransaction ft5 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft5.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                billListFragment.show(ft5, "billListFragment");
+                showDialogFragment(billListFragment, BILL_LIST);
                 break;
 
             case R.id.id_tv_piece_weight://单重
@@ -1159,9 +1156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (settingFragment == null) {
                     settingFragment = new SettingFragment();
                 }
-                FragmentTransaction ft7 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft7.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                settingFragment.show(ft7, "settingFragment");
+                showDialogFragment(settingFragment,SETTING);
                 break;
 
             case R.id.id_iv_takePicture:
@@ -1172,10 +1167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (saveBillFragment == null) {
                     saveBillFragment = new SaveBillFragment();
                 }
-                FragmentTransaction ft8 = MainActivity.this.getSupportFragmentManager().beginTransaction();
-                ft8.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                saveBillFragment.show(ft8, "saveBillFragment");
-
+                showDialogFragment(saveBillFragment, SAVE_BILL);
                 break;
 
             case R.id.id_tv_hand://手动计重
@@ -1214,12 +1206,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     myToasty.showWarning("当前重量为零，请勿计重！");
                 }
 
-
                 break;
 
             default:
                 break;
         }
+    }
+
+    private void showDialogFragment(DialogFragment dialogFragment,final String Tag) {
+        //清除已经存在的，相同的fragment
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        //动画，淡入淡出
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(Tag);
+        if (fragment != null) {
+            ft.remove(fragment);
+        }
+        ft.addToBackStack(null);
+        dialogFragment.show(ft,Tag);
     }
 
     /**

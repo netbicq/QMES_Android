@@ -1,4 +1,4 @@
-package kkkj.android.revgoods.ui;
+package kkkj.android.revgoods.ui.chooseMatter;
 
 import android.Manifest;
 import android.content.Context;
@@ -7,52 +7,92 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.adapter.MatterAdapter;
+import kkkj.android.revgoods.bean.Matter;
+import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
- * 选择供应商
+ * 选择品类
  */
-
-public class ChooseSupplierActivity extends AppCompatActivity implements View.OnClickListener {
+public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> implements ChooseMatterContract.View,View.OnClickListener {
 
     private ImageView mBackImageView;
     private ImageView mZXingImageView;
+    private RecyclerView mRecyclerView;
+    private MatterAdapter adapter;
+    private List<Matter> matterList;
     /**
      * 扫描跳转Activity RequestCode
      */
     public static final int REQUEST_CODE = 111;
+    public static final String SUPPLIER_ID = "supplierId";
+    private String supplierId;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_choose_supplier);
-
-        /**
-         * 沉浸式
-         */
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
-        lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-        getWindow().setAttributes(lp);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-        initView();
+    public static Intent newIntent(Context context, String supplierId) {
+        Intent intent = new Intent(context, ChooseMatterActivity.class);
+        intent.putExtra(SUPPLIER_ID, supplierId);
+        return intent;
     }
 
-    private void initView() {
+    @Override
+    protected ChooseMatterPresenter getPresenter() {
+        return new ChooseMatterPresenter();
+    }
+
+    protected void initView() {
         mBackImageView = findViewById(R.id.id_iv_back);
         mZXingImageView = findViewById(R.id.id_iv_zxing);
+
+        mRecyclerView = findViewById(R.id.id_recyclerView);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this,4));
+        mRecyclerView.setAdapter(adapter);
+
         mZXingImageView.setOnClickListener(this);
         mBackImageView.setOnClickListener(this);
+    }
+
+    @Override
+    protected void initData() {
+        matterList = new ArrayList<>();
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            supplierId = intent.getStringExtra(SUPPLIER_ID);
+        }
+
+        ChooseMatterModel.Request request = new ChooseMatterModel.Request();
+        request.setSupplierId(supplierId);
+        mPresenter.getMatterBySupplierId(request);
+
+        adapter = new MatterAdapter(R.layout.camera_view,matterList);
+        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+            }
+        });
+    }
+
+    @Override
+    protected int setLayout() {
+        return R.layout.activity_choose_matter;
     }
 
 
@@ -103,14 +143,14 @@ public class ChooseSupplierActivity extends AppCompatActivity implements View.On
      * 二维码扫描
      */
     private void zxing() {
-        RxPermissions rxPermissions = new RxPermissions(ChooseSupplierActivity.this);
+        RxPermissions rxPermissions = new RxPermissions(ChooseMatterActivity.this);
         rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE
         )
                 .subscribe(permission -> { // will emit 1 Permission object
                     if (permission.granted) {
-                        Intent intent = new Intent(ChooseSupplierActivity.this, CaptureActivity.class);
+                        Intent intent = new Intent(ChooseMatterActivity.this, CaptureActivity.class);
                         startActivityForResult(intent, REQUEST_CODE);
                     } else if (permission.shouldShowRequestPermissionRationale) {
                         //有至少一个权限没有同意
@@ -122,24 +162,11 @@ public class ChooseSupplierActivity extends AppCompatActivity implements View.On
                 });
     }
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
-    }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && Build.VERSION.SDK_INT >= 19) {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
+    public void getMatterSuc(List<Matter> data) {
+        matterList.clear();
+        matterList.addAll(data);
+        adapter.notifyDataSetChanged();
     }
-
 }

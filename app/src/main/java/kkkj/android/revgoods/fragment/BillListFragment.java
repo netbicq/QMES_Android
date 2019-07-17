@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
 
+import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 import org.litepal.LitePalDB;
 
@@ -35,16 +36,14 @@ import kkkj.android.revgoods.adapter.DeviceAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.customer.SlideRecyclerView;
+import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
  * 单据列表
  */
 public class BillListFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private ImageView mBackImageView;
-    private TextView mTitle;
     private SlideRecyclerView mRecyclerView;
-    private DeviceAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
     private BillAdapter billAdapter;
     private List<Bill> mBills;
@@ -58,12 +57,9 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
 
     public void initView(View view) {
-        mBackImageView = view.findViewById(R.id.iv_back);
-        mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
-        mTitle = view.findViewById(R.id.id_tv_title);
-        mTitle.setText(R.string.bill_list);
-        mBackImageView.setOnClickListener(this);
+        tvTitle.setText(R.string.bill_list);
 
+        mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
         billAdapter = new BillAdapter(R.layout.item_device_list,mBills);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -82,6 +78,12 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         billAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                //删除单据
+                //更新单据显示
+                DeviceEvent deviceEvent = new DeviceEvent();
+                deviceEvent.setResetUploadCount(true);
+                EventBus.getDefault().post(deviceEvent);
+
                 int id = mBills.get(position).getId();
                 LitePal.delete(Bill.class,id);
                 mBills.remove(position);
@@ -101,14 +103,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.iv_back:
-                dismiss();
-                break;
 
-            default:
-                break;
-        }
     }
 
     @Override

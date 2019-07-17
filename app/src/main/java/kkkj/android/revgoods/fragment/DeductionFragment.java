@@ -51,7 +51,6 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     private Spinner mSpinner;
     private EditText mEtWeight;
     private EditText mEtPrice;
-    private ImageView mBackImageView;
 
     private ArrayAdapter adapter;
     private String weight;
@@ -95,14 +94,14 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     }
 
     public void initView(View view) {
+        tvTitle.setText(R.string.deduction);
+
         mSaveButton = view.findViewById(R.id.button);
         mEtPrice = view.findViewById(R.id.id_et_price);
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mEtWeight.setText(weight);
         mSpinner = view.findViewById(R.id.id_et_number);
         mSpinner.setAdapter(adapter);
-        mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mBackImageView.setOnClickListener(this);
         mSaveButton.setOnClickListener(this);
 
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -129,9 +128,6 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.iv_sampling_back:
-                dismiss();
-                break;
 
             case R.id.button:
                 if (deductionCategories.size() == 0) {

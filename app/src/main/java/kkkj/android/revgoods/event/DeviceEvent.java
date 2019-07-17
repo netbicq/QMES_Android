@@ -7,6 +7,11 @@ public class DeviceEvent {
     public Device device;
 
     /**
+     * 单据删除后更新显示
+     */
+    public boolean resetUploadCount = false;
+
+    /**
      * 重置采样累计和累计计数
      * 更新单据：已上传/未上传
      */
@@ -26,6 +31,14 @@ public class DeviceEvent {
      *扣重数 + 1
      */
     public boolean add = false;
+
+    public boolean isResetUploadCount() {
+        return resetUploadCount;
+    }
+
+    public void setResetUploadCount(boolean resetUploadCount) {
+        this.resetUploadCount = resetUploadCount;
+    }
 
     public boolean isAdd() {
         return add;

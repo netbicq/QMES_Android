@@ -29,6 +29,7 @@ import java.util.List;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeviceAdapter;
 import kkkj.android.revgoods.bean.Device;
+import kkkj.android.revgoods.customer.SlideRecyclerView;
 import kkkj.android.revgoods.event.DeviceEvent;
 
 /**
@@ -36,9 +37,7 @@ import kkkj.android.revgoods.event.DeviceEvent;
  */
 public class DeviceListFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private ImageView mBackImageView;
-    private TextView mTitle;
-    private RecyclerView mRecyclerView;
+    private SlideRecyclerView mRecyclerView;
     private DeviceAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
 
@@ -75,17 +74,15 @@ public class DeviceListFragment extends BaseDialogFragment implements View.OnCli
     }
 
     public void initView(View view) {
-        mBackImageView = view.findViewById(R.id.iv_back);
-        mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
-        mTitle = view.findViewById(R.id.id_tv_title);
-        mTitle.setText("请选择当前要连接的设备");
-        mBackImageView.setOnClickListener(this);
+        tvTitle.setText("请选择当前要连接的设备");
 
+        mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
         mAdapter = new DeviceAdapter(R.layout.item_device_list,mDevices);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
+        mRecyclerView.setCanMove(false);
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -95,6 +92,7 @@ public class DeviceListFragment extends BaseDialogFragment implements View.OnCli
                 dismiss();
             }
         });
+
         mRecyclerView.setAdapter(mAdapter);
 
     }
@@ -107,13 +105,6 @@ public class DeviceListFragment extends BaseDialogFragment implements View.OnCli
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.iv_back:
-                dismiss();
-                break;
 
-            default:
-                break;
-        }
     }
 }

@@ -33,7 +33,6 @@ import kkkj.android.revgoods.bean.Deduction;
  */
 public class CumulativeFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private CumulativeAdapter adapter;
@@ -63,10 +62,9 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
     }
 
     public void initView(View view) {
-        mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
-        mBackImageView.setOnClickListener(this);
+        tvTitle.setText(R.string.cumulative_details);
 
+        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
@@ -81,13 +79,6 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.iv_sampling_back:
-                dismiss();
-                break;
 
-            default:
-                break;
-        }
     }
 }

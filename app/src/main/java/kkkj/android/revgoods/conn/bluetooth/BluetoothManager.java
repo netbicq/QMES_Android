@@ -153,6 +153,7 @@ public class BluetoothManager {
                 String smsg = "";
                 inputStream = mSocket.getInputStream();
                 while (true) {
+                    smsg = "";
                     num = inputStream.read(buffer);         //读入数据
                     n = 0;
                     for (i = 0; i < num; i++) {
@@ -171,7 +172,6 @@ public class BluetoothManager {
                         break;  //短时间没有数据才跳出进行显示
                 }
                 //发送显示消息，进行显示刷新
-                Logger.d(BytesUtils.toHexStringForLog(buffer_new));
                 emitter.onNext(new StringBuilder(smsg).reverse().toString());
                 emitter.onComplete();
             }

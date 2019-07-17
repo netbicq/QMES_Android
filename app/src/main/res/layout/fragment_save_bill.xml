@@ -6,33 +6,12 @@
     android:layout_height="match_parent"
     android:background="@color/qmui_config_color_white">
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@color/background"
+    <include
+        android:id="@+id/bar_container"
+        layout="@layout/fragment_bar_theme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/iv_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            app:srcCompat="@drawable/ic_left_black_24dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:gravity="center"
-            android:paddingVertical="8dp"
-            android:text="@string/save_bill"
-            android:textColor="@color/qmui_config_color_white"
-            android:textSize="18sp" />
-
-    </RelativeLayout>
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <Button
         android:id="@+id/button"
@@ -54,7 +33,7 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relativeLayout">
+        app:layout_constraintTop_toBottomOf="@+id/bar_container">
 
         <TextView
             android:layout_width="0dp"

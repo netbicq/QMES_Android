@@ -37,15 +37,13 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
 
 /**
- * 添加扣重类别
+ *
  */
 public class ShowSamplingPictureFragment extends BaseDialogFragment implements View.OnClickListener {
 
     private int id;
     private Button mButton;
-    private ImageView mBackImageView;
     private RecyclerView mRecyclerView;
-    private ConstraintLayout mConstraintLayput;
     private List<GetPicModel> mList;
     private PicOrMp4Adapter picOrMp4Adapter;
 
@@ -64,10 +62,9 @@ public class ShowSamplingPictureFragment extends BaseDialogFragment implements V
     }
 
     public void initView(View view) {
-        mConstraintLayput = view.findViewById(R.id.id_constraintLayout);
+        tvTitle.setText(R.string.sampling_details);
+
         mButton = view.findViewById(R.id.button);
-        mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mBackImageView.setOnClickListener(this);
         mButton.setOnClickListener(this);
         mRecyclerView = view.findViewById(R.id.id_recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
@@ -128,7 +125,6 @@ public class ShowSamplingPictureFragment extends BaseDialogFragment implements V
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.iv_sampling_back:
             case R.id.button:
                 dismiss();
                 break;

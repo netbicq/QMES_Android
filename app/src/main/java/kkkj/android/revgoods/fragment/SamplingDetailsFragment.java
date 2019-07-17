@@ -40,7 +40,6 @@ import kkkj.android.revgoods.event.DeviceEvent;
  */
 public class SamplingDetailsFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private ImageView mBackImageView;
     private SlideRecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
     private SamplingDetailsAdapter adapter;
@@ -122,10 +121,10 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         getDialog().setCanceledOnTouchOutside(false);
         getDialog().setCancelable(false);
 
-        mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
-        mBackImageView.setOnClickListener(this);
+        tvTitle.setText(R.string.sampling_details);
+        ivBack.setOnClickListener(this);
 
+        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
@@ -143,7 +142,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.iv_sampling_back:
+            case R.id.iv_back:
                 DeviceEvent deviceEvent = new DeviceEvent();
                 deviceEvent.setSamplingNumber(samplingDetailsList.size());
                 EventBus.getDefault().post(deviceEvent);

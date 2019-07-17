@@ -63,8 +63,6 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private EditText mEtNumber;
     private EditText mEtWeight;
     private Spinner mSpSpecs;
-    private ImageView mBackImageView;
-    private ImageView mTakePictureImageView;
     private RecyclerView recyclerView;
     private ArrayAdapter adapter;
     private String weight;
@@ -158,6 +156,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
 
     public void initView(View view) {
+        ivRight.setImageResource(R.drawable.ic_camera);
+        tvTitle.setText(R.string.sampling);
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mSpSpecs = view.findViewById(R.id.id_sp_specs);
@@ -166,10 +166,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         mEnterButton = view.findViewById(R.id.button_enter);
         mEtWeight.setText(weight);
 
-        mBackImageView = view.findViewById(R.id.iv_sampling_back);
-        mTakePictureImageView = view.findViewById(R.id.id_iv_sampling_takePicture);
-        mBackImageView.setOnClickListener(this);
-        mTakePictureImageView.setOnClickListener(this);
+        ivRight.setOnClickListener(this);
         mSaveButton.setOnClickListener(this);
         mEnterButton.setOnClickListener(this);
 
@@ -201,11 +198,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.iv_sampling_back:
-                dismiss();
-                break;
 
-            case R.id.id_iv_sampling_takePicture:
+            case R.id.iv_right:
                 takePicture();
                 break;
 

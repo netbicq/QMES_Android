@@ -1,4 +1,4 @@
-package kkkj.android.revgoods.ui;
+package kkkj.android.revgoods.ui.chooseSpecs;
 
 import android.Manifest;
 import android.content.Context;

@@ -13,18 +13,35 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import kkkj.android.revgoods.R;
 
-public abstract class BaseDialogFragment extends DialogFragment {
 
+public abstract class BaseDialogFragment extends DialogFragment {
+    public RelativeLayout barContainer;
+    public ImageView ivBack;
+    public TextView tvTitle;
+    public ImageView ivRight;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(setLayout(), container, false);
-        //设置背景透明
-        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        barContainer = view.findViewById(R.id.bar_container);
+        ivBack = barContainer.findViewById(R.id.iv_back);
+        tvTitle = barContainer.findViewById(R.id.tv_title);
+        ivRight = barContainer.findViewById(R.id.iv_right);
+        ivBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dismiss();
+            }
+        });
+
 
         initData();
         initView(view);
@@ -34,13 +51,15 @@ public abstract class BaseDialogFragment extends DialogFragment {
     public abstract void initData();
     public abstract void initView(View view);
     public abstract int setLayout();
-    @NonNull
+
     @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity());
-        // dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(setLayout());
-        dialog.setCanceledOnTouchOutside(true);
+    public void onStart() {
+        super.onStart();
+
+        Dialog dialog = getDialog();
+
+        //设置背景透明
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         // 设置弹出框布局参数，宽度铺满全屏，底部。
         Window window = dialog.getWindow();
@@ -57,6 +76,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
         wlp.height = (3 * height) / 4;
         // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         window.setAttributes(wlp);
-        return dialog;
+
     }
+
 }

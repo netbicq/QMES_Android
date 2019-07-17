@@ -52,7 +52,6 @@ import kkkj.android.revgoods.utils.SharedPreferenceUtil;
  */
 public class SaveBillFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private ImageView mIVBack;
     private EditText mETBillName;
     private Spinner mSpBillPurchaser;
     private Button mSaveButton;
@@ -87,10 +86,10 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
     }
 
     public void initView(View view) {
-        mIVBack = view.findViewById(R.id.iv_back);
+        tvTitle.setText(R.string.save_bill);
+
         mSaveButton = view.findViewById(R.id.button);
         mSaveButton.setOnClickListener(this);
-        mIVBack.setOnClickListener(this);
         mETBillName = view.findViewById(R.id.id_et_bill_name);
         mSpBillPurchaser = view.findViewById(R.id.id_sp_user);
         mSpBillPurchaser.setAdapter(adapter);
@@ -117,9 +116,6 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.iv_back:
-                dismiss();
-                break;
 
             case R.id.button:
                 String billName = mETBillName.getText().toString().trim();

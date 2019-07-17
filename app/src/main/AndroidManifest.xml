@@ -112,17 +112,17 @@
         <activity android:name=".common.getpic.GetPicOrMP4Activity" />
         <activity android:name=".HomeActivity" />
         <activity
-            android:name=".ui.ChooseMatterActivity"
+            android:name=".ui.chooseMatter.ChooseMatterActivity"
             android:screenOrientation="landscape"
             android:configChanges="locale"
             android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity
-            android:name=".ui.ChooseSupplierActivity"
+            android:name=".ui.chooseSupplier.ChooseSupplierActivity"
             android:screenOrientation="landscape"
             android:configChanges="locale"
             android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity
-            android:name=".ui.ChooseSpecsActivity"
+            android:name=".ui.chooseSpecs.ChooseSpecsActivity"
             android:screenOrientation="landscape"
             android:configChanges="locale"
             android:theme="@style/QMUI.Compat.NoActionBar" />
