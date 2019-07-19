@@ -376,111 +376,104 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          * 连接完成之后每隔100毫秒取一次电子秤的数据
          */
         Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Long>() {
+                .subscribe(aLong -> bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
                     @Override
-                    public void accept(@NonNull Long aLong) throws Exception {
+                    public void onSubscribe(Disposable d) {
+                        if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
+                            Logger.d("蓝牙断开");
+                            d.dispose();
+                        }
+                    }
 
-                        bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
-                            @Override
-                            public void onSubscribe(Disposable d) {
-                                if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
-                                    Logger.d("蓝牙断开");
-                                    d.dispose();
-                                }
+                    @Override
+                    public void onNext(String s) {
+                        Logger.d("读取到数据:" + s);
+                        if (s.length() == 8) {
+                            //去掉前面的“=”号和零
+                            String str1 = s.replace("=", "");
+                            String str = str1.replaceFirst("^0*", "");
+                            if (str.startsWith(".")) {
+                                str = "0" + str;
                             }
+                            mWeightTextView.setText(str);
+                            double weight = Double.parseDouble(str);
+                            double compareWeight = Double.parseDouble(SharedPreferenceUtil
+                                    .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
-                            @Override
-                            public void onNext(String s) {
-                                Logger.d("读取到数据:" + s);
-                                if (s.length() == 8) {
-                                    //去掉前面的“=”号和零
-                                    String str1 = s.replace("=", "");
-                                    String str = str1.replaceFirst("^0*", "");
-                                    if (str.startsWith(".")) {
-                                        str = "0" + str;
+                            if (weight > compareWeight && manager != null && manager.isConnect()) {
+
+                                if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+                                    Cumulative cumulative = new Cumulative();
+                                    cumulative.setCategory("净重");
+                                    cumulative.setWeight(str);
+
+                                    if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                        Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                        cumulative.setCount(cumulativeLast.getCount() + 1);
+                                    } else {
+                                        cumulative.setCount(1);
                                     }
-                                    mWeightTextView.setText(str);
-                                    double weight = Double.parseDouble(str);
-                                    double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
-                                    if (weight > compareWeight && manager != null && manager.isConnect()) {
+                                    cumulative.save();
 
-                                        if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
-                                            Cumulative cumulative = new Cumulative();
-                                            cumulative.setCategory("净重");
-                                            cumulative.setWeight(str);
+                                    int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                    double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
 
-                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                cumulative.setCount(cumulativeLast.getCount() + 1);
-                                            } else {
-                                                cumulative.setCount(1);
+                                    /**
+                                     * 相加：b1.add(b2).doubleValue();
+                                     * 相减：b1.subtract(b2).doubleValue();
+                                     * 相乘：b1.multiply(b2).doubleValue();
+                                     */
+                                    BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                    BigDecimal b2 = new BigDecimal(Double.toString(weight));
+                                    cWeight = b1.add(b2).doubleValue();
+                                    count = count + 1;
+
+                                    tvCumulativeCount.setText(String.valueOf(count));
+                                    tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                }
+
+                                manager.send(new WriteData(Order.getTurnOff().get(0)));
+                                manager.send(new WriteData(Order.getTurnOn().get(1)));
+
+                                //两秒之后开关置反
+                                Observable.timer(2, TimeUnit.SECONDS)
+                                        .subscribe(new Observer<Long>() {
+                                            @Override
+                                            public void onSubscribe(Disposable d) {
+
                                             }
 
-                                            cumulative.save();
+                                            @Override
+                                            public void onNext(Long aLong) {
+                                                manager.send(new WriteData(Order.getTurnOn().get(0)));
+                                                manager.send(new WriteData(Order.getTurnOff().get(1)));
 
-                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                            double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+                                            }
 
-                                            /**
-                                             * 相加：b1.add(b2).doubleValue();
-                                             * 相减：b1.subtract(b2).doubleValue();
-                                             * 相乘：b1.multiply(b2).doubleValue();
-                                             */
-                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                            BigDecimal b2 = new BigDecimal(Double.toString(weight));
-                                            cWeight = b1.add(b2).doubleValue();
-                                            count = count + 1;
+                                            @Override
+                                            public void onError(Throwable e) {
 
-                                            tvCumulativeCount.setText(String.valueOf(count));
-                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
-                                        }
+                                            }
 
-                                        manager.send(new WriteData(Order.getTurnOff().get(0)));
-                                        manager.send(new WriteData(Order.getTurnOn().get(1)));
+                                            @Override
+                                            public void onComplete() {
 
-                                        //两秒之后开关置反
-                                        Observable.timer(2, TimeUnit.SECONDS)
-                                                .subscribe(new Observer<Long>() {
-                                                    @Override
-                                                    public void onSubscribe(Disposable d) {
-
-                                                    }
-
-                                                    @Override
-                                                    public void onNext(Long aLong) {
-                                                        manager.send(new WriteData(Order.getTurnOn().get(0)));
-                                                        manager.send(new WriteData(Order.getTurnOff().get(1)));
-
-                                                    }
-
-                                                    @Override
-                                                    public void onError(Throwable e) {
-
-                                                    }
-
-                                                    @Override
-                                                    public void onComplete() {
-
-                                                    }
-                                                });
-                                    }
-                                }
+                                            }
+                                        });
                             }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                Logger.d("读取错误:" + e.getMessage());
-                            }
-
-                            @Override
-                            public void onComplete() {
-                            }
-                        });
-
+                        }
                     }
-                });
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Logger.d("读取错误:" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                    }
+                }));
     }
 
     //蓝牙继电器
@@ -715,12 +708,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSettingImageView.setOnClickListener(this);
         mTvSaveBill.setOnClickListener(this);
         mTvHand.setOnClickListener(this);
-        mTvHandSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                isClickable = b;
-            }
-        });
+        mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
 
         mTvIsUpload.setText(isUploadCount);
         mSamplingNumber.setText(mSampling);

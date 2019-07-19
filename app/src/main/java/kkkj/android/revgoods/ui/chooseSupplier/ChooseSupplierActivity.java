@@ -25,7 +25,9 @@ import com.uuzuche.lib_zxing.activity.CodeUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SupplierAdapter;
@@ -82,10 +84,16 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void afterTextChanged(Editable editable) {
                 String search = mEtSearchSupplier.getText().toString().trim();
                 supplierList.clear();
+
+                List<Supplier> suppliers = supplierTempList.stream()
+                        .filter(supplier -> supplier.getName().contains(search))
+                        .collect(Collectors.toList());
+                supplierList.addAll(suppliers);
 
                 for (int i=0;i<supplierTempList.size();i++) {
                     Supplier supplier = supplierTempList.get(i);
