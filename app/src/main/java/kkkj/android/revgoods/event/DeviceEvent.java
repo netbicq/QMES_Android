@@ -2,6 +2,9 @@ package kkkj.android.revgoods.event;
 
 import kkkj.android.revgoods.bean.Device;
 
+/**
+ * MainActivity  EventBus
+ */
 public class DeviceEvent {
     public String msg;
     public Device device;

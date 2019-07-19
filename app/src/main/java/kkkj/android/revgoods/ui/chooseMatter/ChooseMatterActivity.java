@@ -139,6 +139,15 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
         return R.layout.activity_choose_matter;
     }
 
+    @Override
+    public void getMatterSuc(List<Matter> data) {
+        matterList.clear();
+        matterTempList.clear();
+        matterTempList.addAll(data);
+        matterList.addAll(data);
+
+        adapter.notifyDataSetChanged();
+    }
 
     @Override
     public void onClick(View view) {
@@ -206,11 +215,4 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
                 });
     }
 
-
-    @Override
-    public void getMatterSuc(List<Matter> data) {
-        matterList.clear();
-        matterList.addAll(data);
-        adapter.notifyDataSetChanged();
-    }
 }

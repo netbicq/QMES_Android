@@ -43,9 +43,9 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
     @Override
     public void startActivity(Intent intent) {
         //把默认启动模式改为singleTop
-        if (intent.getFlags() != Intent.FLAG_ACTIVITY_CLEAR_TASK) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        }
+//        if (intent.getFlags() != Intent.FLAG_ACTIVITY_CLEAR_TASK) {
+//            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//        }
         super.startActivity(intent);
     }
 

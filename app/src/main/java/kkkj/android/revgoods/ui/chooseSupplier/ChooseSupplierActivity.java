@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -94,11 +95,11 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
                         supplierList.add(supplier);
                     }
                 }
-
                 adapter.notifyDataSetChanged();
             }
         });
     }
+
 
     @Override
     protected void initData() {
@@ -130,7 +131,10 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
     @Override
     public void getSupplierSuc(List<Supplier> data) {
         supplierList.clear();
+        supplierTempList.clear();
         supplierList.addAll(data);
+        supplierTempList.addAll(data);
+
         adapter.notifyDataSetChanged();
     }
 
