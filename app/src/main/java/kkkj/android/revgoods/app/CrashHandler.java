@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.Looper;
 import android.widget.Toast;
 
+import com.orhanobut.logger.Logger;
+
 
 public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
@@ -14,6 +16,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
+        Logger.d(e.getMessage());
         showToast(t);
     }
 

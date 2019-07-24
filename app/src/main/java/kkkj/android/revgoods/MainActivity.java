@@ -64,6 +64,7 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Predicate;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
@@ -176,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     IConnectionManager manager;
     private PulseData mPulseData = new PulseData();
     //蓝牙电子秤
-    private BluetoothBean bluetoothScale = new BluetoothBean();
+    private BluetoothBean bluetoothScale;
     private RelayAdapter wifiAdapter;
     private SwitchAdapter switchAdapter;
 
@@ -223,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
         getWindow().setAttributes(lp);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         initData();
         initView();
@@ -233,9 +234,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Logger.d("onDestroy");
         if (manager != null) {
             manager.send(new WriteData(Order.TURN_OFF_ALL));
             manager.unRegisterReceiver(listener);
+        }
+
+        if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) {
+            bluetoothScale.getMyBluetoothManager().disConnect();
         }
 
         if (pinBlueReceiver != null) {
@@ -302,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case 0://蓝牙电子秤
                 String address = device.getBluetoothMac();
                 BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                bluetoothScale = connectAndGetBluetoothScale(bluetoothDevice);
+                connectAndGetBluetoothScale(bluetoothDevice);
                 break;
             case 1://蓝牙继电器
                 String address1 = device.getBluetoothMac();
@@ -320,18 +326,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     //蓝牙电子秤
-    private BluetoothBean connectAndGetBluetoothScale(BluetoothDevice bluetoothDevice) {
-        final boolean[] isConnect = {false};
+    private void connectAndGetBluetoothScale(BluetoothDevice bluetoothDevice) {
         BluetoothBean bluetoothBean = new BluetoothBean();
         bluetoothBean.setBluetoothDevice(bluetoothDevice);
 
         if (bluetoothBean.getBluetoothDevice().getBondState() != BluetoothDevice.BOND_BONDED) {
             bluetoothBean.getMyBluetoothManager().pin();
         } else {
+            bluetoothScale = bluetoothBean;
             bluetoothBean.getMyBluetoothManager().getConnectOB().subscribe(new Observer<Boolean>() {
                 QMUITipDialog qmuiTipDialog = new QMUITipDialog.Builder(MainActivity.this)
                         .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                        .setTipWord("正在链接中！")
+                        .setTipWord("正在链接中...")
                         .create();
 
                 @Override
@@ -341,14 +347,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onNext(Boolean aBoolean) {
-                    isConnect[0] = aBoolean;
                     myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
                 }
 
                 @Override
                 public void onError(Throwable e) {
-                    isConnect[0] = false;
-                    myToasty.showError("蓝牙电子秤连接失败！");
+                    myToasty.showError("蓝牙电子秤连接失败,请尝试重连！");
                     qmuiTipDialog.dismiss();
                 }
 
@@ -362,12 +366,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         }
-        if (isConnect[0]) {
-            return bluetoothBean;
-        } else {
-            return null;
-        }
-
     }
 
     @SuppressLint("CheckResult")
@@ -376,104 +374,115 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          * 连接完成之后每隔100毫秒取一次电子秤的数据
          */
         Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(aLong -> bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
+                .filter(new Predicate<Long>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-                        if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
-                            Logger.d("蓝牙断开");
-                            d.dispose();
-                        }
+                    public boolean test(Long aLong) throws Exception {
+                        return bluetoothBean.getMyBluetoothManager().isConnect();
                     }
-
+                })
+                .subscribe(new Consumer<Long>() {
                     @Override
-                    public void onNext(String s) {
-                        Logger.d("读取到数据:" + s);
-                        if (s.length() == 8) {
-                            //去掉前面的“=”号和零
-                            String str1 = s.replace("=", "");
-                            String str = str1.replaceFirst("^0*", "");
-                            if (str.startsWith(".")) {
-                                str = "0" + str;
-                            }
-                            mWeightTextView.setText(str);
-                            double weight = Double.parseDouble(str);
-                            double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                    .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
-
-                            if (weight > compareWeight && manager != null && manager.isConnect()) {
-
-                                if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
-                                    Cumulative cumulative = new Cumulative();
-                                    cumulative.setCategory("净重");
-                                    cumulative.setWeight(str);
-
-                                    if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                        Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                        cumulative.setCount(cumulativeLast.getCount() + 1);
-                                    } else {
-                                        cumulative.setCount(1);
-                                    }
-
-                                    cumulative.save();
-
-                                    int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                    double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                    /**
-                                     * 相加：b1.add(b2).doubleValue();
-                                     * 相减：b1.subtract(b2).doubleValue();
-                                     * 相乘：b1.multiply(b2).doubleValue();
-                                     */
-                                    BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                    BigDecimal b2 = new BigDecimal(Double.toString(weight));
-                                    cWeight = b1.add(b2).doubleValue();
-                                    count = count + 1;
-
-                                    tvCumulativeCount.setText(String.valueOf(count));
-                                    tvCumulativeWeight.setText(String.valueOf(cWeight));
+                    public void accept(Long aLong) throws Exception {
+                        bluetoothBean.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {
+                                if (!bluetoothBean.getMyBluetoothManager().isConnect()) {
+                                    Logger.d("蓝牙断开");
+                                    d.dispose();
                                 }
-
-                                manager.send(new WriteData(Order.getTurnOff().get(0)));
-                                manager.send(new WriteData(Order.getTurnOn().get(1)));
-
-                                //两秒之后开关置反
-                                Observable.timer(2, TimeUnit.SECONDS)
-                                        .subscribe(new Observer<Long>() {
-                                            @Override
-                                            public void onSubscribe(Disposable d) {
-
-                                            }
-
-                                            @Override
-                                            public void onNext(Long aLong) {
-                                                manager.send(new WriteData(Order.getTurnOn().get(0)));
-                                                manager.send(new WriteData(Order.getTurnOff().get(1)));
-
-                                            }
-
-                                            @Override
-                                            public void onError(Throwable e) {
-
-                                            }
-
-                                            @Override
-                                            public void onComplete() {
-
-                                            }
-                                        });
                             }
-                        }
-                    }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        Logger.d("读取错误:" + e.getMessage());
-                    }
+                            @Override
+                            public void onNext(String s) {
+                                Logger.d("读取到数据:" + s);
+                                if (s.length() == 8) {
+                                    //去掉前面的“=”号和零
+                                    String str1 = s.replace("=", "");
+                                    String str = str1.replaceFirst("^0*", "");
+                                    if (str.startsWith(".")) {
+                                        str = "0" + str;
+                                    }
+                                    mWeightTextView.setText(str);
+                                    double weight = Double.parseDouble(str);
+                                    double compareWeight = Double.parseDouble(SharedPreferenceUtil
+                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
-                    @Override
-                    public void onComplete() {
+                                    if (weight > compareWeight && manager != null && manager.isConnect()) {
+
+                                        if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+                                            Cumulative cumulative = new Cumulative();
+                                            cumulative.setCategory("净重");
+                                            cumulative.setWeight(str);
+
+                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                                Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                cumulative.setCount(cumulativeLast.getCount() + 1);
+                                            } else {
+                                                cumulative.setCount(1);
+                                            }
+
+                                            cumulative.save();
+
+                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                            double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                            /**
+                                             * 相加：b1.add(b2).doubleValue();
+                                             * 相减：b1.subtract(b2).doubleValue();
+                                             * 相乘：b1.multiply(b2).doubleValue();
+                                             */
+                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                            BigDecimal b2 = new BigDecimal(Double.toString(weight));
+                                            cWeight = b1.add(b2).doubleValue();
+                                            count = count + 1;
+
+                                            tvCumulativeCount.setText(String.valueOf(count));
+                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                        }
+
+                                        manager.send(new WriteData(Order.getTurnOff().get(0)));
+                                        manager.send(new WriteData(Order.getTurnOn().get(1)));
+
+                                        //两秒之后开关置反
+                                        Observable.timer(2, TimeUnit.SECONDS)
+                                                .subscribe(new Observer<Long>() {
+                                                    @Override
+                                                    public void onSubscribe(Disposable d) {
+
+                                                    }
+
+                                                    @Override
+                                                    public void onNext(Long aLong) {
+                                                        manager.send(new WriteData(Order.getTurnOn().get(0)));
+                                                        manager.send(new WriteData(Order.getTurnOff().get(1)));
+
+                                                    }
+
+                                                    @Override
+                                                    public void onError(Throwable e) {
+
+                                                    }
+
+                                                    @Override
+                                                    public void onComplete() {
+
+                                                    }
+                                                });
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                Logger.d("读取错误:" + e.getMessage());
+                            }
+
+                            @Override
+                            public void onComplete() {
+                            }
+                        });
                     }
-                }));
+                });
     }
 
     //蓝牙继电器

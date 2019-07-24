@@ -88,7 +88,7 @@
         <activity
             android:name=".MainActivity"
             android:screenOrientation="landscape"
-            android:configChanges="locale"
+            android:configChanges="locale|orientation|screenSize"
             android:theme="@style/QMUI.Compat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -4,7 +4,7 @@ import com.xuhao.didi.core.iocore.interfaces.ISendable;
 
 
 public class WriteData implements ISendable {
-    byte[] body;
+    private byte[] body;
 
     public WriteData(byte[] body) {
         this.body = body;
