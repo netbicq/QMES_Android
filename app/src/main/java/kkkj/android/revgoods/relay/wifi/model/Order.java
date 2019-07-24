@@ -3,6 +3,9 @@ package kkkj.android.revgoods.relay.wifi.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * WiFi继电器指令集
+ */
 public class Order {
     public static byte[] TURN_ON_1 = {0x01,0x05,0x00,0x00, (byte) 0xFF,0x00};
     public static byte[] TURN_ON_2 = {0x01,0x05,0x00,0x01, (byte) 0xFF,0x00};

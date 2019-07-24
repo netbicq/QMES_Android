@@ -13,7 +13,6 @@ import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -28,7 +27,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -44,6 +42,7 @@ import com.xuhao.didi.socket.client.sdk.OkSocket;
 import com.xuhao.didi.socket.client.sdk.client.ConnectionInfo;
 import com.xuhao.didi.socket.client.sdk.client.OkSocketOptions;
 import com.xuhao.didi.socket.client.sdk.client.action.IAction;
+import com.xuhao.didi.socket.client.sdk.client.action.ISocketActionListener;
 import com.xuhao.didi.socket.client.sdk.client.connection.IConnectionManager;
 
 import org.greenrobot.eventbus.EventBus;
@@ -173,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private PinBlueReceiver pinBlueReceiver;
     private List<BluetoothBean> mList_b;
     private List<RelayBean> mWifiList;
-    SocketListener listener;
+    private SocketListener listener;
     IConnectionManager manager;
     private PulseData mPulseData = new PulseData();
     //蓝牙电子秤
@@ -432,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                              * 相乘：b1.multiply(b2).doubleValue();
                                              */
                                             BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                            BigDecimal b2 = new BigDecimal(Double.toString(weight));
+                                            BigDecimal b2 = new BigDecimal(str);
                                             cWeight = b1.add(b2).doubleValue();
                                             count = count + 1;
 
@@ -445,27 +444,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                         //两秒之后开关置反
                                         Observable.timer(2, TimeUnit.SECONDS)
-                                                .subscribe(new Observer<Long>() {
+                                                .subscribe(new Consumer<Long>() {
                                                     @Override
-                                                    public void onSubscribe(Disposable d) {
-
-                                                    }
-
-                                                    @Override
-                                                    public void onNext(Long aLong) {
+                                                    public void accept(Long aLong) throws Exception {
                                                         manager.send(new WriteData(Order.getTurnOn().get(0)));
                                                         manager.send(new WriteData(Order.getTurnOff().get(1)));
-
-                                                    }
-
-                                                    @Override
-                                                    public void onError(Throwable e) {
-
-                                                    }
-
-                                                    @Override
-                                                    public void onComplete() {
-
                                                     }
                                                 });
                                     }
@@ -550,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String ip = device.getWifiIp();
         int port = device.getWifiPort();
         //连接参数设置(IP,端口号),这也是一个连接的唯一标识,不同连接,该参数中的两个值至少有其一不一样
-        ConnectionInfo info = new ConnectionInfo(ip, port);
+        ConnectionInfo info = new ConnectionInfo(ip,port);
         //调用OkSocket,开启这次连接的通道,拿到通道Manager
         manager = OkSocket.open(info);
         //设置自定义解析头
@@ -607,74 +590,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             switchAdapter.notifyDataSetChanged();
                         } else if (message.getData().indexOf("01 05 00 ") == 0) {
                             //收到状态
-                            //第几个继电器
+
+                            /**
+                             * 01 05 00 0X XX 00
+                             * 1.01 05 00 固定值
+                             * 2.0X  X:代表几号开关
+                             * 3.XX  两种取值：00代表断开  FF代表吸和
+                             */
+                            // 0X 第几个开关
                             String index = message.getData().substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
                             //继电器状态
                             String state = message.getData().substring("01 05 00 ".length() + 3,
                                     "01 05 00 ".length() + 5);
                             Logger.d("---" + index + "---" + state + "---");
-
+                            //第几号开关
+                            int whichSwitch = Integer.parseInt(index.substring(1,2));
                             /*
-                             * 获取继电器各个开关的状态
+                             * 设置继电器各个开关的状态
                              */
-                            switch (index) {
-                                case "00":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(0).setState("1");
-                                    } else {
-                                        mWifiList.get(0).setState("0");
-                                    }
-                                    break;
-                                case "01":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(1).setState("1");
-                                    } else {
-                                        mWifiList.get(1).setState("0");
-                                    }
-                                    break;
-                                case "02":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(2).setState("1");
-                                    } else {
-                                        mWifiList.get(2).setState("0");
-                                    }
-                                    break;
-                                case "03":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(3).setState("1");
-                                    } else {
-                                        mWifiList.get(3).setState("0");
-                                    }
-                                    break;
-                                case "04":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(4).setState("1");
-                                    } else {
-                                        mWifiList.get(4).setState("0");
-                                    }
-                                    break;
-                                case "05":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(5).setState("1");
-                                    } else {
-                                        mWifiList.get(5).setState("0");
-                                    }
-                                    break;
-                                case "06":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(6).setState("1");
-                                    } else {
-                                        mWifiList.get(6).setState("0");
-                                    }
-                                    break;
-                                case "07":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(7).setState("1");
-                                    } else {
-                                        mWifiList.get(7).setState("0");
-                                    }
-                                    break;
+                            if (state.equals("00")) {
+                                mWifiList.get(whichSwitch).setState("0");
+                            }else {
+                                mWifiList.get(whichSwitch).setState("1");
                             }
+
                             //wifiAdapter.notifyDataSetChanged();
                             switchAdapter.notifyDataSetChanged();
                         }
@@ -789,60 +728,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (isClickable) {
                         switch (view.getId()) {
                             case R.id.iv_switch_left:
-                                switch (position) { //position 哪个继电器
-                                    case 0:
-                                        manager.send(new WriteData(Order.TURN_ON_1));
-                                        break;
-                                    case 1:
-                                        manager.send(new WriteData(Order.TURN_ON_2));
-                                        break;
-                                    case 2:
-                                        manager.send(new WriteData(Order.TURN_ON_3));
-                                        break;
-                                    case 3:
-                                        manager.send(new WriteData(Order.TURN_ON_4));
-                                        break;
-                                    case 4:
-                                        manager.send(new WriteData(Order.TURN_ON_5));
-                                        break;
-                                    case 5:
-                                        manager.send(new WriteData(Order.TURN_ON_6));
-                                        break;
-                                    case 6:
-                                        manager.send(new WriteData(Order.TURN_ON_7));
-                                        break;
-                                    case 7:
-                                        manager.send(new WriteData(Order.TURN_ON_8));
-                                        break;
-                                }
+                                manager.send(new WriteData((Order.getTurnOn().get(position))));
                                 break;
+
                             case R.id.iv_switch_right:
-                                switch (position) {
-                                    case 0:
-                                        manager.send(new WriteData(Order.TURN_OFF_1));
-                                        break;
-                                    case 1:
-                                        manager.send(new WriteData(Order.TURN_OFF_2));
-                                        break;
-                                    case 2:
-                                        manager.send(new WriteData(Order.TURN_OFF_3));
-                                        break;
-                                    case 3:
-                                        manager.send(new WriteData(Order.TURN_OFF_4));
-                                        break;
-                                    case 4:
-                                        manager.send(new WriteData(Order.TURN_OFF_5));
-                                        break;
-                                    case 5:
-                                        manager.send(new WriteData(Order.TURN_OFF_6));
-                                        break;
-                                    case 6:
-                                        manager.send(new WriteData(Order.TURN_OFF_7));
-                                        break;
-                                    case 7:
-                                        manager.send(new WriteData(Order.TURN_OFF_8));
-                                        break;
-                                }
+                                manager.send(new WriteData(Order.getTurnOff().get(position)));
                                 break;
                         }
                     } else {
@@ -905,6 +795,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         //注册蓝牙广播
         registerReceiver();
+
     }
 
 
