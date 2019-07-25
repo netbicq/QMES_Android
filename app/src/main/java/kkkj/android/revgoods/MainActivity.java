@@ -79,8 +79,10 @@ import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueCallBack;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueReceiver;
+import kkkj.android.revgoods.conn.socket.CallBack;
 import kkkj.android.revgoods.conn.socket.Message;
 import kkkj.android.revgoods.conn.socket.ModbusProtocol;
+import kkkj.android.revgoods.conn.socket.MyOkSocket;
 import kkkj.android.revgoods.conn.socket.PulseData;
 import kkkj.android.revgoods.conn.socket.SocketListener;
 import kkkj.android.revgoods.conn.socket.WriteData;
@@ -172,9 +174,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private PinBlueReceiver pinBlueReceiver;
     private List<BluetoothBean> mList_b;
     private List<RelayBean> mWifiList;
-    private SocketListener listener;
-    IConnectionManager manager;
-    private PulseData mPulseData = new PulseData();
+    private ISocketActionListener listener;
+    private IConnectionManager manager;
+
     //蓝牙电子秤
     private BluetoothBean bluetoothScale;
     private RelayAdapter wifiAdapter;
@@ -303,23 +305,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mTvIsUpload.setText(isUploadCount);
         }
 
-        switch (device.getType()) {
-            case 0://蓝牙电子秤
-                String address = device.getBluetoothMac();
-                BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                connectAndGetBluetoothScale(bluetoothDevice);
-                break;
-            case 1://蓝牙继电器
-                String address1 = device.getBluetoothMac();
-                BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                connectBluetoothRelay(bluetoothDevice1);
-                break;
-            case 2://Wifi继电器
-                connectWifi(device);
-                break;
+        if (device.getType() >= 0) {
+            switch (device.getType()) {
+                case 0://蓝牙电子秤
+                    String address = device.getBluetoothMac();
+                    BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+                    connectAndGetBluetoothScale(bluetoothDevice);
+                    break;
+                case 1://蓝牙继电器
+                    String address1 = device.getBluetoothMac();
+                    BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                    connectBluetoothRelay(bluetoothDevice1);
+                    break;
+                case 2://Wifi继电器
+                    connectWifi(device);
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
 
     }
@@ -532,111 +536,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initWifiDevice(Device device) {
         String ip = device.getWifiIp();
         int port = device.getWifiPort();
-        //连接参数设置(IP,端口号),这也是一个连接的唯一标识,不同连接,该参数中的两个值至少有其一不一样
-        ConnectionInfo info = new ConnectionInfo(ip,port);
-        //调用OkSocket,开启这次连接的通道,拿到通道Manager
-        manager = OkSocket.open(info);
-        //设置自定义解析头
-        OkSocketOptions.Builder okOptionsBuilder = new OkSocketOptions.Builder();
-        okOptionsBuilder.setPulseFrequency(10000);
-        okOptionsBuilder.setReaderProtocol(new ModbusProtocol());
-        //将新的修改后的参配设置给连接管理器
-        manager.option(okOptionsBuilder.build());
-        //注册Socket行为监听器,SocketActionAdapter是回调的Simple类,其他回调方法请参阅类文档
-        listener = new SocketListener(new Observer<Message>() {
+        MyOkSocket okSocket = new MyOkSocket(ip, port, new CallBack() {
             @Override
-            public void onSubscribe(Disposable d) {
+            public void onConnectionSuccess() {
+                myToasty.showSuccess("Wifi继电器连接成功！");
+                manager.send(new WriteData(Order.GET_STATE));
+                //连接成功之后就打开某个开关
+                manager.send(new WriteData(Order.getTurnOn().get(0)));
             }
 
             @Override
-            public void onNext(Message message) {
-                Logger.d("Action:" + message.getAction());
-                switch (message.getAction()) {
-                    case IAction.ACTION_CONNECTION_FAILED:
-                        myToasty.showError("Wifi继电器连接失败！");
-
-                        break;
-
-                    case IAction.ACTION_CONNECTION_SUCCESS://连接成功
-                        myToasty.showSuccess("Wifi继电器连接成功！");
-                        Logger.d("mac地址：" + getMacFromArpCache(manager.getRemoteConnectionInfo().getIp()));
-                        manager.getPulseManager()
-                                .setPulseSendable(mPulseData)//只需要设置一次,下一次可以直接调用pulse()
-                                .pulse();//开始心跳,开始心跳后,心跳管理器会自动进行心跳触发
-                        manager.send(new WriteData(Order.GET_STATE));
-                        //连接成功之后就打开某个开关
-                        manager.send(new WriteData(Order.getTurnOn().get(0)));
-                        break;
-                    case IAction.ACTION_DISCONNECTION:
-                        myToasty.showWarning("Wifi继电器连接已断开！");
-                    case ACTION_READ_THREAD_SHUTDOWN://断开
-                        break;
-                    case ACTION_READ_COMPLETE:
-                        if (manager != null && message.getData().trim().equals("00 02 01 00")) {
-                            manager.getPulseManager().feed();
-                            return;
+            public void onReceived(String msg) {
+                if (msg.indexOf("01 01 02 ") == 0) {
+                    //收到状态
+                    String state = msg.substring("01 01 02 ".length(), "01 01 02 ".length() + 2);
+                    String binaryState = StringUtils.hexString2binaryString(state);
+                    char[] bin = binaryState.toCharArray();
+                    if (bin.length == 8) {
+                        for (int i = 0; i < bin.length; i++) {
+                            mWifiList.get(i).setState(bin[i] + "");
                         }
-                        if (message.getData().indexOf("01 01 02 ") == 0) {
-                            //收到状态
-                            String state = message.getData().substring("01 01 02 ".length(), "01 01 02 ".length() + 2);
-                            String binaryState = StringUtils.hexString2binaryString(state);
-                            char[] bin = binaryState.toCharArray();
-                            if (bin.length == 8) {
-                                for (int i = 0; i < bin.length; i++) {
-                                    mWifiList.get(i).setState(bin[i] + "");
-                                }
-                            }
-                            //wifiAdapter.notifyDataSetChanged();
-                            switchAdapter.notifyDataSetChanged();
-                        } else if (message.getData().indexOf("01 05 00 ") == 0) {
-                            //收到状态
-
-                            /**
-                             * 01 05 00 0X XX 00
-                             * 1.01 05 00 固定值
-                             * 2.0X  X:代表几号开关
-                             * 3.XX  两种取值：00代表断开  FF代表吸和
-                             */
-                            // 0X 第几个开关
-                            String index = message.getData().substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
-                            //继电器状态
-                            String state = message.getData().substring("01 05 00 ".length() + 3,
-                                    "01 05 00 ".length() + 5);
-                            Logger.d("---" + index + "---" + state + "---");
-                            //第几号开关
-                            int whichSwitch = Integer.parseInt(index.substring(1,2));
-                            /*
-                             * 设置继电器各个开关的状态
-                             */
-                            if (state.equals("00")) {
-                                mWifiList.get(whichSwitch).setState("0");
-                            }else {
-                                mWifiList.get(whichSwitch).setState("1");
-                            }
-
-                            //wifiAdapter.notifyDataSetChanged();
-                            switchAdapter.notifyDataSetChanged();
-                        }
-                        Logger.d("收到:" + message.getData());
-                        break;
+                    }
+                } else if (msg.indexOf("01 05 00 ") == 0) {
+                    //收到状态
+                    /**
+                     * 01 05 00 0X XX 00
+                     * 1.01 05 00 固定值
+                     * 2.0X  X:代表几号开关
+                     * 3.XX  两种取值：00代表断开  FF代表吸和
+                     */
+                    // 0X 第几个开关
+                    String index = msg.substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
+                    //继电器状态
+                    String state = msg.substring("01 05 00 ".length() + 3,
+                            "01 05 00 ".length() + 5);
+                    Logger.d("---" + index + "---" + state + "---");
+                    //第几号开关
+                    int whichSwitch = Integer.parseInt(index.substring(1,2));
+                    /*
+                     * 设置继电器各个开关的状态
+                     */
+                    if (state.equals("00")) {
+                        mWifiList.get(whichSwitch).setState("0");
+                    }else {
+                        mWifiList.get(whichSwitch).setState("1");
+                    }
                 }
+                switchAdapter.notifyDataSetChanged();
+                Logger.d("收到:" + msg);
             }
 
             @Override
-            public void onError(Throwable e) {
-                if (manager != null) {
-                    // showToast(e.getMessage());
-                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-
-                }
+            public void onDisconnection(Exception e) {
+                myToasty.showWarning("Wifi继电器连接已断开！");
             }
 
             @Override
-            public void onComplete() {
-
+            public void onConnectionFailed(Exception e) {
+                myToasty.showError("Wifi继电器连接失败！");
             }
         });
-        manager.registerReceiver(listener);
+
+        manager = okSocket.getManager();
+        listener = okSocket.getiSocketActionListener();
+
     }
 
 

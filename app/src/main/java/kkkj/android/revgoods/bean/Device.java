@@ -9,7 +9,7 @@ public class Device {
      * type = 1;蓝牙继电器
      * type = 2;wifi继电器
      */
-    private int type;
+    private int type = -1;
 
     private String name;
 

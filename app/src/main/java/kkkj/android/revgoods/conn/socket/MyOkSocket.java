@@ -81,12 +81,7 @@ public class MyOkSocket {
                     //切换到主线程
                     Observable.just("")
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Consumer<String>() {
-                                @Override
-                                public void accept(String s) throws Exception {
-                                    callBack.onReceived(text);
-                                }
-                            });
+                            .subscribe(s1 -> callBack.onReceived(text));
                 }
             }
 
@@ -107,12 +102,7 @@ public class MyOkSocket {
                 //切换到主线程
                 Observable.just("")
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<String>() {
-                            @Override
-                            public void accept(String s) throws Exception {
-                                callBack.onDisconnection(e);
-                            }
-                        });
+                        .subscribe(s12 -> callBack.onDisconnection(e));
 
             }
 
@@ -126,12 +116,7 @@ public class MyOkSocket {
 
                 Observable.just("")
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<String>() {
-                            @Override
-                            public void accept(String s) throws Exception {
-                                callBack.onConnectionSuccess();
-                            }
-                        });
+                        .subscribe(s13 -> callBack.onConnectionSuccess());
             }
 
             @SuppressLint("CheckResult")
@@ -141,12 +126,7 @@ public class MyOkSocket {
 
                 Observable.just("")
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<String>() {
-                            @Override
-                            public void accept(String s) throws Exception {
-                                callBack.onConnectionFailed(e);
-                            }
-                        });
+                        .subscribe(s14 -> callBack.onConnectionFailed(e));
             }
         };
         manager.registerReceiver(iSocketActionListener);
