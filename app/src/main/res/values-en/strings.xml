@@ -1,4 +1,11 @@
 <resources>
+
+    <string name="notifyTitle">提示</string>
+    <string name="gpsNotifyMsg">使用蓝牙功能需要定位权限</string>
+    <string name="setting">设置</string>
+    <string name="bluetooth_service_is_running">Bluetooth Service is running</string>
+    <string name="bluetooth_service">Bluetooth Service</string>
+
     <string name="app_name">RevGoods</string>
     <string name="sampling">Sampling</string>
     <string name="sampling_cumulative">Sampling Cumulative</string>
@@ -52,5 +59,8 @@
 
     <string name="Electronic_scale_is_connected">Electronic scale is connected!</string>
     <string name="Please_open_the_wifi">Please open the Wifi!</string>
+    <string name="is_connecting">Connecting(…, &#8230;)</string>
+    <string name="connect_failed">The device connect failed,please retry!</string>
+    <string name="bluetooth_diconnected">The device is disconnect！</string>
 
 </resources>

@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="kkkj.android.revgoods">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -44,6 +45,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/RevGTheme">
+
+        <service
+            android:name=".conn.classicbt.ConnectService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
 
         <!-- AndroidAutoSize -->
         <meta-data

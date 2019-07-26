@@ -1,4 +1,11 @@
 <resources>
+
+    <string name="notifyTitle">提示</string>
+    <string name="gpsNotifyMsg">使用蓝牙功能需要定位权限</string>
+    <string name="setting">设置</string>
+    <string name="bluetooth_service_is_running">蓝牙传输服务正在运行</string>
+    <string name="bluetooth_service">蓝牙服务</string>
+
     <string name="app_name">RevGoods</string>
     <string name="sampling">采样</string>
     <string name="sampling_cumulative">采样累计</string>
@@ -52,5 +59,8 @@
 
     <string name="Electronic_scale_is_connected">蓝牙电子秤连接成功！</string>
     <string name="Please_open_the_wifi">请先打开Wifi！</string>
+    <string name="is_connecting">正在链接...</string>
+    <string name="connect_failed">蓝牙电子秤连接失败,请尝试重连！</string>
+    <string name="bluetooth_diconnected">蓝牙电子秤连接已断开！</string>
 
 </resources>

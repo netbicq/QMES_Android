@@ -1,7 +1,9 @@
 package kkkj.android.revgoods.conn.bluetooth;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
 
 import com.orhanobut.logger.Logger;
 import com.xuhao.didi.core.utils.BytesUtils;
@@ -12,10 +14,18 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
+import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.conn.socket.SocketListener;
 
@@ -140,7 +150,59 @@ public class BluetoothManager {
      * 蓝牙电子秤
      * @return
      */
+
+
+    @SuppressLint("CheckResult")
     public Observable<String> getReadOB() {
+
+//        Flowable<String> flowable =  Flowable.create(new FlowableOnSubscribe<String>() {
+//            @Override
+//            public void subscribe(FlowableEmitter<String> emitter) throws Exception {
+//                InputStream inputStream = null;
+//                int num = 0;
+//                byte[] buffer = new byte[8];
+//                byte[] buffer_new = new byte[8];
+//                int i = 0;
+//                int n = 0;
+//                String smsg = "";
+//                try {
+//                    inputStream = mSocket.getInputStream();
+//                    while (num != -1) {
+//                        smsg = "";
+//                        num = inputStream.read(buffer);         //读入数据
+//                        n = 0;
+//                        for (i = 0; i < num; i++) {
+//                            if ((buffer[i] == 0x0d) && (buffer[i + 1] == 0x0a)) {
+//                                buffer_new[n] = 0x0a;
+//                                i++;
+//                            } else {
+//                                buffer_new[n] = buffer[i];
+//                            }
+//                            n++;
+//                        }
+//                        String s = new String(buffer_new, 0, n);
+//                        //                    smsg += s;   //写入接收缓存
+//                        smsg = s;   //写入接收缓存
+//                        //                    if (inputStream.available() == 0)
+//                        //                        break;  //短时间没有数据才跳出进行显示
+//                        //发送显示消息，进行显示刷新
+//                        emitter.onNext(new StringBuilder(smsg).reverse().toString());
+//                        emitter.onComplete();
+//                    }
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }, BackpressureStrategy.LATEST)
+//                .filter(new Predicate<String>() {
+//                    @Override
+//                    public boolean test(String s) throws Exception {
+//                        return s.length() == 2;
+//                    }
+//                })
+//                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+
+
         Observable<String> readOb = Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(ObservableEmitter<String> emitter) throws Exception {
@@ -151,31 +213,45 @@ public class BluetoothManager {
                 int i = 0;
                 int n = 0;
                 String smsg = "";
-                inputStream = mSocket.getInputStream();
-                while (true) {
-                    smsg = "";
-                    num = inputStream.read(buffer);         //读入数据
-                    n = 0;
-                    for (i = 0; i < num; i++) {
-                        if ((buffer[i] == 0x0d) && (buffer[i + 1] == 0x0a)) {
-                            buffer_new[n] = 0x0a;
-                            i++;
-                        } else {
-                            buffer_new[n] = buffer[i];
+                try {
+                    inputStream = mSocket.getInputStream();
+                    while (true) {
+                        smsg = "";
+                        num = inputStream.read(buffer);         //读入数据
+                        n = 0;
+                        for (i = 0; i < num; i++) {
+                            if ((buffer[i] == 0x0d) && (buffer[i + 1] == 0x0a)) {
+                                buffer_new[n] = 0x0a;
+                                i++;
+                            } else {
+                                buffer_new[n] = buffer[i];
+                            }
+                            n++;
                         }
-                        n++;
+                        String s = new String(buffer_new, 0, n);
+    //                    smsg += s;   //写入接收缓存
+                        smsg = s;   //写入接收缓存
+                        if (inputStream.available() == 0)
+                            break;  //短时间没有数据才跳出进行显示
+
                     }
-                    String s = new String(buffer_new, 0, n);
-//                    smsg += s;   //写入接收缓存
-                    smsg = s;   //写入接收缓存
-                    if (inputStream.available() == 0)
-                        break;  //短时间没有数据才跳出进行显示
+                    //取反后，发送显示消息，进行显示刷新
+                    emitter.onNext(new StringBuilder(smsg).reverse().toString());
+                    emitter.onComplete();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                //发送显示消息，进行显示刷新
-                emitter.onNext(new StringBuilder(smsg).reverse().toString());
-                emitter.onComplete();
+
             }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+        })
+                .filter(new Predicate<String>() {
+                    @Override
+                    public boolean test(String s) throws Exception {
+                        return s.length() == 8;
+                    }
+                })
+                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+
         return readOb;
     }
 

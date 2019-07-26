@@ -2,6 +2,7 @@ package kkkj.android.revgoods.app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Process;
 
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.FormatStrategy;
@@ -54,6 +55,7 @@ public class BaseApplication extends ZApplication {
             }
         });
     }
+
     private void initX5() {
         QbSdk.initX5Environment(this, new QbSdk.PreInitCallback() {
             @Override
@@ -67,51 +69,68 @@ public class BaseApplication extends ZApplication {
             }
         });
     }
+
     @Override
     public void onCreate() {
         super.onCreate();
         mContext = this;
+        LitePal.initialize(getApplicationContext());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //设置线程的优先级，不与主线程抢资源
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                //子线程初始化第三方组件
 
+                try {
+                    Thread.sleep(3000);//建议延迟初始化，可以发现是否影响其它功能，或者是崩溃！
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-        Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(mContext));
-        LitePal.initialize(this);
+                Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(mContext));
 
-        instance = this;
-        FormatStrategy formatStrategy = PrettyFormatStrategy.newBuilder()
-                .tag("BaseApplication")
-                .build();
-        //打印日志
-        Logger.addLogAdapter(new AndroidLogAdapter(formatStrategy));
+                FormatStrategy formatStrategy = PrettyFormatStrategy.newBuilder()
+                        .tag("BaseApplication")
+                        .build();
+                //打印日志
+                Logger.addLogAdapter(new AndroidLogAdapter(formatStrategy));
 //        FormatStrategy formatStrategy = CsvFormatStrategy.newBuilder()
 //                .tag("NDRestructure")
 //                .build()
 //        保存日志到本地文件logger
 //        Logger.addLogAdapter(new DiskLogAdapter(formatStrategy));
 //        Bugly.init(getApplicationContext(), "3dee6816b9", false);
-        Logger.d("Logger初始化成功");
-        //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式
-        Bugly.init(mContext, "76506509d0", false);
-        initX5();
+                Logger.d("Logger初始化成功");
+                //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式
+                Bugly.init(mContext, "76506509d0", false);
+                initX5();
+
+            }
+        }).start();
+
+
+        instance = this;
+
     }
+
     public static synchronized BaseApplication getInstance() {
         return instance;
     }
 
     public Map<String, String> getCommonParts() {
-        if(commonparts==null)
-        {
+        if (commonparts == null) {
             commonparts = new HashMap<String, String>();
         }
         return commonparts;
     }
 
     public void setCommonParts(String token, String accountID) {
-        if(commonparts==null)
-        {
+        if (commonparts == null) {
             commonparts = new HashMap<>();
         }
         commonparts.put("Token", token);
-        commonparts.put("AccountID",accountID);
+        commonparts.put("AccountID", accountID);
     }
 
     public void addActivity(Activity act) {

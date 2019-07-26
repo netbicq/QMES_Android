@@ -55,45 +55,45 @@ public class ElcScaleManagerAdapter extends BaseQuickAdapter<BluetoothBean, Base
         helper.addOnClickListener(R.id.connect);
         helper.addOnClickListener(R.id.listen);
         StringBuilder sb = new StringBuilder();
-        Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
-                .takeWhile(new Predicate<Long>() {
-                    @Override
-                    public boolean test(Long integer) throws Exception {
-                        return item.isListen();
-                    }
-                })
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(@NonNull Long aLong) throws Exception {
-                        item.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
-                            @Override
-                            public void onSubscribe(Disposable d) {
-
-                                if (! item.getMyBluetoothManager().isConnect()) {
-                                    Logger.d("蓝牙断开");
-                                    d.dispose();
-                                }
-                            }
-
-                            @Override
-                            public void onNext(String s) {
-                                Logger.d("读取到数据:"+s);
-                                if(s.length()==8){
-                                    weight.setText(s.replace("=","")+ "");
-                                }
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                Logger.d("读取错误:"+e.getMessage());
-                            }
-
-                            @Override
-                            public void onComplete() {
-
-                            }
-                        });
-                    }
-                });
+//        Flowable.interval(100, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
+//                .takeWhile(new Predicate<Long>() {
+//                    @Override
+//                    public boolean test(Long integer) throws Exception {
+//                        return item.isListen();
+//                    }
+//                })
+//                .subscribe(new Consumer<Long>() {
+//                    @Override
+//                    public void accept(@NonNull Long aLong) throws Exception {
+//                        item.getMyBluetoothManager().getReadOB().subscribe(new Observer<String>() {
+//                            @Override
+//                            public void onSubscribe(Disposable d) {
+//
+//                                if (! item.getMyBluetoothManager().isConnect()) {
+//                                    Logger.d("蓝牙断开");
+//                                    d.dispose();
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onNext(String s) {
+//                                Logger.d("读取到数据:"+s);
+//                                if(s.length()==8){
+//                                    weight.setText(s.replace("=","")+ "");
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onError(Throwable e) {
+//                                Logger.d("读取错误:"+e.getMessage());
+//                            }
+//
+//                            @Override
+//                            public void onComplete() {
+//
+//                            }
+//                        });
+//                    }
+//                });
     }
 }
