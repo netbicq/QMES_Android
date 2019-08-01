@@ -94,7 +94,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
             case R.id.id_tv_change_language:
                 String[] items = new String[2];
                 items[0] = "中文";
-                items[1] = getResources().getString(R.string.english);
+                items[1] = "English";
                 QMUIDialog.MenuDialogBuilder builder = new QMUIDialog.MenuDialogBuilder(getContext());
                 builder.addItems(items, new DialogInterface.OnClickListener() {
                     @Override

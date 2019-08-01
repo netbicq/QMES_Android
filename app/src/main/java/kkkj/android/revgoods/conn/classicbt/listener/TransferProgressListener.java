@@ -7,7 +7,7 @@ package kkkj.android.revgoods.conn.classicbt.listener;
  */
 public interface TransferProgressListener {
     void transfering(int progress);
-    void transferSuccess(byte[] bytes);
+    void transferSuccess(String msg);
     void transferFailed(Exception exception);
 
 

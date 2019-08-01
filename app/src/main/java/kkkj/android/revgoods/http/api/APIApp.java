@@ -2,6 +2,7 @@ package kkkj.android.revgoods.http.api;
 
 
 import io.reactivex.Observable;
+import kkkj.android.revgoods.bean.Banner;
 import kkkj.android.revgoods.http.ApiConfig;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -9,6 +10,10 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface APIApp {
+
+    @GET("banner/json")
+    Observable<Banner> getBanner();
+
 //    //APP - api/app/addbill 新建任务单
 //    @POST(ApiConfig.BASE_URL + "api/app/addbill")
 //    Observable<AddBillModel.Response> addbill(@Body AddBillModel.Request request);

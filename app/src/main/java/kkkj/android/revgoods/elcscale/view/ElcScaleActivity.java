@@ -99,7 +99,7 @@ public class ElcScaleActivity extends MvpBaseActivity {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 Device device = new Device();
-                device.setType(0);
+                device.setType(3);
                 device.setBluetoothMac(mList.get(position).getBluetoothDevice().getAddress());
                 DeviceEvent deviceEvent = new DeviceEvent();
                 deviceEvent.setDevice(device);

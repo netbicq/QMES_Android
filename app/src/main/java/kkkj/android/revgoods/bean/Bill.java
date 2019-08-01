@@ -28,7 +28,13 @@ public class Bill extends LitePalSupport {
     /**
      * 采购人
      */
-    private String purchaser;
+    private String user;
+
+    /**
+     * 扣重率
+     */
+    private String deductionMix;
+
     /**
      * 供应商
      */
@@ -37,6 +43,11 @@ public class Bill extends LitePalSupport {
      *品类
      */
     private Matter matter;
+    /**
+     * 品类等级
+     */
+    private MatterLevel matterLevel;
+
     /**
      * 规格
      */
@@ -50,6 +61,22 @@ public class Bill extends LitePalSupport {
      *采样详情
      */
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
+
+    public MatterLevel getMatterLevel() {
+        return matterLevel;
+    }
+
+    public void setMatterLevel(MatterLevel matterLevel) {
+        this.matterLevel = matterLevel;
+    }
+
+    public String getDeductionMix() {
+        return deductionMix;
+    }
+
+    public void setDeductionMix(String deductionMix) {
+        this.deductionMix = deductionMix;
+    }
 
     public String getTime() {
         return time;
@@ -67,12 +94,12 @@ public class Bill extends LitePalSupport {
         this.isUpload = isUpload;
     }
 
-    public String getPurchaser() {
-        return purchaser;
+    public String getUser() {
+        return user;
     }
 
-    public void setPurchaser(String purchaser) {
-        this.purchaser = purchaser;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public Supplier getSupplier() {

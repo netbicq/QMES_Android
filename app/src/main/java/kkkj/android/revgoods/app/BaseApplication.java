@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Process;
 
+import com.coder.zzq.smartshow.core.SmartShow;
+import com.coder.zzq.smartshow.toast.SmartToast;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.FormatStrategy;
 import com.orhanobut.logger.Logger;
@@ -75,6 +77,12 @@ public class BaseApplication extends ZApplication {
         super.onCreate();
         mContext = this;
         LitePal.initialize(getApplicationContext());
+
+        //Smart-show
+        SmartShow.init(this);
+        SmartToast.globalSetting().dismissOnLeave(true);
+        SmartToast.typeSetting().themeColorRes(R.color.theme);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -87,6 +95,7 @@ public class BaseApplication extends ZApplication {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
 
                 Thread.setDefaultUncaughtExceptionHandler(new CrashHandler(mContext));
 

@@ -49,13 +49,14 @@
     <string name="input_category">Please input Category</string>
     <string name="input_price">Please input Price</string>
     <string name="percentage">Percentage</string>
-    <string name="purchaser">Purchaser</string>
+    <string name="user">Purchaser</string>
     <string name="enter_description">Please enter a description</string>
     <string name="change_language">Change Language</string>
     <string name="chinese">Chinese</string>
     <string name="english">English</string>
     <string name="hand_switch">Switch</string>
     <string name="hand_weight">Make Weight</string>
+    <string name="calculate">Calculate</string>
 
     <string name="Electronic_scale_is_connected">Electronic scale is connected!</string>
     <string name="Please_open_the_wifi">Please open the Wifi!</string>

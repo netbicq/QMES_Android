@@ -134,7 +134,7 @@
             android:layout_margin="8dp"
             android:layout_weight="1"
             android:background="@drawable/bg_style"
-            android:text="@string/enter"
+            android:text="@string/calculate"
             android:textColor="@color/qmui_config_color_white" />
 
     </LinearLayout>

@@ -3,12 +3,18 @@ package kkkj.android.revgoods.conn.classicbt;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
+import com.orhanobut.logger.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import kkkj.android.revgoods.conn.classicbt.listener.TransferProgressListener;
@@ -76,13 +82,15 @@ public class ConnectedThread implements Runnable {
         }
     }
 
+
     private void read() {
-        byte[] buffer = new byte[8];  // buffer store for the stream
+
+        //byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[8];// buffer store for the stream
         int bytes; // bytes returned from read()
         // Keep listening to the InputStream until an exception occurs
         while (true) {
             try {
-
                 // Read from the InputStream
                 long count = 0;
                 int progress = 0;
@@ -93,8 +101,20 @@ public class ConnectedThread implements Runnable {
                 float current = 0;
 
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                StringBuffer sbu = new StringBuffer();
                 do {
                     bytes = mmInStream.read(buffer);
+
+                    List<String> stringList = new ArrayList<>();
+                    //10进制ASCII码转化成String（48 -> "48"）
+                    for (int i = 0; i < buffer.length; i++) {
+                        stringList.add(buffer[i] + "");
+                    }
+                    ////10进制ASCII码转化成String（"48" -> "0"）
+                    for (int i = 0; i < stringList.size(); i++) {
+                        sbu.append(dec2Str(stringList.get(i)));
+                    }
+
                     CLog.e("read bytes:" + bytes);
                     if (bytes > 0) {
                         current += bytes;
@@ -107,8 +127,8 @@ public class ConnectedThread implements Runnable {
 
                 } while (mmInStream.available() > 0);
                 CLog.e("read success:" + bytes);
-                handleSuccessed(byteArrayOutputStream.toByteArray());
-
+                handleSuccessed(sbu.toString());
+                //handleSuccessed(byteArrayOutputStream.toString());
             } catch (IOException e) {
                 e.printStackTrace();
                 handleFailed(e);
@@ -126,10 +146,10 @@ public class ConnectedThread implements Runnable {
         });
     }
 
-    private void handleSuccessed(byte[] bytes) {
+    private void handleSuccessed(String s) {
         handler.post(() -> {
             if (transferProgressListener != null)
-                transferProgressListener.transferSuccess(bytes);
+                transferProgressListener.transferSuccess(s);
         });
     }
 
@@ -164,6 +184,18 @@ public class ConnectedThread implements Runnable {
             }
         }
 
+    }
+
+    //十进制ASCII码转String
+    private static String dec2Str(String ascii) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ascii.length() - 1; i += 2) {
+            String h = ascii.substring(i, (i + 2));
+            // 这里第二个参数传10表10进制
+            int decimal = Integer.parseInt(h, 10);
+            sb.append((char) decimal);
+        }
+        return sb.toString();
     }
 
 

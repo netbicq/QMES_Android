@@ -36,6 +36,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.coder.zzq.smartshow.toast.SmartToast;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -52,6 +53,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -209,6 +211,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Supplier supplier;
     private Matter matter;
     private Specs specs;
+    private int supplierId;
+    private int matterId;
+    private int specsId;
+
+    private String samplingWeight = "";
 
     private static final String SAMPLING = "samplingFragment";
     private static final String SAMPLING_DETAILS = "samplingDetailsFragment";
@@ -246,6 +253,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onBlueToothEnabled() {
                 BleManager.getInstance().init(getApplicationContext());
+                //前台服务
                 BleManager.getInstance().setForegroundService(true);
             }
 
@@ -275,19 +283,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //更新供应商
         if (deviceEvent.getSupplierId() > 0) {
             supplier = new Supplier();
-            supplier = LitePal.find(Supplier.class, deviceEvent.getSupplierId());
+            supplierId = deviceEvent.getSupplierId();
+            supplier = LitePal.find(Supplier.class,supplierId);
             mTvSupplier.setText(supplier.getName());
         }
         //更新品类（物料）
         if (deviceEvent.getMatterId() > 0) {
             matter = new Matter();
-            matter = LitePal.find(Matter.class,deviceEvent.getMatterId());
+            matterId = deviceEvent.getMatterId();
+            matter = LitePal.find(Matter.class,matterId);
             mTvMatter.setText(matter.getName());
         }
         //更新规格
         if (deviceEvent.getSpecsId() >= 0) {
             specs = new Specs();
-            specs = LitePal.find(Specs.class, deviceEvent.getSpecsId());
+            specsId = deviceEvent.getSpecsId();
+            specs = LitePal.find(Specs.class,specsId);
             mTvSpecs.setText(specs.getSpecs());
         }
 
@@ -318,12 +329,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
                     permissionHandler.start();
                     if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                        //connectAndGetBluetoothScale(bluetoothDevice);
                         connect(bluetoothDevice);
                     } else {
                         BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
                             @Override
                             public void paired(BluetoothDevice device) {
                                 connect(device);
+                                //connectAndGetBluetoothScale(device);
                             }
                         });
                     }
@@ -337,6 +350,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case 2://Wifi继电器
                     connectWifi(device);
                     break;
+
+                case 3://采样连接的电子秤
+                    String address2 = device.getBluetoothMac();
+                    BluetoothDevice bluetoothDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address2);
+                    connectAndGetBluetoothScale(bluetoothDevice2);
 
                 default:
                     break;
@@ -358,7 +376,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void connectSuccess(Connect connect) {
                 bluetoothManager = connect;
                 qmuiTipDialog.dismiss();
-                myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
+                //myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
+                SmartToast.successLong(R.string.Electronic_scale_is_connected);
 
                 bluetoothManager.read(new TransferProgressListener() {
                     @Override
@@ -367,73 +386,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
                     @Override
-                    public void transferSuccess(byte[] bytes) {
-                        String str = new String(bytes);
-                        //取反
-                        str = new StringBuilder(str).reverse().toString();
-
-                        if (!str.endsWith("=") && str.substring(5,6).equals(".")) {
-                            //去掉前面的“=”号和零
-                            str = str.replaceFirst("^0*", "");
-                            if (str.startsWith(".")) {
-                                str = "0" + str;
-                            }
-
-                            mWeightTextView.setText(str);
-                            double weight = Double.parseDouble(str);
-                            double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                    .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
-
-                            if (weight > compareWeight && manager != null && manager.isConnect()) {
-
-                                if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
-                                    Cumulative cumulative = new Cumulative();
-                                    cumulative.setCategory("净重");
-                                    cumulative.setWeight(str);
-
-                                    if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                        Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                        cumulative.setCount(cumulativeLast.getCount() + 1);
-                                    } else {
-                                        cumulative.setCount(1);
-                                    }
-
-                                    cumulative.save();
-
-                                    int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                    double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                    /**
-                                     * 相加：b1.add(b2).doubleValue();
-                                     * 相减：b1.subtract(b2).doubleValue();
-                                     * 相乘：b1.multiply(b2).doubleValue();
-                                     */
-                                    BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                    BigDecimal b2 = new BigDecimal(str);
-                                    cWeight = b1.add(b2).doubleValue();
-                                    count = count + 1;
-
-                                    tvCumulativeCount.setText(String.valueOf(count));
-                                    tvCumulativeWeight.setText(String.valueOf(cWeight));
+                    public void transferSuccess(String str) {
+                        //String s = new String(bytes);
+                        Logger.d("原始数据：" + str);
+                        //String str = new String(s.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8);
+                        if (str.length() == 8) {
+                            //取反
+                            str = new StringBuilder(str).reverse().toString();
+                            Logger.d("处理之前的数据：" + str);
+                            if (!str.endsWith("=") && !str.startsWith("=") && str.substring(5,6).equals(".")) {
+                                //去掉前面的“=”号和零
+                                str = str.replaceFirst("^0*", "");
+                                if (str.startsWith(".")) {
+                                    str = "0" + str;
                                 }
-                                manager.send(new WriteData(Order.getTurnOff().get(0)));
-                                manager.send(new WriteData(Order.getTurnOn().get(1)));
-                                //两秒之后开关置反
-                                Observable.timer(2, TimeUnit.SECONDS)
-                                        .subscribe(new Consumer<Long>() {
-                                            @Override
-                                            public void accept(Long aLong) throws Exception {
-                                                manager.send(new WriteData(Order.getTurnOn().get(0)));
-                                                manager.send(new WriteData(Order.getTurnOff().get(1)));
-                                            }
-                                        });
+                                Logger.d("读取到的数据：" + str);
+                                mWeightTextView.setText(str);
+                                double weight = Double.parseDouble(str);
+                                double compareWeight = Double.parseDouble(SharedPreferenceUtil
+                                        .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+
+                                if (weight > compareWeight && manager != null && manager.isConnect()) {
+
+                                    if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+                                        Cumulative cumulative = new Cumulative();
+                                        cumulative.setCategory("净重");
+                                        cumulative.setWeight(str);
+
+                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                            Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                            cumulative.setCount(cumulativeLast.getCount() + 1);
+                                        } else {
+                                            cumulative.setCount(1);
+                                        }
+
+                                        cumulative.save();
+
+                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                        double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                        /**
+                                         * 相加：b1.add(b2).doubleValue();
+                                         * 相减：b1.subtract(b2).doubleValue();
+                                         * 相乘：b1.multiply(b2).doubleValue();
+                                         */
+                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                        BigDecimal b2 = new BigDecimal(str);
+                                        cWeight = b1.add(b2).doubleValue();
+                                        count = count + 1;
+
+                                        tvCumulativeCount.setText(String.valueOf(count));
+                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                    }
+                                    manager.send(new WriteData(Order.getTurnOff().get(0)));
+                                    manager.send(new WriteData(Order.getTurnOn().get(1)));
+                                    //两秒之后开关置反
+                                    Observable.timer(2, TimeUnit.SECONDS)
+                                            .subscribe(new Consumer<Long>() {
+                                                @Override
+                                                public void accept(Long aLong) throws Exception {
+                                                    manager.send(new WriteData(Order.getTurnOn().get(0)));
+                                                    manager.send(new WriteData(Order.getTurnOff().get(1)));
+                                                }
+                                            });
+                                }
                             }
                         }
                     }
 
                     @Override
                     public void transferFailed(Exception exception) {
-                        //myToasty.showError("蓝牙电子秤读取数据失败,请尝试重连！");
+                        if (!"socket closed".equals(exception.getMessage())) {
+                            myToasty.showError("蓝牙电子秤读取数据失败,请尝试重连！");
+                        }
                     }
                 });
 
@@ -442,14 +467,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void connectFailed(Exception e) {
                 qmuiTipDialog.dismiss();
-                myToasty.showError(getResources().getString(R.string.connect_failed));
+                //myToasty.showError(getResources().getString(R.string.connect_failed));
+                SmartToast.errorLong(R.string.connect_failed);
             }
 
             @Override
             public void disconnected() {
-                if (MainActivity.this != null) {
-                    myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
-                }
+                //myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
+                SmartToast.errorLong(R.string.bluetooth_diconnected);
             }
         });
     }
@@ -525,7 +550,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             @Override
                             public void onNext(String s) {
-                                Logger.d("读取到数据:" + s + ".");
+                                Logger.d("读取到数据:" + s);
                                 if (s.length() == 8) {
                                     //去掉前面的“=”号和零
                                     String str1 = s.replace("=", "");
@@ -533,57 +558,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     if (str.startsWith(".")) {
                                         str = "0" + str;
                                     }
-                                    mWeightTextView.setText(str);
-                                    double weight = Double.parseDouble(str);
-                                    double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
-
-                                    if (weight > compareWeight && manager != null && manager.isConnect()) {
-
-                                        if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
-                                            Cumulative cumulative = new Cumulative();
-                                            cumulative.setCategory("净重");
-                                            cumulative.setWeight(str);
-
-                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                cumulative.setCount(cumulativeLast.getCount() + 1);
-                                            } else {
-                                                cumulative.setCount(1);
-                                            }
-
-                                            cumulative.save();
-
-                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                            double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                            /**
-                                             * 相加：b1.add(b2).doubleValue();
-                                             * 相减：b1.subtract(b2).doubleValue();
-                                             * 相乘：b1.multiply(b2).doubleValue();
-                                             */
-                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                            BigDecimal b2 = new BigDecimal(str);
-                                            cWeight = b1.add(b2).doubleValue();
-                                            count = count + 1;
-
-                                            tvCumulativeCount.setText(String.valueOf(count));
-                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
-                                        }
-
-                                        manager.send(new WriteData(Order.getTurnOff().get(0)));
-                                        manager.send(new WriteData(Order.getTurnOn().get(1)));
-
-                                        //两秒之后开关置反
-                                        Observable.timer(2, TimeUnit.SECONDS)
-                                                .subscribe(new Consumer<Long>() {
-                                                    @Override
-                                                    public void accept(Long aLong) throws Exception {
-                                                        manager.send(new WriteData(Order.getTurnOn().get(0)));
-                                                        manager.send(new WriteData(Order.getTurnOff().get(1)));
-                                                    }
-                                                });
-                                    }
+                                    samplingWeight = str;
+//                                    mWeightTextView.setText(str);
+//                                    double weight = Double.parseDouble(str);
+//                                    double compareWeight = Double.parseDouble(SharedPreferenceUtil
+//                                            .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+//
+//                                    if (weight > compareWeight && manager != null && manager.isConnect()) {
+//
+//                                        if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+//                                            Cumulative cumulative = new Cumulative();
+//                                            cumulative.setCategory("净重");
+//                                            cumulative.setWeight(str);
+//
+//                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+//                                                Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+//                                                cumulative.setCount(cumulativeLast.getCount() + 1);
+//                                            } else {
+//                                                cumulative.setCount(1);
+//                                            }
+//
+//                                            cumulative.save();
+//
+//                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+//                                            double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+//
+//                                            /**
+//                                             * 相加：b1.add(b2).doubleValue();
+//                                             * 相减：b1.subtract(b2).doubleValue();
+//                                             * 相乘：b1.multiply(b2).doubleValue();
+//                                             */
+//                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+//                                            BigDecimal b2 = new BigDecimal(str);
+//                                            cWeight = b1.add(b2).doubleValue();
+//                                            count = count + 1;
+//
+//                                            tvCumulativeCount.setText(String.valueOf(count));
+//                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
+//                                        }
+//
+//                                        manager.send(new WriteData(Order.getTurnOff().get(0)));
+//                                        manager.send(new WriteData(Order.getTurnOn().get(1)));
+//
+//                                        //两秒之后开关置反
+//                                        Observable.timer(2, TimeUnit.SECONDS)
+//                                                .subscribe(new Consumer<Long>() {
+//                                                    @Override
+//                                                    public void accept(Long aLong) throws Exception {
+//                                                        manager.send(new WriteData(Order.getTurnOn().get(0)));
+//                                                        manager.send(new WriteData(Order.getTurnOff().get(1)));
+//                                                    }
+//                                                });
+//                                    }
                                 }
                             }
 
@@ -883,7 +909,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myToasty.showError("当前设备不支持蓝牙！");
             return;
         } else if (!mBluetooth.isBlueEnable()) {
-            myToasty.showInfo("请先打开蓝牙！");
             //直接打开
             mBluetooth.openBlueAsyn();
         }
@@ -1088,12 +1113,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else {
                     myToasty.showWarning("请先选择品类！");
                 }
-
                 break;
 
             case R.id.id_tv_sampling://采样
-                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
-                showDialogFragment(samplingFragment, SAMPLING);
+
+                if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()){ //已连接
+
+                    samplingFragment = SamplingFragment.newInstance(samplingWeight);
+                    showDialogFragment(samplingFragment, SAMPLING);
+
+                } else {//未连接
+
+                    boolean isOk = false;//是否配备默认电子秤
+                    if (isOk) {
+                        BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:0D:1B:00:13:BA");
+                        connectAndGetBluetoothScale(bluetoothDevice1);
+                    } else {
+                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+                    }
+                }
+
+
+//                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
+//                showDialogFragment(samplingFragment, SAMPLING);
                 break;
 
 
@@ -1166,10 +1208,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_save_bill://保存单据
-                if (saveBillFragment == null) {
-                    saveBillFragment = new SaveBillFragment();
+                if (supplier != null && matter != null && specs!= null) {
+
+                    saveBillFragment = SaveBillFragment.newInstance(supplierId,matterId,specsId);
+                    showDialogFragment(saveBillFragment, SAVE_BILL);
+
+                }else {
+                    myToasty.showWarning("请先选择供应商,品类，规格！");
                 }
-                showDialogFragment(saveBillFragment, SAVE_BILL);
+
                 break;
 
             case R.id.id_tv_hand://手动计重
@@ -1250,10 +1297,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
     }
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Logger.d("onDestroy");
         if (manager != null) {
             manager.send(new WriteData(Order.TURN_OFF_ALL));
             manager.unRegisterReceiver(listener);
@@ -1271,7 +1318,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             compositeDisposable.dispose();
         }
 
-        BleManager.getInstance().destory();
+        if (BleManager.getInstance() != null && bluetoothManager != null) {
+            BleManager.getInstance().destory();
+        }
 
         EventBus.getDefault().unregister(this);
     }

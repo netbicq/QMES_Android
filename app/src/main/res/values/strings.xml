@@ -49,13 +49,14 @@
     <string name="input_category">请填写类别</string>
     <string name="input_price">请填写单价</string>
     <string name="percentage">占比</string>
-    <string name="purchaser">采购人</string>
+    <string name="user">采购人</string>
     <string name="enter_description">请输入描述信息</string>
     <string name="change_language">切换语言</string>
     <string name="chinese">中文</string>
     <string name="english">英文</string>
     <string name="hand_switch">手动开关</string>
     <string name="hand_weight">手动计重</string>
+    <string name="calculate">计算</string>
 
     <string name="Electronic_scale_is_connected">蓝牙电子秤连接成功！</string>
     <string name="Please_open_the_wifi">请先打开Wifi！</string>

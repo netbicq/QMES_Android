@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="@string/purchaser" />
+            android:text="@string/user" />
 
         <View
             android:layout_width="1dp"
@@ -52,7 +52,34 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
+            android:text="品类等级" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="扣重率 /%" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
             android:text="@string/bill_name" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
+
+
+
 
     </LinearLayout>
 
@@ -72,6 +99,22 @@
             android:layout_weight="1"
             android:gravity="center" />
 
+        <Spinner
+            android:id="@+id/id_sp_matter_level"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center" />
+
+        <EditText
+            android:id="@+id/id_et_deduction"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:hint="请输入扣重率"
+            android:inputType="numberSigned"
+            android:imeOptions="flagNoExtractUi" />
 
         <EditText
             android:id="@+id/id_et_bill_name"

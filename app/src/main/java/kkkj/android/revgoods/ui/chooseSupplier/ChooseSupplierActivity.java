@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
@@ -29,10 +30,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SupplierAdapter;
+import kkkj.android.revgoods.bean.Banner;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.mvpInterface.MvpModel;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
@@ -128,6 +135,31 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
                 finish();
             }
         });
+
+        MvpModel.apiApp.getBanner().subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Banner>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Banner banner) {
+                        Logger.d(banner.toString());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
 
     }
 
