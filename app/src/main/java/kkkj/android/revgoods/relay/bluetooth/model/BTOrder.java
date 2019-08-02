@@ -1,5 +1,8 @@
 package kkkj.android.revgoods.relay.bluetooth.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 蓝牙继电器指令集
  */
@@ -28,6 +31,43 @@ public class BTOrder {
 
     public static byte[] GET_STATE = {0x01,0x01,0x00,0x00,0x00,0x10, (byte) 0x3D, (byte) 0xC6};
 
+
+    public static List<byte[]> turnOn = new ArrayList<>();
+    public static List<byte[]> turnOff = new ArrayList<>();
+
+    public static List<byte[]> getTurnOn() {
+        if (turnOn.size() > 0) {
+            return turnOn;
+        } else {
+            turnOn.add(TURN_ON_1);
+            turnOn.add(TURN_ON_2);
+            turnOn.add(TURN_ON_3);
+            turnOn.add(TURN_ON_4);
+            turnOn.add(TURN_ON_5);
+            turnOn.add(TURN_ON_6);
+            turnOn.add(TURN_ON_7);
+            turnOn.add(TURN_ON_8);
+            return turnOn;
+        }
+
+    }
+
+    public static List<byte[]> getTurnOff() {
+        if (turnOff.size() > 0) {
+            return turnOff;
+        } else {
+            turnOff.add(TURN_OFF_1);
+            turnOff.add(TURN_OFF_2);
+            turnOff.add(TURN_OFF_3);
+            turnOff.add(TURN_OFF_4);
+            turnOff.add(TURN_OFF_5);
+            turnOff.add(TURN_OFF_6);
+            turnOff.add(TURN_OFF_7);
+            turnOff.add(TURN_OFF_8);
+            return turnOff;
+        }
+
+    }
 
 
 }

@@ -39,6 +39,10 @@ public class Connect {
         writeThread.write(bytes);
     }
 
+    public void write(byte[] bytes) {
+        writeThread.write(bytes);
+    }
+
     public void read(TransferProgressListener transferProgressListener) {
         setReadProgressListener(transferProgressListener);
 
