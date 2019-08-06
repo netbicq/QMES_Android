@@ -40,6 +40,7 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
     private List<Deduction> deductionList;
 
 
+    @Override
     public void initData() {
         cumulativeList = new ArrayList<>();
         deductionList = new ArrayList<>();
@@ -61,6 +62,7 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
         adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
     }
 
+    @Override
     public void initView(View view) {
         tvTitle.setText(R.string.cumulative_details);
 

@@ -64,6 +64,7 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
         return new ChooseMatterPresenter();
     }
 
+    @Override
     protected void initView() {
         mBackImageView = findViewById(R.id.id_iv_back);
         mZXingImageView = findViewById(R.id.id_iv_zxing);

@@ -26,22 +26,22 @@ public class ChooseSpecsModel extends MvpModel<ChooseSpecsModel.Request,ChooseSp
          * 在MainActivity中已经向服务器请求了最新数据，并覆写了数据库
          * 这里就直接从数据库取数据
          */
-        try {
-            Response response = new Response();
-
-            int matterId = Integer.parseInt(request.getMatterId());
-            Matter matter = LitePal.find(Matter.class,matterId,true);
-            List<Specs> specsList = matter.getSpecs();
-
-            if (specsList.size() > 0) {
-                response.setData(specsList);
-                callback.onSuccess(response);
-            }else {
-                callback.onFailure("未查询到相关数据");
-            }
-        } catch (Exception e) {
-            callback.onError(e);
-        }
+//        try {
+//            Response response = new Response();
+//
+//            int matterId = Integer.parseInt(request.getMatterId());
+//            Matter matter = LitePal.find(Matter.class,matterId,true);
+//            List<Specs> specsList = matter.getSpecs();
+//
+//            if (specsList.size() > 0) {
+//                response.setData(specsList);
+//                callback.onSuccess(response);
+//            }else {
+//                callback.onFailure("未查询到相关数据");
+//            }
+//        } catch (Exception e) {
+//            callback.onError(e);
+//        }
     }
 
     public static class Request extends RevGRequest {

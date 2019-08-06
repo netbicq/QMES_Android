@@ -71,6 +71,7 @@ public class ChooseSpecsActivity extends BaseActivity<ChooseSpecsPresenter> impl
         return new ChooseSpecsPresenter();
     }
 
+    @Override
     protected void initData() {
         mSpecs = new ArrayList<>();
         mTempSpecs = new ArrayList<>();

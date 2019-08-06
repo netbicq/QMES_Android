@@ -68,6 +68,7 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
         return new ChooseSupplierPresenter();
     }
 
+    @Override
     protected void initView() {
         mBackImageView = findViewById(R.id.id_iv_back);
         mZXingImageView = findViewById(R.id.id_iv_zxing);
@@ -128,37 +129,14 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 Supplier supplier = supplierList.get(position);
-                int id = supplier.getId();
+                String keyId = supplier.getKeyID();
+                Logger.d("是否保存成功" + keyId);
                 DeviceEvent deviceEvent = new DeviceEvent();
-                deviceEvent.setSupplierId(id);
+                deviceEvent.setSupplierId(keyId);
                 EventBus.getDefault().post(deviceEvent);
                 finish();
             }
         });
-
-        MvpModel.apiApp.getBanner().subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Banner>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(Banner banner) {
-                        Logger.d(banner.toString());
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
 
 
     }

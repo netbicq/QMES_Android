@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Supplier supplier;
     private Matter matter;
     private Specs specs;
-    private int supplierId;
+    private String supplierId;
     private int matterId;
     private int specsId;
 
@@ -300,14 +300,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
         }
         //更新供应商
-        if (deviceEvent.getSupplierId() > 0) {
-            supplier = new Supplier();
+        if (deviceEvent.getSupplierId() != null && deviceEvent.getSupplierId().length() > 0) {
             supplierId = deviceEvent.getSupplierId();
-            supplier = LitePal.find(Supplier.class, supplierId);
+            Logger.d("是否保存成功" + supplierId);
+
+            List<Supplier> suppliers = LitePal.where("KeyID = ?",supplierId)
+                    .find(Supplier.class);
+            supplier = suppliers.get(0);
+
             mTvSupplier.setText(supplier.getName());
+            Logger.d("是否保存成功" + supplier.getName() + supplier.getId());
         }
         //更新品类（物料）
-        if (deviceEvent.getMatterId() > 0) {
+        if (deviceEvent.getMatterId() >= 0) {
             matter = new Matter();
             matterId = deviceEvent.getMatterId();
             matter = LitePal.find(Matter.class, matterId);
@@ -1393,7 +1398,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_save_bill://保存单据
                 if (supplier != null && matter != null && specs != null) {
 
-                    saveBillFragment = SaveBillFragment.newInstance(supplierId, matterId, specsId,mWeightTextView.getText().toString());
+                    saveBillFragment = SaveBillFragment.newInstance(supplier.getId(), matterId, specsId,mWeightTextView.getText().toString());
                     showDialogFragment(saveBillFragment, SAVE_BILL);
 
                 } else {

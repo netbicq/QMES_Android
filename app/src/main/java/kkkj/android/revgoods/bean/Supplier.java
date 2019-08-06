@@ -1,5 +1,6 @@
 package kkkj.android.revgoods.bean;
 
+import org.litepal.annotation.Column;
 import org.litepal.crud.LitePalSupport;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 public class Supplier extends LitePalSupport {
 
     private int id;
-
+    @Column(unique = true)
     private String KeyID;
 
     /**

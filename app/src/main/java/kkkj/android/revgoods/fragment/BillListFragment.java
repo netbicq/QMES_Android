@@ -49,6 +49,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
     private List<Bill> mBills;
 
 
+    @Override
     public void initData() {
         mBills = new ArrayList<>();
         mBills = LitePal.findAll(Bill.class,true);
@@ -56,6 +57,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
     }
 
 
+    @Override
     public void initView(View view) {
         tvTitle.setText(R.string.bill_list);
 
