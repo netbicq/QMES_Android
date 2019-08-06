@@ -2,14 +2,16 @@ package kkkj.android.revgoods.http.api;
 
 
 import io.reactivex.Observable;
+import kkkj.android.revgoods.http.ApiConfig;
+import kkkj.android.revgoods.ui.login.model.SignInModel;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
 public interface APIAuth {
-//    //APIAuth - api/auth/signin
-//    // 用户登录
-//    @POST(ApiConfig.BASE_URL +"api/auth/signin")
-//    Observable<SignInModel.Response> signin(@Body SignInModel.Request request);
+    //APIAuth - api/auth/signin
+    // 用户登录
+    @POST(ApiConfig.BASE_URL +"api/auth/signin")
+    Observable<SignInModel.Response> signin(@Body SignInModel.Request request);
 //
 //    //APIAuth - api/auth/setprofile
 //    // 设置用户Profile

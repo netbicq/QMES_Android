@@ -16,6 +16,7 @@ import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,7 +75,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
         args.putInt("supplierId", supplierId);
         args.putInt("matterId", matterId);
         args.putInt("specsId", specsId);
-        args.putString("weight",weight);
+        args.putString("weight", weight);
 
         SaveBillFragment fragment = new SaveBillFragment();
         fragment.setArguments(args);
@@ -84,10 +85,14 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supplierId = (int) getArguments().getSerializable("supplierId");
-        matterId = (int) getArguments().getSerializable("matterId");
-        specsId = (int) getArguments().getSerializable("specsId");
-        weight = (String)getArguments().getSerializable("weight");
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            supplierId = (int) getArguments().getSerializable("supplierId");
+            matterId = (int) getArguments().getSerializable("matterId");
+            specsId = (int) getArguments().getSerializable("specsId");
+            weight = (String) getArguments().getSerializable("weight");
+        }
+
     }
 
     public void initData() {
@@ -195,20 +200,24 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
         switch (view.getId()) {
             case R.id.button:
 
-                switch (byWho) {
-                    case BY_SEVER:
-                        if (NetUtils.checkNetWork()) {
-                            /**
-                             * 提交当前单据，服务器返回价格
-                             */
-                        }else {
-                            new MyToasty(getContext()).showWarning("当前网络连接不可用，请检查网络连接！");
-                        }
-                        break;
+                String billName = mETBillName.getText().toString().trim();
+                //扣重率
+                String deductionMix = mETDudection.getText().toString().trim();
 
-                    case BY_CLIENT:
+                if (!TextUtils.isEmpty(billName) && !TextUtils.isEmpty(deductionMix)) {
+
+                    if (matterLevel != null) {
+
                         //重量
-                        double mWeight = Double.valueOf(weight); // - 扣重
+                        double mWeight = Double.valueOf(weight);
+                        // 减扣重
+                        for (int i=0;i<deductionList.size();i++) {
+                            BigDecimal b1 = new BigDecimal(Double.toString(mWeight));
+                            BigDecimal b2 = new BigDecimal(deductionList.get(i).getWeight());
+                            mWeight = b1.subtract(b2).doubleValue();
+                        }
+                        //除去扣重，以及扣重率之后的实际重量
+                        double realWeight = mWeight * (1 - Integer.valueOf(deductionMix) * 0.01);
 
                         /**
                          * 1.根据所选择的品类，品类决定哪种方式计算价格
@@ -217,46 +226,47 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                          *
                          */
                         //当前所选择的品类
-                        Matter matter = LitePal.find(Matter.class,matterId);
+                        Supplier supplier = LitePal.find(Supplier.class, supplierId);
+                        Matter matter = LitePal.find(Matter.class, matterId);
+                        Specs specs = LitePal.find(Specs.class, specsId);
 
-                        List<SamplingDetails> samplingDetailsList = LitePal.findAll(SamplingDetails.class,true);
-                        //规格占比最大的采样
-                        SamplingDetails maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
-                            @Override
-                            public int compare(SamplingDetails samplingDetails, SamplingDetails t1) {
-                                if (samplingDetails.getSpecsProportion() > t1.getSpecsProportion()) {
-                                    return 1;
-                                }else if(samplingDetails.getSpecsProportion() == t1.getSpecsProportion()) {
-                                    return 0;
-                                }else {
-                                    return -1;
-                                }
-                            }
+                        int type = matter.getType();
+                        switch (type) {
 
-                        });
-                        //当前采样对应的规格-->得出单价
-                        Specs specs = maxSamplingDetails.getSpecs();
+                            case 0://根据最大规格计算
+                                //规格占比最大的采样
+                                SamplingDetails maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
+                                    @Override
+                                    public int compare(SamplingDetails samplingDetails, SamplingDetails t1) {
+                                        if (samplingDetails.getSpecsProportion() > t1.getSpecsProportion()) {
+                                            return 1;
+                                        } else if (samplingDetails.getSpecsProportion() == t1.getSpecsProportion()) {
+                                            return 0;
+                                        } else {
+                                            return -1;
+                                        }
+                                    }
+
+                                });
+                                //当前采样对应的规格-->得出单价 price
+                                Specs specsBySampling = maxSamplingDetails.getSpecs();
+                                //double totalPrice = realWeight * price;
+
+                                break;
+
+                            case 1://根据规格占比计算
+
+                                break;
+
+                            default:
+                                break;
+                        }
 
 
-                        break;
-
-                    default:
-                        break;
-                }
-                String billName = mETBillName.getText().toString().trim();
-                String deductionMix = mETDudection.getText().toString().trim();
-
-                if (!TextUtils.isEmpty(billName) && !TextUtils.isEmpty(deductionMix)) {
-
-                    if (matterLevel != null) {
 
                         Bill bill = new Bill();
                         bill.setName(billName);
                         bill.setDeductionMix(deductionMix);
-
-                        Supplier supplier = LitePal.find(Supplier.class, supplierId);
-                        Matter matter = LitePal.find(Matter.class, matterId);
-                        Specs specs = LitePal.find(Specs.class, specsId);
 
                         bill.setSupplier(supplier);
                         bill.setMatter(matter);

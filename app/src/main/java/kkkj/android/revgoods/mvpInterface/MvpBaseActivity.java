@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
@@ -39,6 +40,7 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
 
     public TextView action_bar_title;
     public TextView action_bar_right;
+    public ImageView ivBack;
 
     @Override
     public void startActivity(Intent intent) {
@@ -78,21 +80,33 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
          *透明状态栏
          */
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            Window window = getWindow();
+//            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+//            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//            window.setStatusBarColor(Color.TRANSPARENT);
+//            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+//        }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(Color.TRANSPARENT);
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        }
+        /**
+         * 沉浸式
+         */
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getWindow().setAttributes(lp);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+
         mActivity = this;
         setAndroidNativeLightStatusBar(true);
         mContext = this;
         rxPermissions = new RxPermissions(mActivity);
-        action_bar_title = findViewById(R.id.action_bar_title);
-        action_bar_right = findViewById(R.id.action_bar_right);
+        action_bar_title = findViewById(R.id.tv_title);
+       // action_bar_right = findViewById(R.id.action_bar_right);
+        ivBack = findViewById(R.id.iv_back);
         /*
          *初始化自定义toast
          **/

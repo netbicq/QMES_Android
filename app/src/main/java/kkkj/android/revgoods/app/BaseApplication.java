@@ -3,6 +3,7 @@ package kkkj.android.revgoods.app;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Process;
+import android.support.multidex.MultiDex;
 
 import com.coder.zzq.smartshow.core.SmartShow;
 import com.coder.zzq.smartshow.toast.SmartToast;
@@ -31,6 +32,8 @@ import java.util.Map;
 import java.util.Set;
 
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.bean.Auth_UserProfile;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 
 public class BaseApplication extends ZApplication {
@@ -38,6 +41,24 @@ public class BaseApplication extends ZApplication {
     private Set<Activity> allActivities;
     private static Context mContext;
     private Map<String, String> commonparts;
+
+    public Auth_UserProfile getUserProfile() {
+        Auth_UserProfile userProfile = new Auth_UserProfile();
+        userProfile.setLogin(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_UserProfile_Login));
+        userProfile.setCNName(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_UserProfile_CNName));
+        userProfile.setTel(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_UserProfile_Tel));
+        userProfile.setID(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_UserProfile_ID));
+        userProfile.setHeadIMG(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_UserProfile_HeadIMG));
+        return userProfile;
+    }
+
+    public void setUserProfile(Auth_UserProfile userProfile) {
+        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_UserProfile_Login, userProfile.getLogin());
+        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_UserProfile_CNName, userProfile.getCNName());
+        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_UserProfile_Tel, userProfile.getTel());
+        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_UserProfile_ID, userProfile.getID());
+        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_UserProfile_HeadIMG, userProfile.getHeadIMG());
+    }
 
     static {
         //设置全局的Header构建器
@@ -73,6 +94,12 @@ public class BaseApplication extends ZApplication {
     }
 
     @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
         mContext = this;
@@ -104,12 +131,10 @@ public class BaseApplication extends ZApplication {
                         .build();
                 //打印日志
                 Logger.addLogAdapter(new AndroidLogAdapter(formatStrategy));
-//        FormatStrategy formatStrategy = CsvFormatStrategy.newBuilder()
-//                .tag("NDRestructure")
-//                .build()
+
 //        保存日志到本地文件logger
 //        Logger.addLogAdapter(new DiskLogAdapter(formatStrategy));
-//        Bugly.init(getApplicationContext(), "3dee6816b9", false);
+        Bugly.init(getApplicationContext(), "3dee6816b9", false);
                 Logger.d("Logger初始化成功");
                 //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式
                 Bugly.init(mContext, "76506509d0", false);

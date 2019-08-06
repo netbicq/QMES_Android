@@ -18,12 +18,11 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.qmuiteam.qmui.widget.QMUIEmptyView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 
 import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
-import kkkj.android.revgoods.ui.DeductionCategoryActivity;
+import kkkj.android.revgoods.ui.addDeductionCategory.DeductionCategoryActivity;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class SettingFragment extends DialogFragment implements View.OnClickListener {

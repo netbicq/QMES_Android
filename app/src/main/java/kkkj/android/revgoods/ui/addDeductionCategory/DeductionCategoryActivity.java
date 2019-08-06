@@ -1,4 +1,4 @@
-package kkkj.android.revgoods.ui;
+package kkkj.android.revgoods.ui.addDeductionCategory;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -127,7 +127,6 @@ public class DeductionCategoryActivity extends AppCompatActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.iv_sampling_back:
-
                 finish();
                 break;
 

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -83,6 +84,7 @@ import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.SwitchIcon;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
+import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueCallBack;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueReceiver;
@@ -110,6 +112,7 @@ import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
 import kkkj.android.revgoods.fragment.SamplingFragment;
 import kkkj.android.revgoods.fragment.SaveBillFragment;
 import kkkj.android.revgoods.fragment.SettingFragment;
+import kkkj.android.revgoods.fragment.TestFragment;
 import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
@@ -197,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //蓝牙继电器
     private BluetoothBean bluetoothRelay;
 
+    private BluetoothAdapter mBluetoothAdapter;
 
     private BillListFragment billListFragment;
     private DeviceListFragment deviceListFragment;
@@ -372,12 +376,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String address2 = device.getBluetoothMac();
                     BluetoothDevice bluetoothDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address2);
                     connectAndGetBluetoothScale(bluetoothDevice2);
+                    break;
+
+                case 4://蓝牙Ble显示屏 "D8:E0:4B:FD:31:F6"
+                    String addressBle = device.getBluetoothMac();
+                    BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
+                    connectBle(bleDevice);
 
                 default:
                     break;
             }
         }
 
+    }
+
+    //蓝牙Ble显示屏
+    private void connectBle(BluetoothDevice bleDevice) {
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+        Ble ble = new Ble(bleDevice,this);
+        ble.connect();
     }
 
     //蓝牙电子秤
@@ -1281,25 +1300,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.id_tv_sampling://采样
 
-                if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
+//                if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
+//
+//                    samplingFragment = SamplingFragment.newInstance(samplingWeight);
+//                    showDialogFragment(samplingFragment, SAMPLING);
+//
+//                } else {//未连接
+//
+//                    boolean isOk = false;//是否配备默认电子秤
+//                    if (isOk) {
+//                        BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:0D:1B:00:13:BA");
+//                        connectAndGetBluetoothScale(bluetoothDevice1);
+//                    } else {
+//                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+//                    }
+//                }
 
-                    samplingFragment = SamplingFragment.newInstance(samplingWeight);
-                    showDialogFragment(samplingFragment, SAMPLING);
 
-                } else {//未连接
-
-                    boolean isOk = false;//是否配备默认电子秤
-                    if (isOk) {
-                        BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:0D:1B:00:13:BA");
-                        connectAndGetBluetoothScale(bluetoothDevice1);
-                    } else {
-                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
-                    }
-                }
-
-
-//                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
-//                showDialogFragment(samplingFragment, SAMPLING);
+                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
+                showDialogFragment(samplingFragment, SAMPLING);
                 break;
 
 
@@ -1380,6 +1399,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     myToasty.showWarning("请先选择供应商，品类，规格！");
                 }
+
+//                final EditText editText1 = new EditText(MainActivity.this);
+//                editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+//                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+//                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
+//                inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
+//                inputDialog1.setPositiveButton(R.string.enter,
+//                        new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                //扣重率
+//                                String deduction = editText1.getText().toString().trim();
+//
+//                                TestFragment testFragment = new TestFragment();
+//                                showDialogFragment(testFragment,"test");
+//
+//                            }
+//                        })
+//                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//                            }
+//                        }).show();
 
                 break;
 

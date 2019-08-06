@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import java.util.Locale;
@@ -54,6 +55,7 @@ public class LangUtils {
         return context.createConfigurationContext(configuration);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     private static void changeResLanguage(Context context, int lang) {
         Resources resources = context.getResources();
         Configuration configuration = resources.getConfiguration();

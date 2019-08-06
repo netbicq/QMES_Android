@@ -16,16 +16,20 @@ public class Supplier extends LitePalSupport {
 
     private int id;
 
+    private String KeyID;
+
     /**
      * 名称
      */
-    private String name;
+    private String Name;
 
-    /**
-     * 该供应商下所有品类
-     * 必须先初始化
-     */
-    private List<Matter> mMatters = new ArrayList<>();
+    public String getKeyID() {
+        return KeyID;
+    }
+
+    public void setKeyID(String keyID) {
+        KeyID = keyID;
+    }
 
     public int getId() {
         return id;
@@ -36,18 +40,11 @@ public class Supplier extends LitePalSupport {
     }
 
     public String getName() {
-        return name;
+        return Name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.Name = name;
     }
 
-    public List<Matter> getMatters() {
-        return mMatters;
-    }
-
-    public void setMatters(List<Matter> matters) {
-        mMatters = matters;
-    }
 }

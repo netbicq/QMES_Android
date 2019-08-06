@@ -4,6 +4,7 @@ package kkkj.android.revgoods.http.api;
 import io.reactivex.Observable;
 import kkkj.android.revgoods.bean.Banner;
 import kkkj.android.revgoods.http.ApiConfig;
+import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierModel;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
@@ -11,8 +12,9 @@ import retrofit2.http.Path;
 
 public interface APIApp {
 
-    @GET("banner/json")
-    Observable<Banner> getBanner();
+    //APP - api/supplier/getSupplierSelector 获取供应商
+    @GET(ApiConfig.BASE_URL + "api/supplier/getSupplierSelector")
+    Observable<ChooseSupplierModel.Response> getSuppliers();
 
 //    //APP - api/app/addbill 新建任务单
 //    @POST(ApiConfig.BASE_URL + "api/app/addbill")

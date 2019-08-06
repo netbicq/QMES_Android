@@ -22,6 +22,13 @@ public class Matter extends LitePalSupport {
     private String name;
 
     /**
+     * 计价方式
+     * type = 0;根据规格计算
+     * type = 1;根据规格占比计算
+     */
+    private int type = -1;
+
+    /**
      * 所属的供应商
      */
     private Supplier supplier;
@@ -31,6 +38,22 @@ public class Matter extends LitePalSupport {
      * 必须先初始化
      */
     private List<Specs> mSpecs = new ArrayList<>();
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public List<Specs> getmSpecs() {
+        return mSpecs;
+    }
+
+    public void setmSpecs(List<Specs> mSpecs) {
+        this.mSpecs = mSpecs;
+    }
 
     public int getId() {
         return id;

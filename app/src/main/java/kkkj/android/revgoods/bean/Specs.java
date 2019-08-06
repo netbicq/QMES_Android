@@ -20,6 +20,12 @@ public class Specs extends LitePalSupport {
      * 规格
      */
     private String specs;
+
+    /**
+     * 对应的单价
+     */
+    private double price;
+
     /**
      * 所属的品类
      */
@@ -28,6 +34,14 @@ public class Specs extends LitePalSupport {
      * 一对多
      */
     private List<SamplingDetails> detailsList = new ArrayList<>();
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
 
     public String getSpecs() {
         return specs;
@@ -44,8 +58,6 @@ public class Specs extends LitePalSupport {
     public void setId(int id) {
         this.id = id;
     }
-
-
 
     public Matter getMatter() {
         return matter;
