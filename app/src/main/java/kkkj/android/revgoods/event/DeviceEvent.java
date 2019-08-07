@@ -28,7 +28,7 @@ public class DeviceEvent {
     /**
      * 供应商Supplier Id
      */
-    public String supplierId = "";
+    public int supplierId = -1;
 
     /**
      * 品类Matter Id
@@ -45,11 +45,11 @@ public class DeviceEvent {
      */
     public boolean add = false;
 
-    public String getSupplierId() {
+    public int getSupplierId() {
         return supplierId;
     }
 
-    public void setSupplierId(String supplierId) {
+    public void setSupplierId(int supplierId) {
         this.supplierId = supplierId;
     }
 

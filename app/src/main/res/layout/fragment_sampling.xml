@@ -52,7 +52,19 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="@string/specs" />
+            android:text="@string/name" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="单价" />
 
     </LinearLayout>
 
@@ -93,6 +105,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center" />
+
+        <EditText
+            android:id="@+id/id_et_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:imeOptions="flagNoExtractUi"
+            android:inputType="number|numberDecimal"
+            android:text="0" />
 
 
     </LinearLayout>

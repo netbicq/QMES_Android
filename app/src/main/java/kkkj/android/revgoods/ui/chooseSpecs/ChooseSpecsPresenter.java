@@ -11,7 +11,7 @@ import kkkj.android.revgoods.mvpInterface.MvpCallback;
  */
 public class ChooseSpecsPresenter extends ChooseSpecsContract.Presenter{
     @Override
-    public void getSpecsByMatterId(ChooseSpecsModel.Request request) {
+    public void getSpecses() {
         if (!isViewAttached()){
             //如果没有View引用就不加载数据
             return;
@@ -19,6 +19,7 @@ public class ChooseSpecsPresenter extends ChooseSpecsContract.Presenter{
 
         //调用Model请求数据
         ChooseSpecsModel chooseSpecsModel = new ChooseSpecsModel();
+        ChooseSpecsModel.Request request = new ChooseSpecsModel.Request();
         chooseSpecsModel.getResponse(request, new MvpCallback<ChooseSpecsModel.Response>(getView()) {
             @Override
             public void onSuccess(ChooseSpecsModel.Response data) {

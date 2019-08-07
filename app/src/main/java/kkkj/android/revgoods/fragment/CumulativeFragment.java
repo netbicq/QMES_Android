@@ -52,7 +52,6 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
             cumulative.setCount(i + 1);
             cumulative.setCategory("扣重·" + deductionList.get(i).getCategory());
             cumulative.setWeight(deductionList.get(i).getWeight());
-            cumulative.setPrice(deductionList.get(i).getPrice());
             cumulativeList.add(cumulative);
         }
 

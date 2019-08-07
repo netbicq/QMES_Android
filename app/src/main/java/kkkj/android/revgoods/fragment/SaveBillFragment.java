@@ -286,7 +286,6 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                             cumulative.setCount(i + 1);
                             cumulative.setCategory("扣重·" + deduction.getCategory());
                             cumulative.setWeight(deduction.getWeight());
-                            cumulative.setPrice(deduction.getPrice());
                             cumulative.save();
 
                             LitePal.delete(Deduction.class, deduction.getId());

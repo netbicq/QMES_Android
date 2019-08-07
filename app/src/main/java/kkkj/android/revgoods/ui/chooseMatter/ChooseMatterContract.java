@@ -14,7 +14,7 @@ public class ChooseMatterContract {
     }
     public static abstract class Presenter extends MvpPresenter<View> {
 
-        public abstract void getMatterBySupplierId(ChooseMatterModel.Request request);
+        public abstract void getMatter();
     }
 }
 

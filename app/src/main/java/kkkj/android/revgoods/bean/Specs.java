@@ -2,9 +2,6 @@ package kkkj.android.revgoods.bean;
 
 import org.litepal.crud.LitePalSupport;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 项目名:   RevGoods
  * 包名:     kkkj.android.revgoods.bean
@@ -19,21 +16,27 @@ public class Specs extends LitePalSupport {
     /**
      * 规格
      */
-    private String specs;
+    private String Name;
+
+    private String KeyID;
 
     /**
-     * 对应的单价
+     * 价格
      */
-    private double price;
+    private double price = -1d;
 
     /**
-     * 所属的品类
+     *关联的采样详情
      */
-    private Matter matter;
-    /**
-     * 一对多
-     */
-    private List<SamplingDetails> detailsList = new ArrayList<>();
+    private SamplingDetails samplingDetails;
+
+    public SamplingDetails getSamplingDetails() {
+        return samplingDetails;
+    }
+
+    public void setSamplingDetails(SamplingDetails samplingDetails) {
+        this.samplingDetails = samplingDetails;
+    }
 
     public double getPrice() {
         return price;
@@ -43,12 +46,20 @@ public class Specs extends LitePalSupport {
         this.price = price;
     }
 
-    public String getSpecs() {
-        return specs;
+    public String getKeyID() {
+        return KeyID;
     }
 
-    public void setSpecs(String specs) {
-        this.specs = specs;
+    public void setKeyID(String keyID) {
+        KeyID = keyID;
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public void setName(String name) {
+        this.Name = name;
     }
 
     public int getId() {
@@ -59,11 +70,12 @@ public class Specs extends LitePalSupport {
         this.id = id;
     }
 
-    public Matter getMatter() {
-        return matter;
-    }
-
-    public void setMatter(Matter matter) {
-        this.matter = matter;
+    @Override
+    public String toString() {
+        return "Specs{" +
+                "id=" + id +
+                ", Name='" + Name + '\'' +
+                ", KeyID='" + KeyID + '\'' +
+                '}';
     }
 }

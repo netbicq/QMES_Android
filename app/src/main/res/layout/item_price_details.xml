@@ -1,72 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-    <android.support.v7.widget.GridLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@color/qmui_config_color_pure_black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:columnCount="5"
-        app:rowCount="1">
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/qmui_config_color_pure_black">
 
         <TextView
             android:id="@+id/tv_specs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:background="#ffffff"
             android:gravity="center"
-            tools:text="规格"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1" />
+            tools:text="规格" />
 
         <TextView
             android:id="@+id/tv_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:background="#ffffff"
             android:gravity="center"
-            tools:text="单价"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1" />
+            tools:text="单价" />
 
         <TextView
             android:id="@+id/tv_specs_proportion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:background="#ffffff"
             android:gravity="center"
-            tools:text="占比"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1" />
+            tools:text="占比" />
 
         <TextView
             android:id="@+id/tv_weight"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:background="#ffffff"
             android:gravity="center"
-            tools:text="重量"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1" />
+            tools:text="重量" />
 
         <TextView
             android:id="@+id/tv_total_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginLeft="1dp"
             android:layout_marginRight="1dp"
             android:layout_marginBottom="1dp"
             android:background="#ffffff"
             android:gravity="center"
-            tools:text="价格"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1" />
+            tools:text="价格" />
 
-    </android.support.v7.widget.GridLayout>
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

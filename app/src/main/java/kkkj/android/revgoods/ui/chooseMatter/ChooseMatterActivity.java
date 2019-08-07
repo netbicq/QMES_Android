@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
@@ -51,13 +52,6 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
      */
     public static final int REQUEST_CODE = 111;
     public static final String SUPPLIER_ID = "supplierId";
-    private String supplierId;
-
-    public static Intent newIntent(Context context, String supplierId) {
-        Intent intent = new Intent(context, ChooseMatterActivity.class);
-        intent.putExtra(SUPPLIER_ID, supplierId);
-        return intent;
-    }
 
     @Override
     protected ChooseMatterPresenter getPresenter() {
@@ -112,16 +106,9 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
         matterList = new ArrayList<>();
         matterTempList =new ArrayList<>();
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            supplierId = intent.getStringExtra(SUPPLIER_ID);
-        }
+        mPresenter.getMatter();
 
-        ChooseMatterModel.Request request = new ChooseMatterModel.Request();
-        request.setSupplierId(supplierId);
-        mPresenter.getMatterBySupplierId(request);
-
-        adapter = new MatterAdapter(R.layout.camera_view,matterList);
+        adapter = new MatterAdapter(R.layout.item_card_view,matterList);
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {

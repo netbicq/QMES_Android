@@ -2,12 +2,13 @@ package kkkj.android.revgoods.http.api;
 
 
 import io.reactivex.Observable;
-import kkkj.android.revgoods.bean.Banner;
 import kkkj.android.revgoods.http.ApiConfig;
+import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterModel;
+import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsModel;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierModel;
-import retrofit2.http.Body;
+import kkkj.android.revgoods.ui.chooseSupplier.DictModel;
+import kkkj.android.revgoods.ui.chooseSupplier.ProduceLineModel;
 import retrofit2.http.GET;
-import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface APIApp {
@@ -15,6 +16,23 @@ public interface APIApp {
     //APP - api/supplier/getSupplierSelector 获取供应商
     @GET(ApiConfig.BASE_URL + "api/supplier/getSupplierSelector")
     Observable<ChooseSupplierModel.Response> getSuppliers();
+
+    //api/category/getCategorySelector  品类
+    @GET("api/category/getCategorySelector")
+    Observable<ChooseMatterModel.Response> getMatters();
+
+    //api/norms/getNormSelector  规格
+    @GET("api/norms/getNormSelector")
+    Observable<ChooseSpecsModel.Response> getSpecses();
+
+    //api/dict/Selector/{dicttype}  扣重类别 + 品类等级
+    @GET("api/dict/Selector/{dicttype}")
+    Observable<DictModel.Response> getDicts(@Path("dicttype") int dicttype);
+
+    //api/deviceSet/getDevicesSelector  生产线配置
+    @GET("api/deviceSet/getDevicesSelector")
+    Observable<ProduceLineModel.Response> getProduceLines();
+
 
 //    //APP - api/app/addbill 新建任务单
 //    @POST(ApiConfig.BASE_URL + "api/app/addbill")

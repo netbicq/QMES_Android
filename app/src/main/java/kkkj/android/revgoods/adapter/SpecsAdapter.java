@@ -27,6 +27,6 @@ public class SpecsAdapter extends BaseQuickAdapter<Specs, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper, Specs item) {
-        helper.setText(R.id.id_tv_normal,item.getSpecs());
+        helper.setText(R.id.id_tv_normal,item.getName());
     }
 }

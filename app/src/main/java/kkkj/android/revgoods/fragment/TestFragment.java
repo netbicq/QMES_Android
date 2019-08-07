@@ -28,7 +28,7 @@ public class TestFragment extends BaseFullScreenDialogFragment {
     @Override
     public void initData() {
         billDetailsList = new ArrayList<>();
-        for (int i=0;i<4;i++) {
+        for (int i=0;i<8;i++) {
             BillDetails billDetails = new BillDetails();
             billDetails.setSpecs("1.0 ~ 2.3");
             billDetails.setPrice("10.0");

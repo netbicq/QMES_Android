@@ -143,7 +143,7 @@
         android:gravity="center"
         android:maxLines="1"
         android:padding="5dp"
-        android:text="@string/specs"
+        android:text="@string/name"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"

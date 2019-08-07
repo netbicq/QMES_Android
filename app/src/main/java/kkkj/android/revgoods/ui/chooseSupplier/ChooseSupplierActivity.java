@@ -1,24 +1,20 @@
 package kkkj.android.revgoods.ui.chooseSupplier;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.orhanobut.logger.Logger;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
@@ -26,23 +22,14 @@ import com.uuzuche.lib_zxing.activity.CodeUtils;
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SupplierAdapter;
-import kkkj.android.revgoods.bean.Banner;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.event.DeviceEvent;
-import kkkj.android.revgoods.mvpInterface.MvpModel;
 import kkkj.android.revgoods.ui.BaseActivity;
-import kkkj.android.revgoods.utils.LangUtils;
-import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 选择供应商
@@ -129,10 +116,9 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 Supplier supplier = supplierList.get(position);
-                String keyId = supplier.getKeyID();
-                Logger.d("是否保存成功" + keyId);
+                int id = supplier.getId();
                 DeviceEvent deviceEvent = new DeviceEvent();
-                deviceEvent.setSupplierId(keyId);
+                deviceEvent.setSupplierId(id);
                 EventBus.getDefault().post(deviceEvent);
                 finish();
             }

@@ -24,7 +24,7 @@
     <string name="gross_weight">Gross Weight</string>
     <string name="supplier">Supplier</string>
     <string name="matter">Matter</string>
-    <string name="specs">specs</string>
+    <string name="name">name</string>
     <string name="choose_produce_line">Choose Produce Line</string>
     <string name="choose_specs">Choose Specs</string>
     <string name="input_specs">Please input Specs !</string>

@@ -63,6 +63,19 @@
             android:layout_height="match_parent"/>
 
         <TextView
+            android:id="@+id/id_tv_price"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            tools:text="单价"/>
+
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+
+        <TextView
             android:id="@+id/id_tv_proportion"
             android:layout_width="0dp"
             android:layout_height="match_parent"

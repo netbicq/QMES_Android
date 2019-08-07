@@ -39,6 +39,7 @@ import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.DeductionCategory;
+import kkkj.android.revgoods.bean.Dict;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 
@@ -50,12 +51,17 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     private Button mSaveButton;
     private Spinner mSpinner;
     private EditText mEtWeight;
-    private EditText mEtPrice;
 
     private ArrayAdapter adapter;
     private String weight;
-    private List<DeductionCategory> deductionCategories;
-    private DeductionCategory mDeductionCategory;
+
+    //扣重类别 + 品类等级
+    private List<Dict> dictList;
+    //扣重类别
+    private List<Dict> deductionDictList;
+
+    private Dict dict;
+
     private MyToasty myToasty;
 
     public static DeductionFragment newInstance(String weight) {
@@ -76,8 +82,13 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
 
     public void initData() {
         myToasty = new MyToasty(getContext());
-        deductionCategories = LitePal.findAll(DeductionCategory.class);
-        mDeductionCategory = new DeductionCategory();
+
+        /**
+         * DictType = 2:扣重类型
+         * DictType = 3:品类等级
+         */
+        dictList = LitePal.findAll(Dict.class);
+        deductionDictList = LitePal.where("DictType = ?","2").find(Dict.class);
 
         adapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, getDataSource());
@@ -87,8 +98,8 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
 
     public List<String> getDataSource(){
         List<String> list = new ArrayList<>();
-        for (int i=0;i<deductionCategories.size();i++) {
-            list.add(deductionCategories.get(i).getCategory());
+        for (int i=0;i<dictList.size();i++) {
+            list.add(deductionDictList.get(i).getDictName());
         }
         return list;
     }
@@ -97,7 +108,7 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
         tvTitle.setText(R.string.deduction);
 
         mSaveButton = view.findViewById(R.id.button);
-        mEtPrice = view.findViewById(R.id.id_et_price);
+
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mEtWeight.setText(weight);
         mSpinner = view.findViewById(R.id.id_et_number);
@@ -107,13 +118,12 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mEtPrice.setText(deductionCategories.get(position).getPrice());
-                mDeductionCategory = deductionCategories.get(position);
+                dict = deductionDictList.get(position);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                mDeductionCategory = deductionCategories.get(0);
+                dict = deductionDictList.get(0);
             }
         });
 
@@ -130,22 +140,16 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
         switch (view.getId()) {
 
             case R.id.button:
-                if (deductionCategories.size() == 0) {
+                if (deductionDictList.size() == 0) {
                     myToasty.showWarning("请先添加扣重类别！");
                 } else {
 
                     String wt = mEtWeight.getText().toString().trim();
-                    String price = mEtPrice.getText().toString().trim();
-                    if (!TextUtils.isEmpty(wt) && !TextUtils.isEmpty(price)) {
 
-                        mDeductionCategory.setPrice(price);
-                        mDeductionCategory.save();
+                    if (!TextUtils.isEmpty(wt)) {
 
-                        Deduction deduction = new Deduction();
-                        deduction.setCategory(mDeductionCategory.getCategory());
-                        deduction.setPrice(price);
-                        deduction.setWeight(wt);
-                        deduction.save();
+                        dict.setWeight(Double.valueOf(wt));
+                        dict.save();
 
                         DeviceEvent deviceEvent = new DeviceEvent();
                         deviceEvent.setAdd(true);

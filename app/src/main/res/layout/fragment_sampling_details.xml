@@ -63,7 +63,19 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="@string/specs"/>
+            android:text="@string/name"/>
+
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="单价"/>
 
         <View
             android:background="@color/qmui_config_color_pure_black"

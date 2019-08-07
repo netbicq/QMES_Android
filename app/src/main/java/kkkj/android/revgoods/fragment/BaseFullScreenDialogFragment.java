@@ -73,8 +73,8 @@ public abstract class BaseFullScreenDialogFragment extends DialogFragment {
         int height = outMetrics.heightPixels;
 
         wlp.width = width;
-        wlp.height = height;
-        // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        //wlp.height = height;
+        wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         window.setAttributes(wlp);
 
     }

@@ -3,17 +3,13 @@ package kkkj.android.revgoods.ui.chooseSpecs;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -28,14 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SpecsAdapter;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
-import kkkj.android.revgoods.utils.LangUtils;
-import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 选择规格
@@ -81,9 +74,7 @@ public class ChooseSpecsActivity extends BaseActivity<ChooseSpecsPresenter> impl
             matterId = intent.getStringExtra(MATTER_ID);
         }
 
-        ChooseSpecsModel.Request request = new ChooseSpecsModel.Request();
-        request.setMatterId(matterId);
-        mPresenter.getSpecsByMatterId(request);
+        mPresenter.getSpecses();
 
 
         mAdapter = new SpecsAdapter(R.layout.item_card_view, mSpecs);
@@ -134,7 +125,7 @@ public class ChooseSpecsActivity extends BaseActivity<ChooseSpecsPresenter> impl
 
                 for (int i=0;i<mTempSpecs.size();i++) {
                     Specs specs = mTempSpecs.get(i);
-                    String str = specs.getSpecs();
+                    String str = specs.getName();
 
                     if (str.contains(search)) {
                         mSpecs.add(specs);

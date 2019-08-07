@@ -21,6 +21,6 @@ public class ChooseSpecsContract {
     }
     public static abstract class Presenter extends MvpPresenter<View> {
 
-        public abstract void getSpecsByMatterId(ChooseSpecsModel.Request request);
+        public abstract void getSpecses();
     }
 }

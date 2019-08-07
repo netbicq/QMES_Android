@@ -13,6 +13,9 @@
         <mapping class="kkkj.android.revgoods.bean.Cumulative"/>
         <mapping class="kkkj.android.revgoods.common.getpic.GetPicModel"/>
         <mapping class="kkkj.android.revgoods.bean.Bill"/>
+        <mapping class="kkkj.android.revgoods.bean.BillDetails"/>
+        <mapping class="kkkj.android.revgoods.bean.Dict"/>
+        <mapping class="kkkj.android.revgoods.bean.ProduceLine"/>
     </list>
 
 </litepal>

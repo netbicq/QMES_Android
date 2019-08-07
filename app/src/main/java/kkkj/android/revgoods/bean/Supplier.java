@@ -48,4 +48,12 @@ public class Supplier extends LitePalSupport {
         this.Name = name;
     }
 
+    @Override
+    public String toString() {
+        return "Supplier{" +
+                "id=" + id +
+                ", KeyID='" + KeyID + '\'' +
+                ", Name='" + Name + '\'' +
+                '}';
+    }
 }

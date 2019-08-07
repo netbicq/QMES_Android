@@ -24,7 +24,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -34,10 +33,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.coder.zzq.smartshow.toast.SmartToast;
+import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -50,11 +49,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,21 +59,21 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Device;
+import kkkj.android.revgoods.bean.Master;
 import kkkj.android.revgoods.bean.Matter;
+import kkkj.android.revgoods.bean.Power;
+import kkkj.android.revgoods.bean.ProduceLine;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
@@ -112,11 +108,11 @@ import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
 import kkkj.android.revgoods.fragment.SamplingFragment;
 import kkkj.android.revgoods.fragment.SaveBillFragment;
 import kkkj.android.revgoods.fragment.SettingFragment;
-import kkkj.android.revgoods.fragment.TestFragment;
 import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.relay.wifi.model.Order;
+import kkkj.android.revgoods.ui.SaveBillDetailsActivity;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
@@ -202,6 +198,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private BluetoothAdapter mBluetoothAdapter;
 
+    //生产线
+    private List<String> produceLineList;
+    private List<ProduceLine> produceLines;
+
     private BillListFragment billListFragment;
     private DeviceListFragment deviceListFragment;
     private SamplingFragment samplingFragment;
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Supplier supplier;
     private Matter matter;
     private Specs specs;
-    private String supplierId;
+    private int supplierId;
     private int matterId;
     private int specsId;
 
@@ -300,16 +300,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
         }
         //更新供应商
-        if (deviceEvent.getSupplierId() != null && deviceEvent.getSupplierId().length() > 0) {
+        if (deviceEvent.getSupplierId() >= 0) {
             supplierId = deviceEvent.getSupplierId();
-            Logger.d("是否保存成功" + supplierId);
-
-            List<Supplier> suppliers = LitePal.where("KeyID = ?",supplierId)
-                    .find(Supplier.class);
-            supplier = suppliers.get(0);
-
+            supplier = LitePal.find(Supplier.class, supplierId);
             mTvSupplier.setText(supplier.getName());
-            Logger.d("是否保存成功" + supplier.getName() + supplier.getId());
         }
         //更新品类（物料）
         if (deviceEvent.getMatterId() >= 0) {
@@ -323,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             specs = new Specs();
             specsId = deviceEvent.getSpecsId();
             specs = LitePal.find(Specs.class, specsId);
-            mTvSpecs.setText(specs.getSpecs());
+            mTvSpecs.setText(specs.getName());
         }
 
         //保存单据后数据重置
@@ -400,7 +394,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        Ble ble = new Ble(bleDevice,this);
+        Ble ble = new Ble(bleDevice, this);
         ble.connect();
     }
 
@@ -499,7 +493,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                         if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect()) {
 
-                                            if ( !isWrite[0]) {
+                                            if (!isWrite[0]) {
                                                 Cumulative cumulative = new Cumulative();
                                                 cumulative.setCategory("净重");
                                                 cumulative.setWeight(str);
@@ -938,12 +932,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         ArrayAdapter spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
-                R.layout.spinner_style, getDataSource());
+                R.layout.spinner_style, produceLineList);
         spinnerAdapter.setDropDownViewResource(R.layout.item_spinner);
         mChooseProductionLine.setAdapter(spinnerAdapter);
         mChooseProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    mTvHand.setVisibility(View.GONE);
+                    return;
+                }
+                if (position == 1) {//移动计重
+                    mTvHand.setVisibility(View.VISIBLE);
+                    startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+                    return;
+                }
+
+                ProduceLine produceLine = produceLines.get(position - 2);
+
+                //主秤
+                String masterString = produceLine.getMaster();
+                Master master = new Gson().fromJson(masterString, Master.class);
+                String address = master.getDeviceAddr();
+
+                BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+                permissionHandler.start();
+                if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                    //connectAndGetBluetoothScale(bluetoothDevice);
+                    connect(bluetoothDevice);
+                } else {
+                    BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
+                        @Override
+                        public void paired(BluetoothDevice device) {
+                            connect(device);
+                            //connectAndGetBluetoothScale(device);
+                        }
+                    });
+                }
+
+                //继电器
+                String powerString = produceLine.getPower();
+                Power power = new Gson().fromJson(powerString, Power.class);
+                switch (power.getDeviceType()) {
+                    case 1://蓝牙继电器
+                        CONNECT_TYPE = 2;
+                        String address1 = power.getDeviceAddr();
+                        BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                        connectBluetoothRelay(bluetoothDevice1);
+                        break;
+
+                    case 2://Wifi继电器
+                        CONNECT_TYPE = 1;
+                        //分割 ：
+                        String[] strarr = power.getDeviceAddr().split(":");
+                        String ip = strarr[0];
+                        int port = Integer.valueOf(strarr[1]);
+                        Device device = new Device();
+                        device.setWifiIp(ip);
+                        device.setWifiPort(port);
+                        connectWifi(device);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                //
+
+
                 switch (position) {
                     case 0:
                         mTvHand.setVisibility(View.GONE);
@@ -1012,7 +1068,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         /**
                          * 蓝牙继电器
                          */
-                        if (bluetoothRelay != null &&bluetoothRelay.isConnect()){
+                        if (bluetoothRelay != null && bluetoothRelay.isConnect()) {
 
                             if (isClickable) {
 
@@ -1034,7 +1090,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 myToasty.showInfo("请先打开手动开关！");
                             }
 
-                        }else {
+                        } else {
                             myToasty.showInfo("继电器未连接，请先连接继电器！");
                         }
 
@@ -1055,6 +1111,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initData() {
+        //生产线
+        produceLineList = new ArrayList<>();
+        produceLineList.add(getResources().getString(R.string.choose_produce_line));
+        produceLineList.add("移动称重");
+
+        produceLines = LitePal.findAll(ProduceLine.class);
+        for (int i = 0; i < produceLines.size(); i++) {
+            produceLineList.add(produceLines.get(i).getName());
+        }
+
 
         compositeDisposable = new CompositeDisposable();
 
@@ -1102,16 +1168,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         registerReceiver();
     }
 
-
-    public List<String> getDataSource() {
-        List<String> list = new ArrayList<>();
-        list.add(getResources().getString(R.string.choose_produce_line));
-        list.add("移动称重");
-        list.add("一号生产线");
-        list.add("二号生产线");
-        list.add("三号生产线");
-        return list;
-    }
 
     //注册蓝牙配对广播接收器
     private void registerReceiver() {
@@ -1282,7 +1338,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.id_iv_choose_matter://选择品类
                 if (supplier != null) {
-                    Intent intent = ChooseMatterActivity.newIntent(MainActivity.this, String.valueOf(supplier.getId()));
+                    Intent intent = new Intent(MainActivity.this, ChooseMatterActivity.class);
                     startActivity(intent);
                 } else {
                     myToasty.showWarning("请先选择供应商！");
@@ -1306,10 +1362,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_sampling://采样
 
 //                if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
-//
-//                    samplingFragment = SamplingFragment.newInstance(samplingWeight);
-//                    showDialogFragment(samplingFragment, SAMPLING);
-//
+                //已连接
+                if (supplier != null && matter != null) {
+                    samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId);
+                    showDialogFragment(samplingFragment, SAMPLING);
+                } else {
+                    myToasty.showWarning("请先选择供应商，品类，规格！");
+                }
+
 //                } else {//未连接
 //
 //                    boolean isOk = false;//是否配备默认电子秤
@@ -1322,8 +1382,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                }
 
 
-                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
-                showDialogFragment(samplingFragment, SAMPLING);
+//                samplingFragment = SamplingFragment.newInstance(mWeightTextView.getText().toString());
+//                showDialogFragment(samplingFragment, SAMPLING);
                 break;
 
 
@@ -1396,37 +1456,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_save_bill://保存单据
-                if (supplier != null && matter != null && specs != null) {
-
-                    saveBillFragment = SaveBillFragment.newInstance(supplier.getId(), matterId, specsId,mWeightTextView.getText().toString());
-                    showDialogFragment(saveBillFragment, SAVE_BILL);
-
-                } else {
-                    myToasty.showWarning("请先选择供应商，品类，规格！");
-                }
-
-//                final EditText editText1 = new EditText(MainActivity.this);
-//                editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-//                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-//                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
-//                inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
-//                inputDialog1.setPositiveButton(R.string.enter,
-//                        new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                //扣重率
-//                                String deduction = editText1.getText().toString().trim();
+//                if (supplier != null && matter != null && specs != null) {
 //
+//                    saveBillFragment = SaveBillFragment.newInstance(supplier.getId(), matterId, specsId,mWeightTextView.getText().toString());
+//                    showDialogFragment(saveBillFragment, SAVE_BILL);
+//
+//                } else {
+//                    myToasty.showWarning("请先选择供应商，品类，规格！");
+//                }
+
+                final EditText editText1 = new EditText(MainActivity.this);
+                editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
+                inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
+                inputDialog1.setPositiveButton(R.string.enter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //扣重率
+                                String deduction = editText1.getText().toString().trim();
+
 //                                TestFragment testFragment = new TestFragment();
 //                                showDialogFragment(testFragment,"test");
-//
-//                            }
-//                        })
-//                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialogInterface, int i) {
-//                            }
-//                        }).show();
+                                startActivity(new Intent(MainActivity.this, SaveBillDetailsActivity.class));
+
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
 
                 break;
 

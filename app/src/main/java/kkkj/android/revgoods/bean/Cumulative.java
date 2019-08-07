@@ -24,10 +24,6 @@ public class Cumulative extends LitePalSupport {
     private String weight;
 
     /**
-     *单价
-     */
-    private String price = "—";
-    /**
      * 所属单据
      */
     private Bill bill;
@@ -38,14 +34,6 @@ public class Cumulative extends LitePalSupport {
 
     public void setHasBill(int hasBill) {
         this.hasBill = hasBill;
-    }
-
-    public String getPrice() {
-        return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = price;
     }
 
     public Bill getBill() {

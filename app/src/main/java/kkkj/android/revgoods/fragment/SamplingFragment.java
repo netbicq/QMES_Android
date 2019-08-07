@@ -2,31 +2,19 @@ package kkkj.android.revgoods.fragment;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
@@ -37,11 +25,9 @@ import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Unbinder;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.PicOrMp4Adapter;
 import kkkj.android.revgoods.bean.SamplingDetails;
@@ -62,10 +48,16 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private Button mEnterButton;
     private EditText mEtNumber;
     private EditText mEtWeight;
+    private EditText mEtPrice;
     private Spinner mSpSpecs;
     private RecyclerView recyclerView;
     private ArrayAdapter adapter;
+
     private String weight;
+    private int supplierId;
+    private int matterId;
+    private String tempPrice = "";
+
     private List<GetPicModel> mList;
     private List<Specs> specsList;
     private List<String> specsNameList;
@@ -76,9 +68,11 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private MyToasty myToasty;
 
 
-    public static SamplingFragment newInstance(String weight) {
+    public static SamplingFragment newInstance(String weight,int supplierId,int matterId) {
         Bundle args = new Bundle();
         args.putString("weight", weight);
+        args.putInt("supplierId",supplierId);
+        args.putInt("matterId",matterId);
 
         SamplingFragment fragment = new SamplingFragment();
         fragment.setArguments(args);
@@ -90,6 +84,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         weight = (String) getArguments().getSerializable("weight");
+        supplierId = (int) getArguments().getSerializable("supplierId");
+        matterId = (int) getArguments().getSerializable("matterId");
     }
 
     public void initData() {
@@ -99,12 +95,13 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         specsNameList = new ArrayList<>();
         specs = new Specs();
         tempSpecs = new Specs();
-        tempSpecs.setSpecs(getResources().getString(R.string.choose_specs));
+        tempSpecs.setName(getResources().getString(R.string.choose_specs));
+
         specsList.add(tempSpecs);
         specsList.addAll(LitePal.findAll(Specs.class));
 
         for (int i = 0; i < specsList.size(); i++) {
-            specsNameList.add(specsList.get(i).getSpecs());
+            specsNameList.add(specsList.get(i).getName());
         }
 
         adapter = new ArrayAdapter<String>(getActivity().getApplication(),
@@ -160,6 +157,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         tvTitle.setText(R.string.sampling);
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
+        mEtPrice = view.findViewById(R.id.id_et_price);
         mSpSpecs = view.findViewById(R.id.id_sp_specs);
         mSpSpecs.setAdapter(adapter);
         mSaveButton = view.findViewById(R.id.button);
@@ -179,12 +177,36 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 specs = specsList.get(i);
                 position = i;
+                /**
+                 * 根据supplierId，matterId 和当前specs  查找价格配置表   是否匹配
+                 * 匹配：mEtPrice.setText(当前配置的价格)
+                 * 未匹配：0
+                 */
+
+
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
                 specs = tempSpecs;
                 position = 0;
+            }
+        });
+
+        mEtPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                tempPrice = charSequence.toString().trim();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
             }
         });
 
@@ -214,12 +236,15 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 samplingDetails.setWeight(mEtWeight.getText().toString().trim());
                 samplingDetails.setNumber(mEtNumber.getText().toString().trim());
 
+                //最终的单价
                 if (position != 0) {
+                    specs.setPrice(Double.valueOf(tempPrice));
                     samplingDetails.setSpecs(specs);
                 } else {
                     myToasty.showWarning("请选择系统默认提供的规格！");
                     return;
                 }
+
 
                 for (int i = 0; i < mList.size(); i++) {
 
@@ -243,9 +268,10 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 break;
 
-            case R.id.button_enter://确定
+            case R.id.button_enter://计算
                 String weight = mEtWeight.getText().toString().trim();
                 String number = mEtNumber.getText().toString().trim();
+                String price = mEtPrice.getText().toString().trim();
                 if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
                     if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
 
@@ -257,7 +283,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                         myToasty.showError("输入不能为零！请重新输入！");
                     }
                 } else {
-                    myToasty.showError("输入框不能为空！");
+                    myToasty.showError("请填写相关信息！");
                 }
 
                 break;
