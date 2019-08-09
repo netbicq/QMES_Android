@@ -64,6 +64,18 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
+            android:text="品类等级" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/qmui_config_color_pure_black" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
             android:text="单价" />
 
     </LinearLayout>
@@ -101,6 +113,13 @@
 
         <Spinner
             android:id="@+id/id_sp_specs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center" />
+
+        <Spinner
+            android:id="@+id/id_sp_matter_level"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

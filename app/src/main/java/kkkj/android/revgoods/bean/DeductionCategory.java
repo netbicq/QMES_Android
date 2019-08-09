@@ -8,16 +8,14 @@ import org.litepal.crud.LitePalSupport;
 public class DeductionCategory extends LitePalSupport {
 
     private int id;
-
     /**
-     * 类别
+     * KeyID : 17570c09-1727-4bbd-a100-29da26eb571c
+     * Name : sample string 2
      */
-    private String category;
 
-    /**
-     * 单价
-     */
-    private String price;
+    private String KeyID;
+    private String Name;
+
 
     public int getId() {
         return id;
@@ -27,19 +25,28 @@ public class DeductionCategory extends LitePalSupport {
         this.id = id;
     }
 
-    public String getCategory() {
-        return category;
+    public String getKeyID() {
+        return KeyID;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setKeyID(String KeyID) {
+        this.KeyID = KeyID;
     }
 
-    public String getPrice() {
-        return price;
+    public String getName() {
+        return Name;
     }
 
-    public void setPrice(String price) {
-        this.price = price;
+    public void setName(String Name) {
+        this.Name = Name;
+    }
+
+    @Override
+    public String toString() {
+        return "DeductionCategory{" +
+                "id=" + id +
+                ", KeyID='" + KeyID + '\'' +
+                ", Name='" + Name + '\'' +
+                '}';
     }
 }

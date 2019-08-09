@@ -2,7 +2,7 @@ package kkkj.android.revgoods.ui.chooseSupplier;
 
 import java.util.List;
 
-import kkkj.android.revgoods.bean.ProduceLine;
+import kkkj.android.revgoods.bean.Price;
 import kkkj.android.revgoods.http.RevGRequest;
 import kkkj.android.revgoods.http.RevGResponse;
 
@@ -10,10 +10,10 @@ import kkkj.android.revgoods.http.RevGResponse;
  * Name: RevGoods
  * Package Name：kkkj.android.revgoods.ui.chooseSupplier
  * Author: Admin
- * Time: 2019/8/7 13:38
+ * Time: 2019/8/8 12:06
  * Describe: describe
  */
-public class ProduceLineModel {
+public class PriceModel {
 
     public static class Request extends RevGRequest {
 
@@ -21,15 +21,14 @@ public class ProduceLineModel {
 
     public static class Response extends RevGResponse {
 
-        private List<ProduceLine> data;
+        private List<Price> data;
 
-        public List<ProduceLine> getData() {
+        public List<Price> getData() {
             return data;
         }
 
-        public void setData(List<ProduceLine> data) {
+        public void setData(List<Price> data) {
             this.data = data;
         }
     }
-
 }

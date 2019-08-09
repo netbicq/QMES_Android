@@ -189,7 +189,7 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
             showToast("登录成功");
         }
         startActivity(new Intent(mContext, MainActivity.class));
-        finish();
+        //finish();
     }
     public void getPermission()
     {

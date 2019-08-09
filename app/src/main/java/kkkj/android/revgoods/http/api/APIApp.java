@@ -3,13 +3,18 @@ package kkkj.android.revgoods.http.api;
 
 import io.reactivex.Observable;
 import kkkj.android.revgoods.http.ApiConfig;
+import kkkj.android.revgoods.ui.addDeductionCategory.AddDeductionCategoryModel;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterModel;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsModel;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierModel;
-import kkkj.android.revgoods.ui.chooseSupplier.DictModel;
+import kkkj.android.revgoods.ui.chooseSupplier.DeductionModel;
+import kkkj.android.revgoods.ui.chooseSupplier.MatterLevelModel;
+import kkkj.android.revgoods.ui.chooseSupplier.PriceModel;
 import kkkj.android.revgoods.ui.chooseSupplier.ProduceLineModel;
+import kkkj.android.revgoods.ui.saveBill.BillModel;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
-import retrofit2.http.Path;
+import retrofit2.http.POST;
 
 public interface APIApp {
 
@@ -25,13 +30,30 @@ public interface APIApp {
     @GET("api/norms/getNormSelector")
     Observable<ChooseSpecsModel.Response> getSpecses();
 
-    //api/dict/Selector/{dicttype}  扣重类别 + 品类等级
-    @GET("api/dict/Selector/{dicttype}")
-    Observable<DictModel.Response> getDicts(@Path("dicttype") int dicttype);
+    //api/dict/getDelWeigthTypeSelector 扣重类型
+    @GET("api/dict/getDelWeigthTypeSelector")
+    Observable<DeductionModel.Response> getDeductionCategory();
+
+    //api/dict/getCategoryLvSelector  品类等级
+    @GET("api/dict/getCategoryLvSelector")
+    Observable<MatterLevelModel.Response> getMatterLevel();
 
     //api/deviceSet/getDevicesSelector  生产线配置
     @GET("api/deviceSet/getDevicesSelector")
     Observable<ProduceLineModel.Response> getProduceLines();
+
+    //api/price/getPriceItems  获取价格配置表
+    @GET("api/price/getPriceItems")
+    Observable<PriceModel.Response> getPrice();
+
+    //api/dict/addnew 添加词典（扣重类别）
+    @POST("api/dict/addnew")
+    Observable<AddDeductionCategoryModel.Response> addDict(@Body AddDeductionCategoryModel.Request request);
+
+    //api/purchase/addPurchaseBillByAPP 上传采购单（单据）
+    @POST("api/purchase/addPurchaseBillByAPP")
+    Observable<BillModel.Response> addBill(@Body BillModel.Request request);
+
 
 
 //    //APP - api/app/addbill 新建任务单

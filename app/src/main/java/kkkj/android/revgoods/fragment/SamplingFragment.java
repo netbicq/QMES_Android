@@ -15,9 +15,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.util.QMUIStatusBarHelper;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.tencent.smtt.sdk.TbsVideo;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
@@ -25,18 +28,37 @@ import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.io.File;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.PicOrMp4Adapter;
+import kkkj.android.revgoods.bean.Matter;
+import kkkj.android.revgoods.bean.MatterLevel;
+import kkkj.android.revgoods.bean.Path;
+import kkkj.android.revgoods.bean.Price;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.common.getpic.PhotoViewActivity;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.http.RetrofitServiceManager;
+import kkkj.android.revgoods.http.api.APIAttachfile;
+import kkkj.android.revgoods.http.api.UploadCallbacks;
+import kkkj.android.revgoods.ui.chooseSupplier.UpLoadFileModel;
 
 /**
  * 采样
@@ -50,29 +72,45 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private EditText mEtWeight;
     private EditText mEtPrice;
     private Spinner mSpSpecs;
+    private Spinner mSpMatterLevel;
     private RecyclerView recyclerView;
-    private ArrayAdapter adapter;
+    private ArrayAdapter specsAdapter;
+    private ArrayAdapter matterLevelAdapter;
 
     private String weight;
     private int supplierId;
     private int matterId;
+    private Supplier supplier;
+    private Matter matter;
     private String tempPrice = "";
+
+    //单重
+    private double singalWeight;
 
     private List<GetPicModel> mList;
     private List<Specs> specsList;
     private List<String> specsNameList;
+    private List<MatterLevel> matterLevelList;
+    private List<String> matterNameList;
+
+    private MatterLevel matterLevel;
     private Specs specs;
     private Specs tempSpecs;
     private int position = -1;
     private PicOrMp4Adapter picOrMp4Adapter;
     private MyToasty myToasty;
 
+    private QMUITipDialog qmuiTipDialog;
 
-    public static SamplingFragment newInstance(String weight,int supplierId,int matterId) {
+    //返回的路径集合
+    private List<Path> pathList = new ArrayList<>();
+
+
+    public static SamplingFragment newInstance(String weight, int supplierId, int matterId) {
         Bundle args = new Bundle();
         args.putString("weight", weight);
-        args.putInt("supplierId",supplierId);
-        args.putInt("matterId",matterId);
+        args.putInt("supplierId", supplierId);
+        args.putInt("matterId", matterId);
 
         SamplingFragment fragment = new SamplingFragment();
         fragment.setArguments(args);
@@ -86,6 +124,9 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         weight = (String) getArguments().getSerializable("weight");
         supplierId = (int) getArguments().getSerializable("supplierId");
         matterId = (int) getArguments().getSerializable("matterId");
+        supplier = LitePal.find(Supplier.class, supplierId);
+        matter = LitePal.find(Matter.class, matterId);
+
     }
 
     public void initData() {
@@ -93,7 +134,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         mList = new ArrayList<>();
         specsList = new ArrayList<>();
         specsNameList = new ArrayList<>();
-        specs = new Specs();
+        //specs = new Specs();
         tempSpecs = new Specs();
         tempSpecs.setName(getResources().getString(R.string.choose_specs));
 
@@ -103,10 +144,21 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         for (int i = 0; i < specsList.size(); i++) {
             specsNameList.add(specsList.get(i).getName());
         }
-
-        adapter = new ArrayAdapter<String>(getActivity().getApplication(),
+        specsAdapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, specsNameList);
-        adapter.setDropDownViewResource(R.layout.item_spinner);
+        specsAdapter.setDropDownViewResource(R.layout.item_spinner);
+
+        //品类等级
+        matterNameList = new ArrayList<>();
+        String first = "请选择品类等级";
+        matterNameList.add(first);
+        matterLevelList = LitePal.findAll(MatterLevel.class);
+        for (int i = 0; i < matterLevelList.size(); i++) {
+            matterNameList.add(matterLevelList.get(i).getName());
+        }
+        matterLevelAdapter = new ArrayAdapter<String>(getActivity().getApplication(),
+                android.R.layout.simple_spinner_item, matterNameList);
+        matterLevelAdapter.setDropDownViewResource(R.layout.item_spinner);
 
 
         picOrMp4Adapter = new PicOrMp4Adapter(R.layout.item_picormp4, mList);
@@ -153,13 +205,21 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
 
     public void initView(View view) {
+        qmuiTipDialog = new QMUITipDialog.Builder(getActivity())
+                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                .setTipWord("正在上传...")
+                .create();
+
         ivRight.setImageResource(R.drawable.ic_camera);
         tvTitle.setText(R.string.sampling);
         mEtNumber = view.findViewById(R.id.id_et_number);
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mEtPrice = view.findViewById(R.id.id_et_price);
         mSpSpecs = view.findViewById(R.id.id_sp_specs);
-        mSpSpecs.setAdapter(adapter);
+        mSpSpecs.setAdapter(specsAdapter);
+        mSpMatterLevel = view.findViewById(R.id.id_sp_matter_level);
+        mSpMatterLevel.setAdapter(matterLevelAdapter);
+
         mSaveButton = view.findViewById(R.id.button);
         mEnterButton = view.findViewById(R.id.button_enter);
         mEtWeight.setText(weight);
@@ -177,19 +237,65 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 specs = specsList.get(i);
                 position = i;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                //specs = tempSpecs;
+                position = 0;
+            }
+        });
+
+        mSpMatterLevel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 /**
-                 * 根据supplierId，matterId 和当前specs  查找价格配置表   是否匹配
+                 * 根据supplierId，matterId ,specs 和当前品类等级  查找价格配置表   是否匹配
                  * 匹配：mEtPrice.setText(当前配置的价格)
                  * 未匹配：0
                  */
+                if (i > 0 && position > 0) {
+                    matterLevel = matterLevelList.get(i - 1);
+                    List<Price> priceList = LitePal.where("SupplierID = ? and CategoryID = ? and CategoryLv = ? and NormsID = ?",
+                            supplier.getKeyID(), matter.getKeyID(), matterLevel.getKeyID(), specs.getKeyID()).find(Price.class);
+                    //比交时间
+                    //获取当前时间 HH:mm:ss
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+
+                    Date nowDate = new Date(System.currentTimeMillis());//当前时间
+                    List<Price> tempPriceList = new ArrayList<>();//所有满足条件的集合
+                    for (int j = 0; i < priceList.size(); j++) {
+                        String start = priceList.get(j).getStartDate();
+                        String end = priceList.get(j).getEndDate();
+                        Date startDate = new Date();
+                        Date endDate = new Date();
+                        try {
+                            startDate = dateFormat.parse(start);//开始时间
+                            endDate = dateFormat.parse(end);//截止时间
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        if (startDate.getTime() < nowDate.getTime() && nowDate.getTime() < endDate.getTime()) {
+                            tempPriceList.add(priceList.get(j));
+                        }
+                    }
+
+                    if (tempPriceList.size() > 0) {
+                        Price lastPrice = tempPriceList.get(tempPriceList.size() - 1);//最新一个价格
+                        mEtPrice.setText(String.valueOf(lastPrice.getPrice()));
+                    }
+
+                } else {
+                    myToasty.showWarning("请选择系统默认提供的规格和品类等级！");
+                }
 
 
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-                specs = tempSpecs;
-                position = 0;
+
             }
         });
 
@@ -226,24 +332,37 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 break;
 
             case R.id.button://提交
-                for (int i=0;i<mList.size();i++) {
+                for (int i = 0; i < mList.size(); i++) {
                     mList.get(i).setIsDwon(1);//不可编辑
                 }
-
                 LitePal.saveAll(mList);
 
+
                 SamplingDetails samplingDetails = new SamplingDetails();
-                samplingDetails.setWeight(mEtWeight.getText().toString().trim());
-                samplingDetails.setNumber(mEtNumber.getText().toString().trim());
 
                 //最终的单价
                 if (position != 0) {
-                    specs.setPrice(Double.valueOf(tempPrice));
+                    samplingDetails.setPrice(Double.valueOf(tempPrice));
                     samplingDetails.setSpecs(specs);
                 } else {
                     myToasty.showWarning("请选择系统默认提供的规格！");
                     return;
                 }
+                if (matterLevel == null) {
+                    myToasty.showWarning("请选择系统默认提供的品类等级！");
+                    return;
+                }
+
+                samplingDetails.setWeight(mEtWeight.getText().toString().trim());
+                samplingDetails.setNumber(mEtNumber.getText().toString().trim());
+                samplingDetails.setSingalWeight(singalWeight);
+                samplingDetails.setPathList(pathList);
+                Logger.d("是否保存成功：" + pathList.size());
+
+                //品类等级
+                samplingDetails.setMatterLevel(matterLevel);
+
+                Logger.d("----------->" + matterLevel.getKeyID());
 
 
                 for (int i = 0; i < mList.size(); i++) {
@@ -253,8 +372,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 DeviceEvent deviceEvent = new DeviceEvent();
 
-                if (LitePal.where("hasBill < ?","0").find(SamplingDetails.class).size() > 0) {
-                    SamplingDetails lastDetails = LitePal.where("hasBill < ?","0").findLast(SamplingDetails.class);
+                if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
+                    SamplingDetails lastDetails = LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class);
                     samplingDetails.setCount(lastDetails.getCount() + 1);
                     deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
                 } else {
@@ -264,6 +383,15 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 EventBus.getDefault().post(deviceEvent);
                 samplingDetails.save();
+
+                List<SamplingDetails> detailsList = new ArrayList<>();
+                detailsList.add(samplingDetails);
+                specs.setSamplingDetailsList(detailsList);
+                specs.save();
+                matterLevel.setSamplingDetailsList(detailsList);
+                matterLevel.save();
+
+
                 dismiss();
 
                 break;
@@ -276,8 +404,10 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                     if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
 
                         double specs = Double.parseDouble(weight) / Integer.parseInt(number);
+                        //单重
+                        singalWeight = specs;
                         specsNameList.set(0, String.valueOf(specs));
-                        adapter.notifyDataSetChanged();
+                        specsAdapter.notifyDataSetChanged();
 
                     } else {
                         myToasty.showError("输入不能为零！请重新输入！");
@@ -303,6 +433,133 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
             Logger.d(picOrMp4.getMp4Path());
             mList.add(picOrMp4);
             picOrMp4Adapter.notifyDataSetChanged();
+
+            //上传附件
+            APIAttachfile apiAttachfile = RetrofitServiceManager.getInstance().create(APIAttachfile.class);
+            qmuiTipDialog.show();
+
+            int type = picOrMp4.getType();//0照片  1视频
+            switch (type) {
+                case 0://照片
+                    String path = picOrMp4.getImagePath();
+                    UpLoadFileModel.Request request = new UpLoadFileModel.Request();
+                    request.setFile(new File(path));
+                    request.setMediaType("image");
+                    UploadCallbacks mListener = new UploadCallbacks() {
+                        @Override
+                        public void onProgressUpdate(int percentage) {
+//                        Logger.d(percentage);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Logger.d("错误");
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            //qmuiTipDialog.dismiss();
+                        }
+                    };
+                    request.setListener(mListener);
+                    apiAttachfile.uploadfile(request.getFiles())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<UpLoadFileModel.Response>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(UpLoadFileModel.Response response) {
+                                    if (response.getState() == 200) {
+                                        Path path1 = new Path();
+                                        path1.setPath(response.getData());
+                                        boolean b = path1.save();
+                                        Logger.d("是否保存成功：" + b);
+                                        pathList.add(path1);
+                                    }
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onComplete() {
+                                    if (qmuiTipDialog.isShowing()) {
+                                        qmuiTipDialog.dismiss();
+                                    }
+                                }
+                            });
+
+                    break;
+
+                case 1:
+
+                    String pathVideo = picOrMp4.getMp4Path();
+                    UpLoadFileModel.Request requestVideo = new UpLoadFileModel.Request();
+                    requestVideo.setFile(new File(pathVideo));
+                    requestVideo.setMediaType("video");
+                    UploadCallbacks mListenerVideo = new UploadCallbacks() {
+                        @Override
+                        public void onProgressUpdate(int percentage) {
+//                        Logger.d(percentage);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Logger.d("错误");
+                        }
+
+                        @Override
+                        public void onFinish() {
+
+                        }
+                    };
+                    requestVideo.setListener(mListenerVideo);
+                    apiAttachfile.uploadfile(requestVideo.getFiles())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<UpLoadFileModel.Response>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(UpLoadFileModel.Response response) {
+                                    if (response.getState() == 200) {
+                                        Path path1 = new Path();
+                                        path1.setPath(response.getData());
+                                        boolean b = path1.save();
+                                        Logger.d("是否保存成功：" + b);
+                                        pathList.add(path1);
+                                    }
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onComplete() {
+                                    if (qmuiTipDialog.isShowing()) {
+                                        qmuiTipDialog.dismiss();
+                                    }
+                                }
+                            });
+                    break;
+
+                default:
+                    break;
+            }
+
+
         }
 
     }

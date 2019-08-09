@@ -1,5 +1,7 @@
 package kkkj.android.revgoods.ui.chooseSpecs;
 
+import com.orhanobut.logger.Logger;
+
 import org.litepal.LitePal;
 
 import java.util.List;
@@ -29,6 +31,9 @@ public class ChooseSpecsModel extends MvpModel<ChooseSpecsModel.Request,ChooseSp
         try {
             Response response = new Response();
             List<Specs> specsList = LitePal.findAll(Specs.class);
+            for (int i= 0;i<specsList.size();i++) {
+                Logger.d(specsList.get(i).toString());
+            }
 
             if (specsList.size() > 0) {
                 response.setData(specsList);

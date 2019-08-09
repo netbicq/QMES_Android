@@ -100,7 +100,7 @@
         </activity>
 
         <activity
-            android:name=".ui.SaveBillDetailsActivity"
+            android:name=".ui.saveBill.SaveBillDetailsActivity"
             android:configChanges="locale|orientation|screenSize"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar">

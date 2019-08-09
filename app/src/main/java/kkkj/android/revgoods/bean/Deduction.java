@@ -15,13 +15,21 @@ public class Deduction extends LitePalSupport {
     private String category;
 
     /**
-     * 扣重单价
-     */
-    private String price;
-    /**
      * 重量
      */
-    private String weight;
+    private double weight;
+    /**
+     * 扣重类别ID
+     */
+    private String KeyID;
+
+    public String getKeyID() {
+        return KeyID;
+    }
+
+    public void setKeyID(String keyID) {
+        KeyID = keyID;
+    }
 
     public int getHasBill() {
         return hasBill;
@@ -39,14 +47,6 @@ public class Deduction extends LitePalSupport {
         this.category = category;
     }
 
-    public String getPrice() {
-        return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = price;
-    }
-
     public int getId() {
         return id;
     }
@@ -55,11 +55,11 @@ public class Deduction extends LitePalSupport {
         this.id = id;
     }
 
-    public String getWeight() {
+    public double getWeight() {
         return weight;
     }
 
-    public void setWeight(String weight) {
+    public void setWeight(double weight) {
         this.weight = weight;
     }
 }

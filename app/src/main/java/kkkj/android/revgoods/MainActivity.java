@@ -75,6 +75,8 @@ import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.Power;
 import kkkj.android.revgoods.bean.ProduceLine;
 import kkkj.android.revgoods.bean.SamplingDetails;
+import kkkj.android.revgoods.bean.Sapmle;
+import kkkj.android.revgoods.bean.ShowOut;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.SwitchIcon;
@@ -112,7 +114,7 @@ import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.relay.wifi.model.Order;
-import kkkj.android.revgoods.ui.SaveBillDetailsActivity;
+import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
@@ -201,6 +203,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //生产线
     private List<String> produceLineList;
     private List<ProduceLine> produceLines;
+    //是否配置了采样的秤
+    private boolean isSetSapmle = false;
+    private ArrayAdapter spinnerAdapter;
 
     private BillListFragment billListFragment;
     private DeviceListFragment deviceListFragment;
@@ -281,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
-
+        permissionHandler.start();
     }
 
 
@@ -304,6 +309,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             supplierId = deviceEvent.getSupplierId();
             supplier = LitePal.find(Supplier.class, supplierId);
             mTvSupplier.setText(supplier.getName());
+            //刷新生产线
+            produceLineList.clear();
+            produceLines.clear();
+
+            produceLineList.add(getResources().getString(R.string.choose_produce_line));
+            produceLineList.add("移动称重");
+
+            produceLines = LitePal.findAll(ProduceLine.class);
+            for (int i = 0; i < produceLines.size(); i++) {
+                produceLineList.add(produceLines.get(i).getName());
+            }
+            spinnerAdapter.notifyDataSetChanged();
+
         }
         //更新品类（物料）
         if (deviceEvent.getMatterId() >= 0) {
@@ -345,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case 0://蓝牙电子秤
                     String address = device.getBluetoothMac();
                     BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                    permissionHandler.start();
+
                     if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
                         //connectAndGetBluetoothScale(bluetoothDevice);
                         connect(bluetoothDevice);
@@ -442,7 +460,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     case 1:
                                         if (weight > compareWeight && manager != null && manager.isConnect()) {
 
-                                            if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+                                            if (!isWrite[0]) {
                                                 Cumulative cumulative = new Cumulative();
                                                 cumulative.setCategory("净重");
                                                 cumulative.setWeight(str);
@@ -472,9 +490,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 tvCumulativeCount.setText(String.valueOf(count));
                                                 tvCumulativeWeight.setText(String.valueOf(cWeight));
                                             }
-                                            manager.send(new WriteData(Order.getTurnOff().get(0)));
-                                            manager.send(new WriteData(Order.getTurnOn().get(1)));
 
+                                            manager.send(new WriteData(Order.getTurnOff().get(0)));
+                                            isWrite[0] = true;
+                                            //100毫秒之后打开2号开关
+                                            Observable.timer(100, TimeUnit.MILLISECONDS)
+                                                    .subscribe(new Consumer<Long>() {
+                                                        @Override
+                                                        public void accept(Long aLong) throws Exception {
+                                                            manager.send(new WriteData(Order.getTurnOn().get(1)));
+                                                        }
+                                                    });
 
                                             //两秒之后开关置反
                                             Observable.timer(2, TimeUnit.SECONDS)
@@ -482,9 +508,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         @Override
                                                         public void accept(Long aLong) throws Exception {
                                                             manager.send(new WriteData(Order.getTurnOn().get(0)));
-                                                            manager.send(new WriteData(Order.getTurnOff().get(1)));
+                                                            isWrite[0] = false;
+
+                                                            //间隔100毫秒之后关掉2号开关
+                                                            Observable.timer(100, TimeUnit.MILLISECONDS)
+                                                                    .subscribe(new Consumer<Long>() {
+                                                                        @Override
+                                                                        public void accept(Long aLong) throws Exception {
+                                                                            manager.send(new WriteData(Order.getTurnOff().get(1)));
+                                                                        }
+                                                                    });
                                                         }
                                                     });
+
+//                                            if (mWifiList.get(0).getState().equals("1")) { //当1号继电器吸和时
+//                                                Cumulative cumulative = new Cumulative();
+//                                                cumulative.setCategory("净重");
+//                                                cumulative.setWeight(str);
+//
+//                                                if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+//                                                    Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+//                                                    cumulative.setCount(cumulativeLast.getCount() + 1);
+//                                                } else {
+//                                                    cumulative.setCount(1);
+//                                                }
+//
+//                                                cumulative.save();
+//
+//                                                int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+//                                                double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+//
+//                                                /**
+//                                                 * 相加：b1.add(b2).doubleValue();
+//                                                 * 相减：b1.subtract(b2).doubleValue();
+//                                                 * 相乘：b1.multiply(b2).doubleValue();
+//                                                 */
+//                                                BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+//                                                BigDecimal b2 = new BigDecimal(str);
+//                                                cWeight = b1.add(b2).doubleValue();
+//                                                count = count + 1;
+//
+//                                                tvCumulativeCount.setText(String.valueOf(count));
+//                                                tvCumulativeWeight.setText(String.valueOf(cWeight));
+//                                            }
+//                                            manager.send(new WriteData(Order.getTurnOff().get(0)));
+//                                            manager.send(new WriteData(Order.getTurnOn().get(1)));
+//
+//
+//                                            //两秒之后开关置反
+//                                            Observable.timer(2, TimeUnit.SECONDS)
+//                                                    .subscribe(new Consumer<Long>() {
+//                                                        @Override
+//                                                        public void accept(Long aLong) throws Exception {
+//                                                            manager.send(new WriteData(Order.getTurnOn().get(0)));
+//                                                            manager.send(new WriteData(Order.getTurnOff().get(1)));
+//                                                        }
+//                                                    });
                                         }
 
                                         break;
@@ -931,13 +1010,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tvCumulativeWeight.setText(weight);
         }
 
-        ArrayAdapter spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
+        spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
                 R.layout.spinner_style, produceLineList);
         spinnerAdapter.setDropDownViewResource(R.layout.item_spinner);
         mChooseProductionLine.setAdapter(spinnerAdapter);
         mChooseProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
                 if (position == 0) {
                     mTvHand.setVisibility(View.GONE);
                     return;
@@ -948,13 +1028,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
+                if (SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT).length() == 0) {
+                    myToasty.showInfo("请先配置单重！");
+                    return;
+                }
+
+                mTvHand.setVisibility(View.GONE);
+
                 ProduceLine produceLine = produceLines.get(position - 2);
 
                 //主秤
                 String masterString = produceLine.getMaster();
                 Master master = new Gson().fromJson(masterString, Master.class);
-                String address = master.getDeviceAddr();
-
+                String address = master.getDeviceAddr().trim();
+                Logger.d( "------------>"  + address);
                 BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
                 permissionHandler.start();
                 if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
@@ -976,7 +1063,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 switch (power.getDeviceType()) {
                     case 1://蓝牙继电器
                         CONNECT_TYPE = 2;
-                        String address1 = power.getDeviceAddr();
+                        String address1 = power.getDeviceAddr().trim();
                         BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
                         connectBluetoothRelay(bluetoothDevice1);
                         break;
@@ -985,7 +1072,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         CONNECT_TYPE = 1;
                         //分割 ：
                         String[] strarr = power.getDeviceAddr().split(":");
-                        String ip = strarr[0];
+                        String ip = strarr[0].trim();
                         int port = Integer.valueOf(strarr[1]);
                         Device device = new Device();
                         device.setWifiIp(ip);
@@ -997,35 +1084,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                 }
 
-                //
-
-
-                switch (position) {
-                    case 0:
-                        mTvHand.setVisibility(View.GONE);
-                        break;
-
-                    case 1://移动计重
-
-                        mTvHand.setVisibility(View.VISIBLE);
-                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
-                        break;
-
-                    case 2:
-                        mTvHand.setVisibility(View.GONE);
-                        if (deviceListFragment == null) {
-                            deviceListFragment = new DeviceListFragment();
-                        }
-                        showDialogFragment(deviceListFragment, DEVICE_LIST);
-                        break;
-
-                    case 3:
-                        mTvHand.setVisibility(View.GONE);
-                        break;
-
-                    default:
-                        break;
+                //采样秤
+                String sapmleString = produceLine.getSapmle();
+                Sapmle sapmle = new Gson().fromJson(sapmleString,Sapmle.class);
+                //是否配置了采样的秤
+                isSetSapmle = !(sapmle.getDeviceAddr() == null);
+                if (isSetSapmle) {
+                    String address2 = sapmle.getDeviceAddr().trim();
+                    BluetoothDevice bluetoothDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address2);
+                    connectAndGetBluetoothScale(bluetoothDevice2);
+                }else {
+                    myToasty.showInfo("未配置采样秤，请手动连接！");
                 }
+
+                //显示屏 蓝牙Ble设备
+                String showOutString = produceLine.getShowOut();
+                ShowOut showOut = new Gson().fromJson(showOutString,ShowOut.class);
+                if (!(showOut.getDeviceAddr() == null)){
+                    String addressBle = showOut.getDeviceAddr().trim();
+                    BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
+                    connectBle(bleDevice);
+                }else {
+                    myToasty.showInfo("当前未配置显示屏！");
+                }
+
+//                switch (position) {
+//                    case 0:
+//                        mTvHand.setVisibility(View.GONE);
+//                        break;
+//
+//                    case 1://移动计重
+//
+//                        mTvHand.setVisibility(View.VISIBLE);
+//                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+//                        break;
+//
+//                    case 2:
+//                        mTvHand.setVisibility(View.GONE);
+//                        if (deviceListFragment == null) {
+//                            deviceListFragment = new DeviceListFragment();
+//                        }
+//                        showDialogFragment(deviceListFragment, DEVICE_LIST);
+//                        break;
+//
+//                    case 3:
+//                        mTvHand.setVisibility(View.GONE);
+//                        break;
+//
+//                    default:
+//                        break;
+//                }
             }
 
             @Override
@@ -1474,12 +1582,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                if (editText1.getText().toString().trim().length() == 0) {
+                                    myToasty.showInfo("请输入扣重率");
+                                    return;
+                                }
                                 //扣重率
-                                String deduction = editText1.getText().toString().trim();
-
+                                int deduction = Integer.valueOf(editText1.getText().toString().trim());
+                                Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
+                                        supplierId,matterId,deduction,tvCumulativeWeight.getText().toString().trim());
 //                                TestFragment testFragment = new TestFragment();
 //                                showDialogFragment(testFragment,"test");
-                                startActivity(new Intent(MainActivity.this, SaveBillDetailsActivity.class));
+                                startActivity(intent);
 
                             }
                         })

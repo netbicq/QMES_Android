@@ -8,14 +8,16 @@
         <mapping class="kkkj.android.revgoods.bean.Deduction"/>
         <mapping class="kkkj.android.revgoods.bean.DeductionCategory"/>
         <mapping class="kkkj.android.revgoods.bean.Matter"/>
+        <mapping class="kkkj.android.revgoods.bean.MatterLevel"/>
         <mapping class="kkkj.android.revgoods.bean.Specs"/>
         <mapping class="kkkj.android.revgoods.bean.Supplier"/>
         <mapping class="kkkj.android.revgoods.bean.Cumulative"/>
         <mapping class="kkkj.android.revgoods.common.getpic.GetPicModel"/>
         <mapping class="kkkj.android.revgoods.bean.Bill"/>
         <mapping class="kkkj.android.revgoods.bean.BillDetails"/>
-        <mapping class="kkkj.android.revgoods.bean.Dict"/>
         <mapping class="kkkj.android.revgoods.bean.ProduceLine"/>
+        <mapping class="kkkj.android.revgoods.bean.Price"/>
+        <mapping class="kkkj.android.revgoods.bean.Path"/>
     </list>
 
 </litepal>

@@ -35,7 +35,66 @@ public class SamplingDetails extends LitePalSupport {
      */
     private double specsProportion;
 
+    /**
+     * 单价
+     */
+    private double price = -1d;
+
+    /**
+     *单重
+     */
+    private double SingalWeight;
+
+    /**
+     *品类等级
+     */
+    private MatterLevel matterLevel;
+
     private List<GetPicModel> modelList = new ArrayList<GetPicModel>();
+
+    private List<Path> pathList = new ArrayList<>();
+
+    public List<Path> getPathList() {
+        return pathList;
+    }
+
+    public void setPathList(List<Path> pathList) {
+        this.pathList = pathList;
+    }
+
+    public MatterLevel getMatterLevel() {
+        return matterLevel;
+    }
+
+    public void setMatterLevel(MatterLevel matterLevel) {
+        this.matterLevel = matterLevel;
+    }
+
+    public double getSingalWeight() {
+        return SingalWeight;
+    }
+
+    public void setSingalWeight(double singalWeight) {
+        SingalWeight = singalWeight;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public Bill getmBill() {
+        return mBill;
+    }
+
+    public void setmBill(Bill mBill) {
+        this.mBill = mBill;
+    }
+
+
 
     private Bill mBill;
 

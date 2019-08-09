@@ -128,7 +128,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
         List<String> list = new ArrayList<>();
         list.add("请选择品类等级");
         for (MatterLevel matterLevel : matterLevels) {
-            list.add(matterLevel.getLevel());
+            list.add(matterLevel.getName());
         }
         return list;
     }
@@ -217,7 +217,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                             mWeight = b1.subtract(b2).doubleValue();
                         }
                         //除去扣重，以及扣重率之后的实际重量
-                        double realWeight = mWeight * (1 - Integer.valueOf(deductionMix) * 0.01);
+                        double realWeight = mWeight * (100 - Integer.valueOf(deductionMix) * 0.01);
 
                         /**
                          * 1.根据所选择的品类，品类决定哪种方式计算价格
@@ -274,7 +274,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                         bill.setMatterLevel(matterLevel);
 
                         //获取当前时间 HH:mm:ss
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         Date date = new Date(System.currentTimeMillis());
 
                         bill.setTime(simpleDateFormat.format(date));
@@ -285,7 +285,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
 
                             cumulative.setCount(i + 1);
                             cumulative.setCategory("扣重·" + deduction.getCategory());
-                            cumulative.setWeight(deduction.getWeight());
+                            cumulative.setWeight(String.valueOf(deduction.getWeight()));
                             cumulative.save();
 
                             LitePal.delete(Deduction.class, deduction.getId());

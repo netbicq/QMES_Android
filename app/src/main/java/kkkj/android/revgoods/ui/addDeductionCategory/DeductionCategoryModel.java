@@ -1,17 +1,16 @@
 package kkkj.android.revgoods.ui.addDeductionCategory;
 
+import com.orhanobut.logger.Logger;
+
 import org.litepal.LitePal;
 
 import java.util.List;
 
 import kkkj.android.revgoods.bean.DeductionCategory;
-import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.http.RevGRequest;
 import kkkj.android.revgoods.http.RevGResponse;
 import kkkj.android.revgoods.mvpInterface.MvpCallback;
 import kkkj.android.revgoods.mvpInterface.MvpModel;
-import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierModel;
-import kkkj.android.revgoods.utils.NetUtils;
 
 /**
  * Name: RevGoods
@@ -24,29 +23,31 @@ public class DeductionCategoryModel extends MvpModel<DeductionCategoryModel.Requ
 
     @Override
     public void getResponse(Request request, MvpCallback<Response> callback) {
-        if (!NetUtils.checkNetWork()) {
-            try {
 
-                DeductionCategoryModel.Response response = new DeductionCategoryModel.Response();
-                List<DeductionCategory> deductionCategoryList = LitePal.findAll(DeductionCategory.class);
-                if (deductionCategoryList.size() > 0) {
-                    response.setData(deductionCategoryList);
-                    callback.onSuccess(response);
-                } else {
-                    callback.onFailure("未查询到相关数据");
-                }
-                callback.onComplete();
+        /**
+         * 在MainActivity中已经向服务器请求了最新数据，并覆写了数据库
+         * 这里就直接从数据库取数据
+         */
 
-            }catch (Exception e) {
-                callback.onError(e);
+        try {
+
+            DeductionCategoryModel.Response response = new DeductionCategoryModel.Response();
+            List<DeductionCategory> dictList = LitePal.findAll(DeductionCategory.class);
+            for (int i=0;i<dictList.size();i++) {
+                Logger.d(dictList.get(i).toString());
             }
+            if (dictList.size() > 0) {
+                response.setData(dictList);
+                callback.onSuccess(response);
+            } else {
+                callback.onFailure("未查询到相关数据");
+            }
+            callback.onComplete();
 
-        }else {
-            /**
-             * 从服务器请求数据
-             */
-
+        } catch (Exception e) {
+            callback.onError(e);
         }
+
     }
 
     public static class Request extends RevGRequest {

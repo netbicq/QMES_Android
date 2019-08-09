@@ -21,6 +21,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
@@ -51,6 +52,10 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         samplingDetailsList = new ArrayList<>();
         samplingDetailsList = LitePal.where("hasBill < ?","0")
                                      .find(SamplingDetails.class,true);
+        for (int i=0;i<samplingDetailsList.size();i++) {
+            Logger.d(samplingDetailsList.get(i).getSpecs().toString());
+        }
+
 
         //采样总重量
         double total = 0d;

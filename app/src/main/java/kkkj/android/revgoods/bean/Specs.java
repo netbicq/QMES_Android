@@ -2,6 +2,9 @@ package kkkj.android.revgoods.bean;
 
 import org.litepal.crud.LitePalSupport;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 项目名:   RevGoods
  * 包名:     kkkj.android.revgoods.bean
@@ -12,54 +15,26 @@ import org.litepal.crud.LitePalSupport;
 public class Specs extends LitePalSupport {
 
     private int id;
-
     /**
-     * 规格
+     * KeyID : 11d51e9a-0f88-4d6a-8793-859ed513bf4a
+     * Name : sample string 2
+     * MinWeight : 3.0
+     * MaxWeight : 4.0
      */
-    private String Name;
 
     private String KeyID;
+    private String Name;
+    private double MinWeight;
+    private double MaxWeight;
 
-    /**
-     * 价格
-     */
-    private double price = -1d;
+    private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
 
-    /**
-     *关联的采样详情
-     */
-    private SamplingDetails samplingDetails;
-
-    public SamplingDetails getSamplingDetails() {
-        return samplingDetails;
+    public List<SamplingDetails> getSamplingDetailsList() {
+        return samplingDetailsList;
     }
 
-    public void setSamplingDetails(SamplingDetails samplingDetails) {
-        this.samplingDetails = samplingDetails;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public String getKeyID() {
-        return KeyID;
-    }
-
-    public void setKeyID(String keyID) {
-        KeyID = keyID;
-    }
-
-    public String getName() {
-        return Name;
-    }
-
-    public void setName(String name) {
-        this.Name = name;
+    public void setSamplingDetailsList(List<SamplingDetails> samplingDetailsList) {
+        this.samplingDetailsList = samplingDetailsList;
     }
 
     public int getId() {
@@ -70,12 +45,46 @@ public class Specs extends LitePalSupport {
         this.id = id;
     }
 
+    public String getKeyID() {
+        return KeyID;
+    }
+
+    public void setKeyID(String KeyID) {
+        this.KeyID = KeyID;
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public void setName(String Name) {
+        this.Name = Name;
+    }
+
+    public double getMinWeight() {
+        return MinWeight;
+    }
+
+    public void setMinWeight(double MinWeight) {
+        this.MinWeight = MinWeight;
+    }
+
+    public double getMaxWeight() {
+        return MaxWeight;
+    }
+
+    public void setMaxWeight(double MaxWeight) {
+        this.MaxWeight = MaxWeight;
+    }
+
     @Override
     public String toString() {
         return "Specs{" +
                 "id=" + id +
-                ", Name='" + Name + '\'' +
                 ", KeyID='" + KeyID + '\'' +
+                ", Name='" + Name + '\'' +
+                ", MinWeight=" + MinWeight +
+                ", MaxWeight=" + MaxWeight +
                 '}';
     }
 }

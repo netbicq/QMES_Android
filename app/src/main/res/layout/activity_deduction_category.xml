@@ -1,98 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/id_constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@color/qmui_config_color_white">
+    android:background="@color/qmui_config_color_white"
+    android:fitsSystemWindows="true">
 
-<RelativeLayout
-android:id="@+id/relativeLayout"
-android:layout_width="0dp"
-android:layout_height="wrap_content"
-android:background="@color/background"
-app:layout_constraintEnd_toEndOf="parent"
-app:layout_constraintStart_toStartOf="parent"
-app:layout_constraintTop_toTopOf="parent">
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-<ImageView
-    android:id="@+id/iv_sampling_back"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:padding="8dp"
-    app:srcCompat="@drawable/ic_left_black_24dp"/>
+        <ImageView
+            android:id="@+id/iv_sampling_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            app:srcCompat="@drawable/ic_left_black_24dp" />
 
-<TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_centerHorizontal="true"
-    android:gravity="center"
-    android:paddingVertical="8dp"
-    android:text="@string/deduction_category"
-    android:textColor="@color/qmui_config_color_white"
-    android:textSize="18sp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:paddingVertical="8dp"
+            android:text="@string/deduction_category"
+            android:textColor="@color/qmui_config_color_white"
+            android:textSize="18sp" />
 
-<TextView
-    android:id="@+id/id_tv_add_category"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_alignParentEnd="true"
-    android:layout_centerInParent="true"
-    android:layout_marginEnd="8dp"
-    android:gravity="center"
-    android:padding="8dp"
-    android:text="@string/add"
-    android:textColor="@color/qmui_config_color_white"/>
+        <TextView
+            android:id="@+id/id_tv_add_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="@string/add"
+            android:textColor="@color/qmui_config_color_white" />
 
-</RelativeLayout>
+    </RelativeLayout>
 
-<Button
-android:id="@+id/button"
-android:layout_width="0dp"
-android:layout_height="wrap_content"
-android:layout_margin="8dp"
-android:background="@drawable/bg_style"
-android:text="@string/enter"
-android:textColor="@color/qmui_config_color_white"
-app:layout_constraintBottom_toBottomOf="parent"
-app:layout_constraintEnd_toEndOf="parent"
-app:layout_constraintStart_toStartOf="parent"/>
-
-<LinearLayout
-android:id="@+id/id_ll"
-android:layout_width="0dp"
-android:layout_height="wrap_content"
-android:layout_marginTop="8dp"
-android:orientation="horizontal"
-app:layout_constraintEnd_toEndOf="parent"
-app:layout_constraintStart_toStartOf="parent"
-app:layout_constraintTop_toBottomOf="@+id/relativeLayout">
-
-<View
-    android:layout_width="1dp"
-    android:layout_height="match_parent"
-    android:background="@color/qmui_config_color_pure_black"/>
+    <Button
+        android:id="@+id/button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:background="@drawable/bg_style"
+        android:text="@string/enter"
+        android:textColor="@color/qmui_config_color_white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
-<TextView
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:gravity="center"
-    android:text="@string/deduction_category"/>
-
-<TextView
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:gravity="center"
-    android:text="@string/price"/>
-
-</LinearLayout>
-
-    <kkkj.android.revgoods.customer.SlideRecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/id_recyclerView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -103,7 +71,7 @@ app:layout_constraintTop_toBottomOf="@+id/relativeLayout">
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_ll"
+        app:layout_constraintTop_toBottomOf="@+id/relativeLayout"
         app:layout_constraintVertical_bias="0.0" />
 
-    </android.support.constraint.ConstraintLayout>
+</android.support.constraint.ConstraintLayout>

@@ -1,47 +1,28 @@
 package kkkj.android.revgoods.ui.addDeductionCategory;
 
-import android.content.Context;
-import android.graphics.Rect;
-import android.os.Build;
-import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
-import org.litepal.LitePal;
-
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeductionCategoryAdapter;
 import kkkj.android.revgoods.bean.DeductionCategory;
-import kkkj.android.revgoods.customer.SlideRecyclerView;
-import kkkj.android.revgoods.utils.LangUtils;
-import kkkj.android.revgoods.utils.SharedPreferenceUtil;
+import kkkj.android.revgoods.ui.BaseActivity;
 
-public class DeductionCategoryActivity extends AppCompatActivity {
-
+public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPresenter>implements DeductionCategoryContract.View {
 
     @BindView(R.id.iv_sampling_back)
     ImageView mIvBack;
@@ -50,7 +31,7 @@ public class DeductionCategoryActivity extends AppCompatActivity {
     @BindView(R.id.button)
     Button mSaveButton;
     @BindView(R.id.id_recyclerView)
-    SlideRecyclerView mRecyclerView;
+    RecyclerView mRecyclerView;
     @BindView(R.id.id_constraintLayout)
     ConstraintLayout mConstraintLayout;
 
@@ -58,67 +39,33 @@ public class DeductionCategoryActivity extends AppCompatActivity {
     private List<DeductionCategory> deductionCategoryList;
     private View mAddCategoryView;
     private EditText mEditTextCategory;
-    private EditText mEditTextPrice;
-    private LinearLayoutManager linearLayoutManager;
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-        setContentView(R.layout.activity_deduction_category);
-        ButterKnife.bind(this);
-
-        /**
-         * 沉浸式
-         */
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
-        lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-        getWindow().setAttributes(lp);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-
-        initData();
-        initView();
+    protected DeductionCategoryPresenter getPresenter() {
+        return new DeductionCategoryPresenter();
     }
 
-    private void initData() {
+    protected void initData() {
         deductionCategoryList = new ArrayList<>();
-        deductionCategoryList = LitePal.findAll(DeductionCategory.class);
-
-        adapter = new DeductionCategoryAdapter(R.layout.item_deduction_category, deductionCategoryList);
-        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
-            }
-        });
-
-        adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                int id = deductionCategoryList.get(position).getId();
-                LitePal.delete(DeductionCategory.class,id);
-                deductionCategoryList.remove(position);
-                adapter.notifyDataSetChanged();
-                mRecyclerView.closeMenu();
-            }
-        });
+        mPresenter.getDeductionCategory();
+        adapter = new DeductionCategoryAdapter(R.layout.item_card_view, deductionCategoryList);
     }
 
-    private void initView() {
+    @Override
+    protected int setLayout() {
+        return R.layout.activity_deduction_category;
+    }
+
+    protected void initView() {
         mAddCategoryView = getLayoutInflater().inflate(R.layout.add_deduction_category,
                 mConstraintLayout, false);
         mEditTextCategory = mAddCategoryView.findViewById(R.id.id_et_category);
-        mEditTextPrice = mAddCategoryView.findViewById(R.id.id_et_price);
+//        linearLayoutManager = new LinearLayoutManager(this,
+//                LinearLayoutManager.VERTICAL,false);
+//        linearLayoutManager.setStackFromEnd(true);
 
-        linearLayoutManager = new LinearLayoutManager(this,
-                LinearLayoutManager.VERTICAL,false);
-        linearLayoutManager.setStackFromEnd(true);
-
-        mRecyclerView.setLayoutManager(linearLayoutManager);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
-                DividerItemDecoration.VERTICAL));
-        mRecyclerView.setCanMove(true);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(this,4));
         mRecyclerView.setAdapter(adapter);
 
     }
@@ -139,18 +86,23 @@ public class DeductionCategoryActivity extends AppCompatActivity {
 
             case R.id.button:
                 String category = mEditTextCategory.getText().toString().trim();
-                String price = mEditTextPrice.getText().toString().trim();
-                
-                if (!TextUtils.isEmpty(category) && !TextUtils.isEmpty(price)) {
-                    DeductionCategory deductionCategory = new  DeductionCategory();
-                    deductionCategory.setCategory(mEditTextCategory.getText().toString().trim());
-                    deductionCategory.setPrice(mEditTextPrice.getText().toString().trim());
+
+                if (!TextUtils.isEmpty(category)) {
+
+                    DeductionCategory deductionCategory = new DeductionCategory();
+                    deductionCategory.setName(mEditTextCategory.getText().toString().trim());
                     deductionCategory.save();
+
+                    AddDeductionCategoryModel.Request request = new AddDeductionCategoryModel.Request();
+                    request.setDictType(2);
+                    request.setDictName(mEditTextCategory.getText().toString().trim());
+
+                    mPresenter.addDeductionCategory(request);
+
                     adapter.removeFooterView(mAddCategoryView);
                     deductionCategoryList.add(deductionCategory);
                     adapter.notifyDataSetChanged();
 
-                    mEditTextPrice.setText("");
                     mEditTextCategory.setText("");
                 }
 
@@ -162,23 +114,16 @@ public class DeductionCategoryActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+    public void getDeductionCategorySuc(List<DeductionCategory> data) {
+        deductionCategoryList.clear();
+        deductionCategoryList.addAll(data);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && Build.VERSION.SDK_INT >= 19) {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    public void addDeductionCategorySuc(boolean data) {
+        if (data){
+            Toast.makeText(DeductionCategoryActivity.this,"添加成功！",Toast.LENGTH_LONG).show();
         }
     }
-
 }

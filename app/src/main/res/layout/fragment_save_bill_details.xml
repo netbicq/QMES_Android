@@ -14,119 +14,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/id_ll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:background="@color/qmui_config_color_pure_black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bar_container">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:gravity="center"
-            android:text="@string/user" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginBottom="1dp"
-            android:background="@color/qmui_config_color_white"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="品类等级" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="1dp"
-            android:background="@color/qmui_config_color_white"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/bill_name" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_ll">
-
-        <View
-            android:layout_width="1dp"
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_height="match_parent"/>
-
-        <Spinner
-            android:id="@+id/id_sp_user"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center" />
-
-        <View
-            android:layout_width="1dp"
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_height="match_parent"/>
-
-        <Spinner
-            android:id="@+id/id_sp_matter_level"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center" />
-
-        <View
-            android:layout_width="1dp"
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_height="match_parent"/>
-
-        <EditText
-            android:id="@+id/id_et_bill_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:hint="@string/input_bill_name"
-            android:imeOptions="flagNoExtractUi" />
-
-        <View
-            android:layout_width="1dp"
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_height="match_parent"/>
-
-    </LinearLayout>
-
-    <View
-        android:id="@+id/view"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@color/qmui_config_color_pure_black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ll"/>
-
     <android.support.v4.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
@@ -135,10 +22,11 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view">
+        app:layout_constraintTop_toBottomOf="@id/bar_container"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -153,6 +41,7 @@
                 app:rowCount="5">
 
                 <TextView
+                    android:id="@+id/tv_deduction_mix"
                     android:layout_height="wrap_content"
                     android:layout_margin="1dp"
                     android:background="#ffffff"
@@ -210,6 +99,7 @@
                     app:layout_rowWeight="1" />
 
                 <TextView
+                    android:id="@+id/tv_cumulative_count"
                     android:layout_marginLeft="1dp"
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
@@ -221,6 +111,7 @@
                     app:layout_rowWeight="1" />
 
                 <TextView
+                    android:id="@+id/tv_deduction_weight"
                     android:layout_marginLeft="1dp"
                     android:layout_marginRight="1dp"
                     android:layout_marginBottom="1dp"
@@ -244,6 +135,7 @@
                     app:layout_rowWeight="1" />
 
                 <TextView
+                    android:id="@+id/deduction_count"
                     android:layout_marginLeft="1dp"
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
@@ -255,6 +147,7 @@
                     app:layout_rowWeight="1" />
 
                 <TextView
+                    android:id="@+id/tv_cumulative_weight"
                     android:layout_marginLeft="1dp"
                     android:layout_marginRight="1dp"
                     android:layout_marginBottom="1dp"
@@ -289,6 +182,7 @@
                     app:layout_rowWeight="1" />
 
                 <TextView
+                    android:id="@+id/tv_real_weight"
                     android:layout_marginLeft="1dp"
                     android:layout_marginRight="1dp"
                     android:layout_marginBottom="1dp"
