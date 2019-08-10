@@ -1,6 +1,7 @@
 package kkkj.android.revgoods.ui.chooseSupplier;
 
 import kkkj.android.revgoods.mvpInterface.MvpCallback;
+import kkkj.android.revgoods.ui.saveBill.BillModel;
 
 public class ChooseSupplierPresenter extends ChooseSupplierContract.Presenter{
     @Override
@@ -17,6 +18,22 @@ public class ChooseSupplierPresenter extends ChooseSupplierContract.Presenter{
             @Override
             public void onSuccess(ChooseSupplierModel.Response data) {
                 getView().getSupplierSuc(data.getData());
+            }
+        });
+    }
+
+    @Override
+    public void addBill(BillModel.Request request) {
+        if (!isViewAttached()){
+            //如果没有View引用就不加载数据
+            return;
+        }
+
+        BillModel billModel = new BillModel();
+        billModel.getResponse(request, new MvpCallback<BillModel.Response>(getView()) {
+            @Override
+            public void onSuccess(BillModel.Response data) {
+                getView().addBillSuc(data.isData());
             }
         });
     }

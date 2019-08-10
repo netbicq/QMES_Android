@@ -48,14 +48,11 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     private ShowSamplingPictureFragment mFragment;
 
 
+    @Override
     public void initData() {
         samplingDetailsList = new ArrayList<>();
         samplingDetailsList = LitePal.where("hasBill < ?","0")
                                      .find(SamplingDetails.class,true);
-        for (int i=0;i<samplingDetailsList.size();i++) {
-            Logger.d(samplingDetailsList.get(i).getSpecs().toString());
-        }
-
 
         //采样总重量
         double total = 0d;

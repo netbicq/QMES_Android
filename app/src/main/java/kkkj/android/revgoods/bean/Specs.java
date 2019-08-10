@@ -27,6 +27,16 @@ public class Specs extends LitePalSupport {
     private double MinWeight;
     private double MaxWeight;
 
+    private String value;
+
+    public String getValue() {
+        return MinWeight + "~" + MaxWeight;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
 
     public List<SamplingDetails> getSamplingDetailsList() {

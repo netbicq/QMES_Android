@@ -7,7 +7,9 @@ import org.litepal.crud.LitePalSupport;
  */
 public class Deduction extends LitePalSupport {
     private int id;
-
+    /**
+     * 是否已保存为单据 默认-1；为保存
+     */
     private int hasBill = -1;
     /**
      * 扣重类别
@@ -22,6 +24,19 @@ public class Deduction extends LitePalSupport {
      * 扣重类别ID
      */
     private String KeyID;
+
+    /**
+     * 所属单据
+     */
+    private Bill bill;
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+    }
 
     public String getKeyID() {
         return KeyID;

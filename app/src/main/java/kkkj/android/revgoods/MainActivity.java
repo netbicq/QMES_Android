@@ -842,14 +842,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         myToasty.showSuccess("蓝牙继电器连接成功！");
                         //打开某个开关
                         bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(0)).subscribe(stateOB);
-
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(1)).subscribe(stateOB);
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(2)).subscribe(stateOB);
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(3)).subscribe(stateOB);
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(4)).subscribe(stateOB);
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(5)).subscribe(stateOB);
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(6)).subscribe(stateOB);
-//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(7)).subscribe(stateOB);
                     }
                 }
 
@@ -1040,32 +1032,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //主秤
                 String masterString = produceLine.getMaster();
                 Master master = new Gson().fromJson(masterString, Master.class);
-                String address = master.getDeviceAddr().trim();
+                String address = master.getDeviceAddr();
+                if (address == null) {
+                    myToasty.showInfo("当前未配置主秤，请前往网页端配置！");
+                    return;
+                }
+                address = address.trim();
                 Logger.d( "------------>"  + address);
-                BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-                permissionHandler.start();
-                if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
-                    //connectAndGetBluetoothScale(bluetoothDevice);
-                    connect(bluetoothDevice);
-                } else {
-                    BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
-                        @Override
-                        public void paired(BluetoothDevice device) {
-                            connect(device);
-                            //connectAndGetBluetoothScale(device);
-                        }
-                    });
+
+                try {
+                    BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+                    permissionHandler.start();
+                    if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                        //connectAndGetBluetoothScale(bluetoothDevice);
+                        connect(bluetoothDevice);
+                    } else {
+                        BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
+                            @Override
+                            public void paired(BluetoothDevice device) {
+                                connect(device);
+                                //connectAndGetBluetoothScale(device);
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    myToasty.showInfo(e.getMessage());
                 }
 
                 //继电器
                 String powerString = produceLine.getPower();
                 Power power = new Gson().fromJson(powerString, Power.class);
+                if (power.getDeviceAddr() == null) {
+                    myToasty.showInfo("当前未配置继电器，请前往网页端配置！");
+                    return;
+                }
                 switch (power.getDeviceType()) {
                     case 1://蓝牙继电器
                         CONNECT_TYPE = 2;
                         String address1 = power.getDeviceAddr().trim();
-                        BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                        connectBluetoothRelay(bluetoothDevice1);
+                        try {
+                            BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                            connectBluetoothRelay(bluetoothDevice1);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            myToasty.showInfo(e.getMessage());
+                        }
                         break;
 
                     case 2://Wifi继电器
@@ -1091,8 +1103,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 isSetSapmle = !(sapmle.getDeviceAddr() == null);
                 if (isSetSapmle) {
                     String address2 = sapmle.getDeviceAddr().trim();
-                    BluetoothDevice bluetoothDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address2);
-                    connectAndGetBluetoothScale(bluetoothDevice2);
+                    BluetoothDevice bluetoothDevice2 = null;
+                    try {
+                        bluetoothDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address2);
+                        connectAndGetBluetoothScale(bluetoothDevice2);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        myToasty.showInfo(e.getMessage());
+                    }
+
                 }else {
                     myToasty.showInfo("未配置采样秤，请手动连接！");
                 }
@@ -1102,8 +1121,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ShowOut showOut = new Gson().fromJson(showOutString,ShowOut.class);
                 if (!(showOut.getDeviceAddr() == null)){
                     String addressBle = showOut.getDeviceAddr().trim();
-                    BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
-                    connectBle(bleDevice);
+                    try {
+                        BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
+                        connectBle(bleDevice);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        myToasty.showInfo(e.getMessage());
+                    }
                 }else {
                     myToasty.showInfo("当前未配置显示屏！");
                 }
@@ -1564,14 +1588,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_save_bill://保存单据
-//                if (supplier != null && matter != null && specs != null) {
-//
-//                    saveBillFragment = SaveBillFragment.newInstance(supplier.getId(), matterId, specsId,mWeightTextView.getText().toString());
-//                    showDialogFragment(saveBillFragment, SAVE_BILL);
-//
-//                } else {
-//                    myToasty.showWarning("请先选择供应商，品类，规格！");
+
+                if (LitePal.where("hasBill < ?", "0")
+                        .find(SamplingDetails.class, true).size() < 0) {
+
+                    myToasty.showWarning("请先先采样确定单价！");
+                    return;
+                }
+
+//                if (Double.valueOf(tvCumulativeWeight.getText().toString().trim()) <= 0) {
+//                    myToasty.showWarning("当前未称重！");
+//                    return;
 //                }
+
 
                 final EditText editText1 = new EditText(MainActivity.this);
                 editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
@@ -1589,7 +1618,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //扣重率
                                 int deduction = Integer.valueOf(editText1.getText().toString().trim());
                                 Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
-                                        supplierId,matterId,deduction,tvCumulativeWeight.getText().toString().trim());
+                                        deduction,tvCumulativeWeight.getText().toString().trim());
 //                                TestFragment testFragment = new TestFragment();
 //                                showDialogFragment(testFragment,"test");
                                 startActivity(intent);

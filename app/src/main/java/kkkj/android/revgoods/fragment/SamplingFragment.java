@@ -129,6 +129,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     }
 
+    @Override
     public void initData() {
         myToasty = new MyToasty(getContext());
         mList = new ArrayList<>();
@@ -343,7 +344,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 //最终的单价
                 if (position != 0) {
                     samplingDetails.setPrice(Double.valueOf(tempPrice));
-                    samplingDetails.setSpecs(specs);
+                    samplingDetails.setSpecsId(specs.getId());
                 } else {
                     myToasty.showWarning("请选择系统默认提供的规格！");
                     return;
@@ -357,10 +358,12 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 samplingDetails.setNumber(mEtNumber.getText().toString().trim());
                 samplingDetails.setSingalWeight(singalWeight);
                 samplingDetails.setPathList(pathList);
+                samplingDetails.setSupplierId(supplierId);
+                samplingDetails.setMatterId(matterId);
                 Logger.d("是否保存成功：" + pathList.size());
 
                 //品类等级
-                samplingDetails.setMatterLevel(matterLevel);
+                samplingDetails.setMatterLevelId(matterLevel.getId());
 
                 Logger.d("----------->" + matterLevel.getKeyID());
 
@@ -383,14 +386,6 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 EventBus.getDefault().post(deviceEvent);
                 samplingDetails.save();
-
-                List<SamplingDetails> detailsList = new ArrayList<>();
-                detailsList.add(samplingDetails);
-                specs.setSamplingDetailsList(detailsList);
-                specs.save();
-                matterLevel.setSamplingDetailsList(detailsList);
-                matterLevel.save();
-
 
                 dismiss();
 

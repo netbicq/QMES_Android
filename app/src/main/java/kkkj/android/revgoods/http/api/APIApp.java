@@ -47,7 +47,7 @@ public interface APIApp {
     Observable<PriceModel.Response> getPrice();
 
     //api/dict/addnew 添加词典（扣重类别）
-    @POST("api/dict/addnew")
+    @POST("api/dict/createDelWeightType/{dictName}")
     Observable<AddDeductionCategoryModel.Response> addDict(@Body AddDeductionCategoryModel.Request request);
 
     //api/purchase/addPurchaseBillByAPP 上传采购单（单据）

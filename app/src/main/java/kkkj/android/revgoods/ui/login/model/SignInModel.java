@@ -51,42 +51,16 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
             }
         }
         else {
-//            apiAuth.signin(request)
-//                    .subscribeOn(Schedulers.io())//IO线程加载数据
-//                    .observeOn(AndroidSchedulers.mainThread())//主线程显示数据
-//                    .subscribe(new Observer<Response>() {
-//                        @Override
-//                        public void onSubscribe(Disposable d) {
-//                        }
-//
-//                        @Override
-//                        public void onNext(Response response) {
-//                            if (response.getState() == RESPONSE_OK) {
-//                                SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_Commonparts_Token, response.getData().getUserInfo().getToken());
-//                                SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_Commonparts_AccountID, response.getData().getAccountID());
-//                                callback.onSuccess(response);
-//                            } else {
-//                                callback.onFailure(response.getMsg());
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onError(Throwable t) {
-//                            callback.onError(t);
-//                        }
-//
-//                        @Override
-//                        public void onComplete() {
-//                            callback.onComplete();
-//                        }
-//                    });
-
             apiAuth.signin(request)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnNext(new Consumer<Response>() {
+                    .subscribeOn(Schedulers.io())//IO线程加载数据
+                    .observeOn(AndroidSchedulers.mainThread())//主线程显示数据
+                    .subscribe(new Observer<Response>() {
                         @Override
-                        public void accept(Response response) throws Exception {
+                        public void onSubscribe(Disposable d) {
+                        }
+
+                        @Override
+                        public void onNext(Response response) {
                             if (response.getState() == RESPONSE_OK) {
                                 SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_Commonparts_Token, response.getData().getUserInfo().getToken());
                                 SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_Commonparts_AccountID, response.getData().getAccountID());
@@ -95,135 +69,19 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                                 callback.onFailure(response.getMsg());
                             }
                         }
-                    })
-                    .observeOn(Schedulers.io())
-                    .flatMap(new Function<Response, ObservableSource<ChooseSupplierModel.Response>>() { //获取供应商
+
                         @Override
-                        public ObservableSource<ChooseSupplierModel.Response> apply(Response response) throws Exception {
-                            return apiApp.getSuppliers();
-                        }
-                    }).flatMap(new Function<ChooseSupplierModel.Response, ObservableSource<ChooseMatterModel.Response>>() {
-                @Override
-                public ObservableSource<ChooseMatterModel.Response> apply(ChooseSupplierModel.Response response) throws Exception {
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0) {
-
-                            List<Supplier> supplierList = response.getData();
-                            for (int i = 0; i < supplierList.size(); i++) {
-                                String keyId = supplierList.get(i).getKeyID();
-                                supplierList.get(i).saveOrUpdate("KeyID = ?",keyId);
-                            }
+                        public void onError(Throwable t) {
+                            callback.onError(t);
                         }
 
-                    }
-                    return apiApp.getMatters();
-                }
-            }).flatMap(new Function<ChooseMatterModel.Response, ObservableSource<ChooseSpecsModel.Response>>() {
-                @Override
-                public ObservableSource<ChooseSpecsModel.Response> apply(ChooseMatterModel.Response response) throws Exception {
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
-
-                            List<Matter> list = response.getData();
-                            for (int i = 0;i<list.size();i++) {
-                                String keyId = list.get(i).getKeyID();
-                                list.get(i).saveOrUpdate("KeyID = ?",keyId);
-                                Logger.d(list.get(i).toString());
-                            }
+                        @Override
+                        public void onComplete() {
+                            callback.onComplete();
                         }
-                    }
-                    return apiApp.getSpecses();
-                }
-            }).flatMap(new Function<ChooseSpecsModel.Response, ObservableSource<DeductionModel.Response>>() {
-                @Override
-                public ObservableSource<DeductionModel.Response> apply(ChooseSpecsModel.Response response) throws Exception {
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
-
-                            List<Specs> specsList = response.getData();
-                            for (int i = 0;i<specsList.size();i++) {
-                                String keyId = specsList.get(i).getKeyID();
-                                specsList.get(i).saveOrUpdate("KeyID = ?",keyId);
-                                Logger.d(specsList.get(i).toString());
-                            }
-                        }
-                    }
-                    return apiApp.getDeductionCategory();
-                }
-            }).flatMap(new Function<DeductionModel.Response, ObservableSource<MatterLevelModel.Response>>() {
-                @Override
-                public ObservableSource<MatterLevelModel.Response> apply(DeductionModel.Response response) throws Exception {
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
-
-                            List<DeductionCategory> deductionCategoryList = response.getData();
-                            for (int i = 0;i<deductionCategoryList.size();i++) {
-                                String keyId = deductionCategoryList.get(i).getKeyID();
-                                boolean is = deductionCategoryList.get(i).saveOrUpdate("KeyID = ?",keyId);
-                                Logger.d(deductionCategoryList.get(i).toString() + is);
-                            }
-                        }
-                    }
-                    return apiApp.getMatterLevel();
-                }
-            }).flatMap(new Function<MatterLevelModel.Response, ObservableSource<ProduceLineModel.Response>>() {
-                @Override
-                public ObservableSource<ProduceLineModel.Response> apply(MatterLevelModel.Response response) throws Exception {
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
-                            List<MatterLevel> matterLevelList = response.getData();
-                            for (int i = 0;i<matterLevelList.size();i++) {
-                                String keyId = matterLevelList.get(i).getKeyID();
-                                boolean is = matterLevelList.get(i).saveOrUpdate("KeyID = ?",keyId);
-                                Logger.d(matterLevelList.get(i).toString() + is);
-                            }
-                        }
-                    }
-                    return apiApp.getProduceLines();
-                }
-            }).flatMap(new Function<ProduceLineModel.Response, ObservableSource<PriceModel.Response>>() {
-                @Override
-                public ObservableSource<PriceModel.Response> apply(ProduceLineModel.Response response) throws Exception {
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
-
-                            List<ProduceLine> list = response.getData();
-                            for (int i = 0;i<list.size();i++) {
-                                String keyId = list.get(i).getKeyID();
-                                list.get(i).saveOrUpdate("KeyID = ?",keyId);
-                                Logger.d(list.get(i).toString());
-                                //反序列化
-//                                        String sPower = list.get(i).getSapmle();
-//                                        Logger.d( "---------->" + sPower);
-//                                        Sapmle power = new Gson().fromJson(sPower,Sapmle.class);
-//                                        Logger.d(power.toString());
-
-                            }
-                        }
-                    }
-                    return apiApp.getPrice();
-                }
-            }).subscribe(new Consumer<PriceModel.Response>() {
-                @Override
-                public void accept(PriceModel.Response response) throws Exception {
-
-                    if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
-
-                            List<Price> priceList = response.getData();
-                            for (int i = 0;i<priceList.size();i++) {
-                                String keyId = priceList.get(i).getKeyID();
-                                priceList.get(i).saveOrUpdate("KeyID = ?",keyId);
-                                Logger.d(priceList.get(i).toString());
-                            }
-                        }
-                    }
-                }
-            });
+                    });
 
         }
-
-
 
 
     }

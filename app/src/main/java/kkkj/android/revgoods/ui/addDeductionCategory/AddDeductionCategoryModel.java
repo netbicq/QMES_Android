@@ -4,6 +4,7 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import kkkj.android.revgoods.bean.DeductionCategory;
 import kkkj.android.revgoods.http.RevGRequest;
 import kkkj.android.revgoods.http.RevGResponse;
 import kkkj.android.revgoods.mvpInterface.MvpCallback;
@@ -55,22 +56,12 @@ public class AddDeductionCategoryModel extends MvpModel<AddDeductionCategoryMode
 
     public static class Request extends RevGRequest {
         /**
-         * DictType : 1
+         *
          * DictName : sample string 1
-         * DictValue : sample string 2
          */
 
-        private int DictType = 2;
         private String DictName;
-        private String DictValue;
 
-        public int getDictType() {
-            return DictType;
-        }
-
-        public void setDictType(int DictType) {
-            this.DictType = DictType;
-        }
 
         public String getDictName() {
             return DictName;
@@ -80,23 +71,16 @@ public class AddDeductionCategoryModel extends MvpModel<AddDeductionCategoryMode
             this.DictName = DictName;
         }
 
-        public String getDictValue() {
-            return DictValue;
-        }
-
-        public void setDictValue(String DictValue) {
-            this.DictValue = DictValue;
-        }
     }
 
     public static class Response extends RevGResponse {
-        private boolean data;
+        private DeductionCategory data;
 
-        public boolean isData() {
+        public DeductionCategory getData() {
             return data;
         }
 
-        public void setData(boolean data) {
+        public void setData(DeductionCategory data) {
             this.data = data;
         }
     }

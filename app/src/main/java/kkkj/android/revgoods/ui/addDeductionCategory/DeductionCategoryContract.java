@@ -16,7 +16,7 @@ public class DeductionCategoryContract {
 
     public interface View extends MvpView {
         void getDeductionCategorySuc(List<DeductionCategory> data);
-        void addDeductionCategorySuc(boolean data);
+        void addDeductionCategorySuc(DeductionCategory data);
     }
 
     public static abstract class Presenter extends MvpPresenter<DeductionCategoryContract.View> {

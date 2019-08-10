@@ -10,7 +10,9 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 
 public class SamplingDetails extends LitePalSupport {
     private int id;
-
+    /**
+     * 是否已保存为单据 默认-1；为保存
+     */
     private int hasBill = -1;
 
     /**
@@ -26,9 +28,9 @@ public class SamplingDetails extends LitePalSupport {
      */
     private String weight;
     /**
-     * 单次规格
+     * 单次规格ID
      */
-    private Specs specs;
+    private int specsId;
 
     /**
      * 规格占比
@@ -46,13 +48,68 @@ public class SamplingDetails extends LitePalSupport {
     private double SingalWeight;
 
     /**
-     *品类等级
+     *品类等级ID
      */
-    private MatterLevel matterLevel;
+    private int matterLevelId;
+
+    /**
+     * 供应商ID
+     */
+    private int supplierId;
+
+    /**
+     * 品类ID
+     */
+    private int matterId;
+
+    /**
+     * 所属单据
+     */
+    private Bill bill;
+
+    public int getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public int getMatterId() {
+        return matterId;
+    }
+
+    public void setMatterId(int matterId) {
+        this.matterId = matterId;
+    }
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+    }
 
     private List<GetPicModel> modelList = new ArrayList<GetPicModel>();
 
     private List<Path> pathList = new ArrayList<>();
+
+    public int getSpecsId() {
+        return specsId;
+    }
+
+    public void setSpecsId(int specsId) {
+        this.specsId = specsId;
+    }
+
+    public int getMatterLevelId() {
+        return matterLevelId;
+    }
+
+    public void setMatterLevelId(int matterLevelId) {
+        this.matterLevelId = matterLevelId;
+    }
 
     public List<Path> getPathList() {
         return pathList;
@@ -60,14 +117,6 @@ public class SamplingDetails extends LitePalSupport {
 
     public void setPathList(List<Path> pathList) {
         this.pathList = pathList;
-    }
-
-    public MatterLevel getMatterLevel() {
-        return matterLevel;
-    }
-
-    public void setMatterLevel(MatterLevel matterLevel) {
-        this.matterLevel = matterLevel;
     }
 
     public double getSingalWeight() {
@@ -86,18 +135,6 @@ public class SamplingDetails extends LitePalSupport {
         this.price = price;
     }
 
-    public Bill getmBill() {
-        return mBill;
-    }
-
-    public void setmBill(Bill mBill) {
-        this.mBill = mBill;
-    }
-
-
-
-    private Bill mBill;
-
     public double getSpecsProportion() {
         return specsProportion;
     }
@@ -112,23 +149,6 @@ public class SamplingDetails extends LitePalSupport {
 
     public void setHasBill(int hasBill) {
         this.hasBill = hasBill;
-    }
-
-    public Bill getBill() {
-        return mBill;
-    }
-
-    public void setBill(Bill bill) {
-        mBill = bill;
-    }
-
-
-    public Specs getSpecs() {
-        return specs;
-    }
-
-    public void setSpecs(Specs specs) {
-        this.specs = specs;
     }
 
     public List<GetPicModel> getModelList() {

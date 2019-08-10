@@ -41,7 +41,7 @@ public class DeductionCategoryPresenter extends DeductionCategoryContract.Presen
         model.getResponse(request, new MvpCallback<AddDeductionCategoryModel.Response>(getView()) {
             @Override
             public void onSuccess(AddDeductionCategoryModel.Response data) {
-                getView().addDeductionCategorySuc(data.isData());
+                getView().addDeductionCategorySuc(data.getData());
             }
         });
 

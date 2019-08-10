@@ -318,6 +318,7 @@
                     app:layout_rowWeight="1" />
 
                 <TextView
+                    android:id="@+id/tv_total_weight"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="1dp"
@@ -330,6 +331,7 @@
                     tools:text="重量" />
 
                 <TextView
+                    android:id="@+id/tv_total_price"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="1dp"

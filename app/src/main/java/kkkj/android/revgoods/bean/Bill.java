@@ -12,6 +12,10 @@ public class Bill extends LitePalSupport {
 
     private int id;
     /**
+     * 计称总重量
+     */
+    private double weight;
+    /**
      * 当前时间
      */
     String time;
@@ -25,33 +29,22 @@ public class Bill extends LitePalSupport {
      * 默认-1未上传
      */
     private int  isUpload = -1;
-    /**
-     * 采购人
-     */
-    private String user;
+
 
     /**
      * 扣重率
      */
-    private String deductionMix;
+    private int deductionMix;
 
     /**
-     * 供应商
+     * 供应商ID
      */
-    private Supplier supplier;
+    private int supplierId;
     /**
-     *品类
+     *品类ID
      */
-    private Matter matter;
-    /**
-     * 品类等级
-     */
-    private MatterLevel matterLevel;
+    private int matterId;
 
-    /**
-     * 规格
-     */
-    private Specs specs;
     /**
      * 累计明细
      */
@@ -62,19 +55,49 @@ public class Bill extends LitePalSupport {
      */
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
 
-    public MatterLevel getMatterLevel() {
-        return matterLevel;
+    /**
+     * 扣重明细
+     */
+    private List<Deduction> deductionList = new ArrayList<>();
+
+    public double getWeight() {
+        return weight;
     }
 
-    public void setMatterLevel(MatterLevel matterLevel) {
-        this.matterLevel = matterLevel;
+    public void setWeight(double weight) {
+        this.weight = weight;
     }
 
-    public String getDeductionMix() {
+    public int getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public int getMatterId() {
+        return matterId;
+    }
+
+    public void setMatterId(int matterId) {
+        this.matterId = matterId;
+    }
+
+    public List<Deduction> getDeductionList() {
+        return deductionList;
+    }
+
+    public void setDeductionList(List<Deduction> deductionList) {
+        this.deductionList = deductionList;
+    }
+
+
+    public int getDeductionMix() {
         return deductionMix;
     }
 
-    public void setDeductionMix(String deductionMix) {
+    public void setDeductionMix(int deductionMix) {
         this.deductionMix = deductionMix;
     }
 
@@ -94,37 +117,6 @@ public class Bill extends LitePalSupport {
         this.isUpload = isUpload;
     }
 
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public Supplier getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(Supplier supplier) {
-        this.supplier = supplier;
-    }
-
-    public Matter getMatter() {
-        return matter;
-    }
-
-    public void setMatter(Matter matter) {
-        this.matter = matter;
-    }
-
-    public Specs getSpecs() {
-        return specs;
-    }
-
-    public void setSpecs(Specs specs) {
-        this.specs = specs;
-    }
 
     public List<Cumulative> getCumulativeList() {
         return cumulativeList;

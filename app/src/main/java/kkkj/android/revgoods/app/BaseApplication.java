@@ -134,7 +134,7 @@ public class BaseApplication extends ZApplication {
 
 //        保存日志到本地文件logger
 //        Logger.addLogAdapter(new DiskLogAdapter(formatStrategy));
-        Bugly.init(getApplicationContext(), "3dee6816b9", false);
+
                 Logger.d("Logger初始化成功");
                 //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式
                 Bugly.init(mContext, "76506509d0", false);

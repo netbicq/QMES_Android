@@ -249,7 +249,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
 
                                 });
                                 //当前采样对应的规格-->得出单价 price
-                                Specs specsBySampling = maxSamplingDetails.getSpecs();
+                                //Specs specsBySampling = maxSamplingDetails.getSpecs();
                                 //double totalPrice = realWeight * price;
 
                                 break;
@@ -266,12 +266,10 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
 
                         Bill bill = new Bill();
                         bill.setName(billName);
-                        bill.setDeductionMix(deductionMix);
+                       // bill.setDeductionMix(deductionMix);
 
-                        bill.setSupplier(supplier);
-                        bill.setMatter(matter);
-                        bill.setSpecs(specs);
-                        bill.setMatterLevel(matterLevel);
+                        bill.setSupplierId(supplierId);
+                        bill.setMatterId(matterId);
 
                         //获取当前时间 HH:mm:ss
                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -279,17 +277,6 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
 
                         bill.setTime(simpleDateFormat.format(date));
 
-                        for (int i = 0; i < deductionList.size(); i++) {
-                            Cumulative cumulative = new Cumulative();
-                            Deduction deduction = deductionList.get(i);
-
-                            cumulative.setCount(i + 1);
-                            cumulative.setCategory("扣重·" + deduction.getCategory());
-                            cumulative.setWeight(String.valueOf(deduction.getWeight()));
-                            cumulative.save();
-
-                            LitePal.delete(Deduction.class, deduction.getId());
-                        }
 
                         cumulativeList = LitePal.where("hasBill < ?", "0")
                                 .find(Cumulative.class, true);
@@ -301,6 +288,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                         LitePal.updateAll(SamplingDetails.class, values);
 
                         bill.setCumulativeList(cumulativeList);
+                        bill.setDeductionList(deductionList);
                         bill.setSamplingDetailsList(samplingDetailsList);
                         bill.save();
 

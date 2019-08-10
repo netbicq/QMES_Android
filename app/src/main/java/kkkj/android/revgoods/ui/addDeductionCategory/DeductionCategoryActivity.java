@@ -21,6 +21,7 @@ import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeductionCategoryAdapter;
 import kkkj.android.revgoods.bean.DeductionCategory;
 import kkkj.android.revgoods.ui.BaseActivity;
+import kkkj.android.revgoods.utils.NetUtils;
 
 public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPresenter>implements DeductionCategoryContract.View {
 
@@ -40,12 +41,15 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
     private View mAddCategoryView;
     private EditText mEditTextCategory;
 
+    private DeductionCategory deductionCategory;
+
 
     @Override
     protected DeductionCategoryPresenter getPresenter() {
         return new DeductionCategoryPresenter();
     }
 
+    @Override
     protected void initData() {
         deductionCategoryList = new ArrayList<>();
         mPresenter.getDeductionCategory();
@@ -57,6 +61,7 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
         return R.layout.activity_deduction_category;
     }
 
+    @Override
     protected void initView() {
         mAddCategoryView = getLayoutInflater().inflate(R.layout.add_deduction_category,
                 mConstraintLayout, false);
@@ -85,16 +90,19 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
                 break;
 
             case R.id.button:
+                if (!NetUtils.checkNetWork()) {
+                    Toast.makeText(DeductionCategoryActivity.this,"当前网络连接不可用，请联网后重试！",Toast.LENGTH_LONG).show();
+                    return;
+                }
                 String category = mEditTextCategory.getText().toString().trim();
 
                 if (!TextUtils.isEmpty(category)) {
 
-                    DeductionCategory deductionCategory = new DeductionCategory();
+                    deductionCategory = new DeductionCategory();
                     deductionCategory.setName(mEditTextCategory.getText().toString().trim());
-                    deductionCategory.save();
 
                     AddDeductionCategoryModel.Request request = new AddDeductionCategoryModel.Request();
-                    request.setDictType(2);
+
                     request.setDictName(mEditTextCategory.getText().toString().trim());
 
                     mPresenter.addDeductionCategory(request);
@@ -121,9 +129,10 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
     }
 
     @Override
-    public void addDeductionCategorySuc(boolean data) {
-        if (data){
-            Toast.makeText(DeductionCategoryActivity.this,"添加成功！",Toast.LENGTH_LONG).show();
-        }
+    public void addDeductionCategorySuc(DeductionCategory data) {
+
+        Toast.makeText(DeductionCategoryActivity.this,"添加成功！",Toast.LENGTH_LONG).show();
+        data.save();
+
     }
 }
