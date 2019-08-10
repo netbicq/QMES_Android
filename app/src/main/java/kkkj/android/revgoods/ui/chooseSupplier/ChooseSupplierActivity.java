@@ -97,6 +97,8 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
         smartRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                supplierList.clear();
+                supplierTempList.clear();
                 mPresenter.getSupplier();
             }
         });
@@ -187,8 +189,6 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
     @Override
     public void getSupplierSuc(List<Supplier> data) {
-        supplierList.clear();
-        supplierTempList.clear();
         supplierList.addAll(data);
         supplierTempList.addAll(data);
 

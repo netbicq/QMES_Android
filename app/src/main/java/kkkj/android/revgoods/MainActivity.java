@@ -1749,9 +1749,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onActivityResult(requestCode, resultCode, data);
         permissionHandler.onActivityResult(requestCode, resultCode, data);
 
-        if (samplingFragment != null) {
-            samplingFragment.onActivityResult(requestCode, resultCode, data);//在DialogFragment中获取回调结果
-        }
+//        if (samplingFragment != null) {
+//            samplingFragment.onActivityResult(requestCode, resultCode, data);//在DialogFragment中获取回调结果
+//        }
 
         //拍照回调
         if (requestCode == 200) {

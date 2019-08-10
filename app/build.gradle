@@ -6,7 +6,9 @@ android {
         applicationId "kkkj.android.revgoods"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 3
+        versionCode 2
+
+
         versionName "1.0"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

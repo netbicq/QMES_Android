@@ -205,6 +205,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     }
 
 
+    @Override
     public void initView(View view) {
         qmuiTipDialog = new QMUITipDialog.Builder(getActivity())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
@@ -337,7 +338,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                     mList.get(i).setIsDwon(1);//不可编辑
                 }
                 LitePal.saveAll(mList);
-
+                //上传附件
+                uploadFiles(mList);
 
                 SamplingDetails samplingDetails = new SamplingDetails();
 
@@ -422,16 +424,53 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         //拍照回调
         if (resultCode == Activity.RESULT_OK) {
-            mList = picOrMp4Adapter.getData();
+            //mList = picOrMp4Adapter.getData();
             GetPicModel picOrMp4 = new GetPicModel();
             picOrMp4 = (GetPicModel) data.getSerializableExtra("result");
             Logger.d(picOrMp4.getMp4Path());
             mList.add(picOrMp4);
+            Logger.d("-------------------->" + picOrMp4.getImagePath());
             picOrMp4Adapter.notifyDataSetChanged();
 
+        }
+
+    }
+
+    /**
+     * 拍照
+     */
+    private void takePicture() {
+        RxPermissions rxPermissions = new RxPermissions(getActivity());
+        rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO)
+                .subscribe(permission -> { // will emit 1 Permission object
+                    if (permission.granted) {
+                        startActivityForResult(new Intent(getContext(), GetPicOrMP4Activity.class), 200);
+                    } else if (permission.shouldShowRequestPermissionRationale) {
+                        //有至少一个权限没有同意
+                        //showToast("请同意全部权限");
+                    } else {
+                        //有至少一个权限没有同意且勾选了不在提示
+                        //showToast("请在权限管理中打开相关权限");
+                    }
+                });
+    }
+
+
+    /**
+     * 上传附件
+     */
+    private void uploadFiles(List<GetPicModel> getPicModelList) {
+
+        for (int i=0;i<getPicModelList.size();i++) {
+            GetPicModel picOrMp4 = getPicModelList.get(i);
             //上传附件
             APIAttachfile apiAttachfile = RetrofitServiceManager.getInstance().create(APIAttachfile.class);
-            qmuiTipDialog.show();
+            if (!qmuiTipDialog.isShowing()) {
+                qmuiTipDialog.show();
+            }
 
             int type = picOrMp4.getType();//0照片  1视频
             switch (type) {
@@ -553,32 +592,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 default:
                     break;
             }
-
-
         }
 
-    }
-
-    /**
-     * 拍照
-     */
-    private void takePicture() {
-        RxPermissions rxPermissions = new RxPermissions(getActivity());
-        rxPermissions.requestEachCombined(Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.RECORD_AUDIO)
-                .subscribe(permission -> { // will emit 1 Permission object
-                    if (permission.granted) {
-                        startActivityForResult(new Intent(getContext(), GetPicOrMP4Activity.class), 200);
-                    } else if (permission.shouldShowRequestPermissionRationale) {
-                        //有至少一个权限没有同意
-                        //showToast("请同意全部权限");
-                    } else {
-                        //有至少一个权限没有同意且勾选了不在提示
-                        //showToast("请在权限管理中打开相关权限");
-                    }
-                });
     }
 
 }
