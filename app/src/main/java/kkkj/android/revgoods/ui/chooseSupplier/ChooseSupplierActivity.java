@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
@@ -122,16 +123,15 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
             }
 
-            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void afterTextChanged(Editable editable) {
                 String search = mEtSearchSupplier.getText().toString().trim();
                 supplierList.clear();
 
-                List<Supplier> suppliers = supplierTempList.stream()
-                        .filter(supplier -> supplier.getName().contains(search))
-                        .collect(Collectors.toList());
-                supplierList.addAll(suppliers);
+//                List<Supplier> suppliers = supplierTempList.stream()
+//                        .filter(supplier -> supplier.getName().contains(search))
+//                        .collect(Collectors.toList());
+//                supplierList.addAll(suppliers);
 
                 for (int i=0;i<supplierTempList.size();i++) {
                     Supplier supplier = supplierTempList.get(i);
@@ -146,17 +146,13 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mPresenter.getSupplier();
-        smartRefreshLayout.autoRefresh();
-    }
 
     @Override
     protected void initData() {
         supplierList = new ArrayList<>();
         supplierTempList = new ArrayList<>();
+
+        mPresenter.getSupplier();
 
         if (NetUtils.checkNetWork()) {
             billList = LitePal.where("isUpload < ?","0").find(Bill.class,true);
@@ -189,6 +185,8 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
     @Override
     public void getSupplierSuc(List<Supplier> data) {
+        supplierList.clear();
+        supplierTempList.clear();
         supplierList.addAll(data);
         supplierTempList.addAll(data);
 

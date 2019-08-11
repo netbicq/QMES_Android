@@ -162,9 +162,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
         showBill();
 
-        supplier = LitePal.find(Supplier.class, supplierId);
-        matter = LitePal.find(Matter.class, matterId);
-
         billDetailsList = new ArrayList<>();
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             SamplingDetails samplingDetails = samplingDetailsList.get(i);
@@ -322,7 +319,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
         supplierId = maxSamplingDetails.getSupplierId();
         matterId = maxSamplingDetails.getMatterId();
-
+        supplier = LitePal.find(Supplier.class, supplierId);
+        matter = LitePal.find(Matter.class, matterId);
 
         //占比最大的规格
         Specs specs = LitePal.find(Specs.class, maxSamplingDetails.getSpecsId());

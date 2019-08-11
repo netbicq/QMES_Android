@@ -143,7 +143,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         specsList.addAll(LitePal.findAll(Specs.class));
 
         for (int i = 0; i < specsList.size(); i++) {
-            specsNameList.add(specsList.get(i).getName());
+            specsNameList.add(specsList.get(i).getValue());
         }
         specsAdapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, specsNameList);

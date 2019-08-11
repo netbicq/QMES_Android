@@ -35,7 +35,7 @@ import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 /**
  * 供应商
  */
-public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,ChooseSupplierModel.Response> {
+public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request, ChooseSupplierModel.Response> {
 
     @SuppressLint("CheckResult")
     @Override
@@ -55,8 +55,28 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                                     List<Supplier> supplierList = response.getData();
                                     for (int i = 0; i < supplierList.size(); i++) {
                                         String keyId = supplierList.get(i).getKeyID();
-                                        supplierList.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                        supplierList.get(i).saveOrUpdate("KeyID = ?", keyId);
                                     }
+
+
+                                    //从数据库取数据
+                                    try {
+
+                                        ChooseSupplierModel.Response response1 = new ChooseSupplierModel.Response();
+                                        List<Supplier> supplierList1 = LitePal.findAll(Supplier.class);
+                                        if (supplierList1.size() > 0) {
+                                            response1.setData(supplierList1);
+                                            callback.onSuccess(response1);
+                                        } else {
+                                            callback.onFailure("未查询到相关数据");
+                                        }
+                                        callback.onComplete();
+
+                                    } catch (Exception e) {
+                                        callback.onError(e);
+                                    }
+
+
                                 }
 
                             }
@@ -64,21 +84,21 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                     })
                     .observeOn(Schedulers.io())
                     .flatMap(new Function<ChooseSupplierModel.Response, ObservableSource<ChooseMatterModel.Response>>() {
-                @Override
-                public ObservableSource<ChooseMatterModel.Response> apply(ChooseSupplierModel.Response response) throws Exception {
+                        @Override
+                        public ObservableSource<ChooseMatterModel.Response> apply(ChooseSupplierModel.Response response) throws Exception {
 
-                    return apiApp.getMatters();
-                }
-            }).flatMap(new Function<ChooseMatterModel.Response, ObservableSource<ChooseSpecsModel.Response>>() {
+                            return apiApp.getMatters();
+                        }
+                    }).flatMap(new Function<ChooseMatterModel.Response, ObservableSource<ChooseSpecsModel.Response>>() {
                 @Override
                 public ObservableSource<ChooseSpecsModel.Response> apply(ChooseMatterModel.Response response) throws Exception {
                     if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
+                        if (response.getData().size() > 0) {
 
                             List<Matter> list = response.getData();
-                            for (int i = 0;i<list.size();i++) {
+                            for (int i = 0; i < list.size(); i++) {
                                 String keyId = list.get(i).getKeyID();
-                                list.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                list.get(i).saveOrUpdate("KeyID = ?", keyId);
                                 Logger.d(list.get(i).toString());
                             }
                         }
@@ -89,31 +109,15 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                 @Override
                 public ObservableSource<DeductionModel.Response> apply(ChooseSpecsModel.Response response) throws Exception {
                     if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
+                        if (response.getData().size() > 0) {
 
                             List<Specs> specsList = response.getData();
-                            for (int i = 0;i<specsList.size();i++) {
+                            for (int i = 0; i < specsList.size(); i++) {
                                 String keyId = specsList.get(i).getKeyID();
-                                specsList.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                specsList.get(i).saveOrUpdate("KeyID = ?", keyId);
                                 Logger.d(specsList.get(i).toString());
                             }
 
-                            //无网络情况下
-                            try {
-
-                                ChooseSupplierModel.Response response1 = new ChooseSupplierModel.Response();
-                                List<Supplier> supplierList = LitePal.findAll(Supplier.class);
-                                if (supplierList.size() > 0) {
-                                    response1.setData(supplierList);
-                                    callback.onSuccess(response1);
-                                } else {
-                                    callback.onFailure("未查询到相关数据");
-                                }
-                                callback.onComplete();
-
-                            }catch (Exception e) {
-                                callback.onError(e);
-                            }
                         }
                     }
                     return apiApp.getDeductionCategory();
@@ -122,12 +126,12 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                 @Override
                 public ObservableSource<MatterLevelModel.Response> apply(DeductionModel.Response response) throws Exception {
                     if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
+                        if (response.getData().size() > 0) {
 
                             List<DeductionCategory> deductionCategoryList = response.getData();
-                            for (int i = 0;i<deductionCategoryList.size();i++) {
+                            for (int i = 0; i < deductionCategoryList.size(); i++) {
                                 String keyId = deductionCategoryList.get(i).getKeyID();
-                                boolean is = deductionCategoryList.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                boolean is = deductionCategoryList.get(i).saveOrUpdate("KeyID = ?", keyId);
                                 Logger.d(deductionCategoryList.get(i).toString() + is);
                             }
                         }
@@ -138,11 +142,11 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                 @Override
                 public ObservableSource<ProduceLineModel.Response> apply(MatterLevelModel.Response response) throws Exception {
                     if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
+                        if (response.getData().size() > 0) {
                             List<MatterLevel> matterLevelList = response.getData();
-                            for (int i = 0;i<matterLevelList.size();i++) {
+                            for (int i = 0; i < matterLevelList.size(); i++) {
                                 String keyId = matterLevelList.get(i).getKeyID();
-                                boolean is = matterLevelList.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                boolean is = matterLevelList.get(i).saveOrUpdate("KeyID = ?", keyId);
                                 Logger.d(matterLevelList.get(i).toString() + is);
                             }
                         }
@@ -153,12 +157,12 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                 @Override
                 public ObservableSource<PriceModel.Response> apply(ProduceLineModel.Response response) throws Exception {
                     if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
+                        if (response.getData().size() > 0) {
 
                             List<ProduceLine> list = response.getData();
-                            for (int i = 0;i<list.size();i++) {
+                            for (int i = 0; i < list.size(); i++) {
                                 String keyId = list.get(i).getKeyID();
-                                list.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                list.get(i).saveOrUpdate("KeyID = ?", keyId);
                                 Logger.d(list.get(i).toString());
                                 //反序列化
 //                                        String sPower = list.get(i).getSapmle();
@@ -176,12 +180,12 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                 public void accept(PriceModel.Response response) throws Exception {
 
                     if (response.getState() == RESPONSE_OK) {
-                        if (response.getData().size() > 0){
+                        if (response.getData().size() > 0) {
 
                             List<Price> priceList = response.getData();
-                            for (int i = 0;i<priceList.size();i++) {
+                            for (int i = 0; i < priceList.size(); i++) {
                                 String keyId = priceList.get(i).getKeyID();
-                                priceList.get(i).saveOrUpdate("KeyID = ?",keyId);
+                                priceList.get(i).saveOrUpdate("KeyID = ?", keyId);
                                 Logger.d(priceList.get(i).toString());
                             }
                         }
@@ -190,9 +194,9 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
             });
 
 
-        }else {
+        } else {
 
-            //无网络情况下
+            //从数据库取数据
             try {
 
                 ChooseSupplierModel.Response response = new ChooseSupplierModel.Response();
@@ -205,10 +209,12 @@ public class ChooseSupplierModel extends MvpModel<ChooseSupplierModel.Request,Ch
                 }
                 callback.onComplete();
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 callback.onError(e);
             }
+
         }
+
 
 
 

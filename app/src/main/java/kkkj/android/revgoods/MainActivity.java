@@ -1590,7 +1590,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_save_bill://保存单据
 
                 if (LitePal.where("hasBill < ?", "0")
-                        .find(SamplingDetails.class, true).size() < 0) {
+                        .find(SamplingDetails.class, true).size() <= 0) {
 
                     myToasty.showWarning("请先先采样确定单价！");
                     return;
@@ -1619,8 +1619,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 int deduction = Integer.valueOf(editText1.getText().toString().trim());
                                 Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
                                         deduction,tvCumulativeWeight.getText().toString().trim());
-//                                TestFragment testFragment = new TestFragment();
-//                                showDialogFragment(testFragment,"test");
+
                                 startActivity(intent);
 
                             }
