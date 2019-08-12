@@ -6,20 +6,22 @@
     android:layout_marginRight="5dp"
     android:layout_marginLeft="5dp"
     android:layout_marginTop="@dimen/dp_10"
-    app:cardBackgroundColor="@color/light"
+    app:cardBackgroundColor="@color/qmui_config_color_white"
+    app:contentPaddingBottom="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="8dp"
-    app:contentPaddingBottom="16dp"
-    app:contentPaddingTop="16dp">
+    >
 
     <EditText
         android:id="@+id/id_et_category"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:imeOptions="flagNoExtractUi"
         android:layout_gravity="center"
-        android:textColor="@color/qmui_config_color_white"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="@color/qmui_config_color_white"
         android:textSize="18sp"
         android:hint="@string/input_category"/>
 

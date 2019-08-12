@@ -137,7 +137,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         specsNameList = new ArrayList<>();
         //specs = new Specs();
         tempSpecs = new Specs();
-        tempSpecs.setName(getResources().getString(R.string.choose_specs));
+        tempSpecs.setValue(getResources().getString(R.string.choose_specs));
 
         specsList.add(tempSpecs);
         specsList.addAll(LitePal.findAll(Specs.class));

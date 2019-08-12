@@ -156,10 +156,12 @@ public class ElcScaleActivity extends MvpBaseActivity {
                     bluetoothBean.setBluetoothDevice(device);
                     Logger.d("deviceAddress:" + device.getAddress());
 
-                    mNameList.add(device.getName());
-                    mList.add(bluetoothBean);
-                    mAdapter.notifyItemInserted(mNameList.size() - 1);
-                    mBluetooth.cancelScanBule();
+                    if (!mNameList.contains(device.getName() + "     Mac地址:" + device.getAddress())) {
+                        mNameList.add(device.getName() + "     Mac地址:" + device.getAddress());
+                        mList.add(bluetoothBean);
+                    }
+
+                    mAdapter.notifyDataSetChanged();
 
                 }
             }

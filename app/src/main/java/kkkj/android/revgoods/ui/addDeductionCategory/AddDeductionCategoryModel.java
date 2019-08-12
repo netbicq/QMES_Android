@@ -23,7 +23,7 @@ public class AddDeductionCategoryModel extends MvpModel<AddDeductionCategoryMode
     @Override
     public void getResponse(Request request, MvpCallback<Response> callback) {
         if (NetUtils.checkNetWork()) {
-            apiApp.addDict(request)
+            apiApp.addDict(request.getDictName())
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<Response>() {
@@ -60,15 +60,15 @@ public class AddDeductionCategoryModel extends MvpModel<AddDeductionCategoryMode
          * DictName : sample string 1
          */
 
-        private String DictName;
+        private String dictName;
 
 
         public String getDictName() {
-            return DictName;
+            return dictName;
         }
 
-        public void setDictName(String DictName) {
-            this.DictName = DictName;
+        public void setDictName(String dictName) {
+            this.dictName = dictName;
         }
 
     }

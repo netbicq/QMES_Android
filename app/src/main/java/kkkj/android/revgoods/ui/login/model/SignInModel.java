@@ -3,6 +3,8 @@ import android.annotation.SuppressLint;
 
 import com.orhanobut.logger.Logger;
 
+import org.litepal.LitePal;
+
 import java.util.List;
 
 import io.reactivex.ObservableSource;
@@ -65,6 +67,10 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                                 SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_Commonparts_Token, response.getData().getUserInfo().getToken());
                                 SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_Commonparts_AccountID, response.getData().getAccountID());
                                 callback.onSuccess(response);
+
+                                //登录成功之后请求数据
+                                request();
+
                             } else {
                                 callback.onFailure(response.getMsg());
                             }
@@ -80,11 +86,160 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                             callback.onComplete();
                         }
                     });
-
         }
 
 
     }
+
+    //请求数据
+
+    private void request() {
+
+        apiApp.getSuppliers()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<ChooseSupplierModel.Response>() {
+                    @Override
+                    public void accept(ChooseSupplierModel.Response response) throws Exception {
+                        if (response.getState() == RESPONSE_OK) {
+                            if (response.getData().size() > 0) {
+
+                                List<Supplier> supplierList = response.getData();
+                                for (int i = 0; i < supplierList.size(); i++) {
+                                    String keyId = supplierList.get(i).getKeyID();
+                                    supplierList.get(i).saveOrUpdate("KeyID = ?", keyId);
+                                    Logger.d(supplierList.get(i).toString());
+                                }
+                            }
+                        }
+                    }
+                })
+                .observeOn(Schedulers.io())
+                .concatMap(new Function<ChooseSupplierModel.Response, ObservableSource<ChooseMatterModel.Response>>() {
+                    @Override
+                    public ObservableSource<ChooseMatterModel.Response> apply(ChooseSupplierModel.Response response) throws Exception {
+
+                        return apiApp.getMatters();
+                    }
+                }).concatMap(new Function<ChooseMatterModel.Response, ObservableSource<ChooseSpecsModel.Response>>() {
+            @Override
+            public ObservableSource<ChooseSpecsModel.Response> apply(ChooseMatterModel.Response response) throws Exception {
+                if (response.getState() == RESPONSE_OK) {
+                    if (response.getData().size() > 0) {
+
+                        List<Matter> list = response.getData();
+                        for (int i = 0; i < list.size(); i++) {
+                            String keyId = list.get(i).getKeyID();
+                            list.get(i).saveOrUpdate("KeyID = ?", keyId);
+                            Logger.d(list.get(i).toString());
+                        }
+                    }
+                }
+                return apiApp.getSpecses();
+            }
+        }).concatMap(new Function<ChooseSpecsModel.Response, ObservableSource<DeductionModel.Response>>() {
+            @Override
+            public ObservableSource<DeductionModel.Response> apply(ChooseSpecsModel.Response response) throws Exception {
+                if (response.getState() == RESPONSE_OK) {
+                    if (response.getData().size() > 0) {
+
+                        List<Specs> specsList = response.getData();
+                        for (int i = 0; i < specsList.size(); i++) {
+                            String keyId = specsList.get(i).getKeyID();
+                            specsList.get(i).saveOrUpdate("KeyID = ?", keyId);
+                            Logger.d(specsList.get(i).toString());
+                        }
+
+                    }
+                }
+                return apiApp.getDeductionCategory();
+            }
+        }).concatMap(new Function<DeductionModel.Response, ObservableSource<MatterLevelModel.Response>>() {
+            @Override
+            public ObservableSource<MatterLevelModel.Response> apply(DeductionModel.Response response) throws Exception {
+                if (response.getState() == RESPONSE_OK) {
+                    if (response.getData().size() > 0) {
+
+                        List<DeductionCategory> deductionCategoryList = response.getData();
+                        for (int i = 0; i < deductionCategoryList.size(); i++) {
+                            String keyId = deductionCategoryList.get(i).getKeyID();
+                            boolean is = deductionCategoryList.get(i).saveOrUpdate("KeyID = ?", keyId);
+                            Logger.d(deductionCategoryList.get(i).toString() + is);
+                        }
+                    }
+                }
+                return apiApp.getMatterLevel();
+            }
+        }).concatMap(new Function<MatterLevelModel.Response, ObservableSource<ProduceLineModel.Response>>() {
+            @Override
+            public ObservableSource<ProduceLineModel.Response> apply(MatterLevelModel.Response response) throws Exception {
+                if (response.getState() == RESPONSE_OK) {
+                    if (response.getData().size() > 0) {
+                        List<MatterLevel> matterLevelList = response.getData();
+                        for (int i = 0; i < matterLevelList.size(); i++) {
+                            String keyId = matterLevelList.get(i).getKeyID();
+                            boolean is = matterLevelList.get(i).saveOrUpdate("KeyID = ?", keyId);
+                            Logger.d(matterLevelList.get(i).toString() + is);
+                        }
+                    }
+                }
+                return apiApp.getProduceLines();
+            }
+        }).concatMap(new Function<ProduceLineModel.Response, ObservableSource<PriceModel.Response>>() {
+            @Override
+            public ObservableSource<PriceModel.Response> apply(ProduceLineModel.Response response) throws Exception {
+                if (response.getState() == RESPONSE_OK) {
+                    if (response.getData().size() > 0) {
+
+                        List<ProduceLine> list = response.getData();
+                        for (int i = 0; i < list.size(); i++) {
+                            String keyId = list.get(i).getKeyID();
+                            list.get(i).saveOrUpdate("KeyID = ?", keyId);
+                            Logger.d(list.get(i).toString());
+                            //反序列化
+//                                        String sPower = list.get(i).getSapmle();
+//                                        Logger.d( "---------->" + sPower);
+//                                        Sapmle power = new Gson().fromJson(sPower,Sapmle.class);
+//                                        Logger.d(power.toString());
+
+                        }
+                    }
+                }
+                return apiApp.getPrice();
+            }
+        }).subscribe(new Observer<PriceModel.Response>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(PriceModel.Response response) {
+                if (response.getState() == RESPONSE_OK) {
+                    if (response.getData().size() > 0) {
+
+                        List<Price> priceList = response.getData();
+                        for (int i = 0; i < priceList.size(); i++) {
+                            String keyId = priceList.get(i).getKeyID();
+                            priceList.get(i).saveOrUpdate("KeyID = ?", keyId);
+                            Logger.d(priceList.get(i).toString());
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+    }
+
 
     public static class Response extends RevGResponse {
         UserView data;

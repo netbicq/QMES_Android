@@ -53,6 +53,9 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
     @BindView(R.id.checkBox2)
     CheckBox checkBox2;
     boolean isChecked = false;
+    //登陆成功
+    private boolean isSuccess = false;
+
     @Override
     protected int getLayout() {
         return R.layout.activity_login;
@@ -188,9 +191,12 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
             }
             showToast("登录成功");
         }
+
         startActivity(new Intent(mContext, MainActivity.class));
         finish();
+
     }
+
     public void getPermission()
     {
         boolean enabled = isNotificationEnabled(mContext);

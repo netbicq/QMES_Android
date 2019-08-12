@@ -31,7 +31,7 @@ import kkkj.android.revgoods.customer.MyToasty;
 public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatActivity implements MvpView {
 
     MyToasty mToast;
-    QMUITipDialog tLoading;
+    public QMUITipDialog tLoading;
     public RxPermissions rxPermissions = new RxPermissions(this);
     private Unbinder unbinder;
     public T mPresenter;
@@ -114,7 +114,7 @@ public abstract class MvpBaseActivity<T extends MvpPresenter> extends AppCompatA
         mToast = new MyToasty(mContext);
         tLoading= new QMUITipDialog.Builder(getContext())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在加载")
+                .setTipWord("正在登录...")
                 .create();
 
         mPresenter = getPresenter();

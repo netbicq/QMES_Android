@@ -289,9 +289,7 @@
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="总计"
-                    android:textColor="@color/red"
-                    app:layout_columnWeight="1"
-                    app:layout_rowWeight="1" />
+                    android:textColor="@color/red" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -301,9 +299,7 @@
                     android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
-                    android:text="   /   "
-                    app:layout_columnWeight="1"
-                    app:layout_rowWeight="1" />
+                    android:text="/" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -313,9 +309,7 @@
                     android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
-                    android:text="   /  "
-                    app:layout_columnWeight="1"
-                    app:layout_rowWeight="1" />
+                    android:text="/" />
 
                 <TextView
                     android:id="@+id/tv_total_weight"
@@ -326,8 +320,6 @@
                     android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
-                    app:layout_columnWeight="1"
-                    app:layout_rowWeight="1"
                     tools:text="重量" />
 
                 <TextView
@@ -340,8 +332,6 @@
                     android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
-                    app:layout_columnWeight="1"
-                    app:layout_rowWeight="1"
                     tools:text="价格" />
 
             </LinearLayout>

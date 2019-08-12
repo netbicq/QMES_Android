@@ -83,64 +83,6 @@ public class ConnectedThread implements Runnable {
         }
     }
 
-    //读取蓝牙继电器
-    private void readRelay() {
-        //byte[] buffer = new byte[1024];
-        byte[] buffer = new byte[8];// buffer store for the stream
-        int bytes; // bytes returned from read()
-        // Keep listening to the InputStream until an exception occurs
-        while (true) {
-            try {
-                // Read from the InputStream
-                long count = 0;
-                int progress = 0;
-                while (count == 0) {
-                    count = mmInStream.available();
-                }
-                CLog.e("total:" + count);
-                float current = 0;
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                //StringBuffer sbu = new StringBuffer();
-                String sbu;
-                do {
-                    bytes = mmInStream.read(buffer);
-
-                    sbu = BytesUtils.toHexStringForLog(buffer);
-                    Logger.d("蓝牙继电器数据：" + sbu);
-//                    List<String> stringList = new ArrayList<>();
-//                    //10进制ASCII码转化成String（48 -> "48"）
-//                    for (int i = 0; i < buffer.length; i++) {
-//                        stringList.add(buffer[i] + "");
-//                    }
-//                    ////10进制ASCII码转化成String（"48" -> "0"）
-//                    for (int i = 0; i < stringList.size(); i++) {
-//                        sbu.append(dec2Str(stringList.get(i)));
-//                    }
-
-                    CLog.e("read bytes:" + bytes);
-                    if (bytes > 0) {
-                        current += bytes;
-                        progress = (int) ((current / count) * 100);
-                        byteArrayOutputStream.write(buffer);
-                        handleTransfering(progress);
-                    } else {
-                        break;
-                    }
-
-                } while (mmInStream.available() > 0);
-                CLog.e("read success:" + bytes);
-                handleSuccessed(sbu);
-                //handleSuccessed(byteArrayOutputStream.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-                handleFailed(e);
-                break;
-            }
-
-        }
-    }
-
     //读取蓝牙电子秤
     private void read() {
 

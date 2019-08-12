@@ -2,16 +2,22 @@ package kkkj.android.revgoods.ui.saveBill;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -27,6 +33,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillDetailsAdapter;
 import kkkj.android.revgoods.bean.Bill;
@@ -45,8 +52,10 @@ import kkkj.android.revgoods.bean.bill.PurPrices;
 import kkkj.android.revgoods.bean.bill.PurSamples;
 import kkkj.android.revgoods.bean.bill.Scales;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
+import kkkj.android.revgoods.utils.DoubleCountUtils;
 
 public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> implements BillContract.View,
         View.OnClickListener {
@@ -173,9 +182,9 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
 
             double weight = samplingDetails.getSpecsProportion() * realWeight;
-            billDetails.setWeight(weight);
+            billDetails.setWeight(DoubleCountUtils.keep(weight));
 
-            billDetails.setTotalPrice(weight * samplingDetails.getPrice());
+            billDetails.setTotalPrice(DoubleCountUtils.keep(weight * samplingDetails.getPrice()));
 
             billDetailsList.add(billDetails);
         }
@@ -221,32 +230,55 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         switch (view.getId()) {
             //保存单据
             case R.id.button:
+                final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
+                //横屏时禁止输入法全屏
+                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillDetailsActivity.this);
+                inputDialog1.setTitle("请输入单据名称").setView(editText1);
+                inputDialog1.setPositiveButton(R.string.enter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (editText1.getText().toString().trim().length() == 0) {
+                                    new MyToasty(SaveBillDetailsActivity.this).showInfo("请输入单据名称");
+                                    return;
+                                }
+                                //单据名称
+                                String name = editText1.getText().toString().trim();
+                                mQMUITipDialog.show();
 
-                mQMUITipDialog.show();
+                                bill = new Bill();
+                                bill.setName(name);
+                                bill.setDeductionMix(deductionMix);
+                                bill.setSupplierId(supplierId);
+                                bill.setMatterId(matterId);
+                                bill.setTime(stringData);
+                                bill.setWeight(Double.valueOf(weight));
 
-                bill = new Bill();
-                bill.setDeductionMix(deductionMix);
-                bill.setSupplierId(supplierId);
-                bill.setMatterId(matterId);
-                bill.setTime(stringData);
-                bill.setWeight(Double.valueOf(weight));
+                                ContentValues values = new ContentValues();
+                                values.put("hasBill", 0);
+                                LitePal.updateAll(Cumulative.class, values);
+                                LitePal.updateAll(Deduction.class, values);
+                                LitePal.updateAll(SamplingDetails.class, values);
 
-                ContentValues values = new ContentValues();
-                values.put("hasBill", 0);
-                LitePal.updateAll(Cumulative.class, values);
-                LitePal.updateAll(Deduction.class, values);
-                LitePal.updateAll(SamplingDetails.class, values);
+                                bill.setCumulativeList(cumulativeList);
+                                bill.setDeductionList(deductionList);
+                                bill.setSamplingDetailsList(samplingDetailsList);
+                                bill.save();
 
-                bill.setCumulativeList(cumulativeList);
-                bill.setDeductionList(deductionList);
-                bill.setSamplingDetailsList(samplingDetailsList);
-                bill.save();
+                                mPresenter.addBill(request);
 
-                mPresenter.addBill(request);
+                                DeviceEvent deviceEvent = new DeviceEvent();
+                                deviceEvent.setReset(true);
+                                EventBus.getDefault().post(deviceEvent);
 
-                DeviceEvent deviceEvent = new DeviceEvent();
-                deviceEvent.setReset(true);
-                EventBus.getDefault().post(deviceEvent);
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
 
                 break;
             case R.id.iv_back:
@@ -280,7 +312,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         //计算占比
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-            samplingDetailsList.get(i).setSpecsProportion(specsProportion);
+            samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
         }
         LitePal.saveAll(samplingDetailsList);
 
@@ -300,7 +332,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         BigDecimal b2 = new BigDecimal(Double.toString(deductionWeight));
         mWeight = b1.subtract(b2).doubleValue();
         //实际重量  :除去扣重，以及扣重率之后的
-        realWeight = mWeight * (100 - deductionMix) * 0.01;
+        realWeight = DoubleCountUtils.keep(mWeight * (100 - deductionMix) * 0.01);
 
         //规格占比最大的采样
         SamplingDetails maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
@@ -338,10 +370,10 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             PurPrices purPrices = new PurPrices();
             double ratio = samplingDetailsList.get(i).getSpecsProportion();//规格占比
-            double weight = realWeight * ratio;//当前占比的重量
+            double weight = DoubleCountUtils.keep(realWeight * ratio);//当前占比的重量
             double price = samplingDetailsList.get(i).getPrice();//单价
 
-            money = weight * price + money;//总金额
+            money = DoubleCountUtils.keep(weight * price) + money;//总金额
 
             Specs specs1 = LitePal.find(Specs.class, samplingDetailsList.get(i).getSpecsId());
             purPrices.setNormsID(specs1.getKeyID());//规格ID
@@ -379,7 +411,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         MatterLevel matterLevel = LitePal.find(MatterLevel.class, maxSamplingDetails.getMatterLevelId());
         billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
 
-        billMasterBean.setPrice(money / realWeight);//整批单价
+        billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
         billMasterBean.setAmount(realWeight);//总重量
         billMasterBean.setDelWeightRate(deductionMix);
 

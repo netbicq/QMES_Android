@@ -36,6 +36,8 @@ public class Ble {
     private boolean isServiceConnected;
     private BluetoothGattCallback mGattCallback;
 
+    private boolean isConnected = false;
+
     public Ble(BluetoothDevice device, Context context) {
         mDevice = device;
         this.context = context;
@@ -69,6 +71,7 @@ public class Ble {
 
                 if (newState == BluetoothProfile.STATE_CONNECTED) {//当蓝牙设备已经连接
 
+                    isConnected = true;
                     //获取ble设备上面的服务
 //                Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
                     Log.i("haha", "Attempting to start service discovery:" +
@@ -78,6 +81,7 @@ public class Ble {
                     Log.d("haha", "onConnectionStateChange: " + "连接成功");
 
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {//当设备无法连接
+                    isConnected = false;
                     if (mBluetoothGatt != null) {
                         mBluetoothGatt.disconnect();
                         mBluetoothGatt.close();
@@ -186,7 +190,7 @@ public class Ble {
 
 
 
-    public void connect() {
+    public boolean connect() {
        // BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("D8:E0:4B:FD:31:F6");
         if (mDevice != null) {
             if (mBluetoothGatt != null) {
@@ -196,6 +200,7 @@ public class Ble {
             }
             mBluetoothGatt = mDevice.connectGatt(context, false, mGattCallback);
         }
+        return isConnected;
     }
 
     public void send(byte[] bytes) {

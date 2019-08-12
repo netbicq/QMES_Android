@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/qmui_config_color_pure_black"
     xmlns:tolls="http://schemas.android.com/tools"
     android:orientation="horizontal">
 
@@ -10,32 +11,32 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
+        android:background="@color/qmui_config_color_white"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
         android:gravity="center"
         tolls:text="次数"/>
-
-    <View
-        android:background="@color/qmui_config_color_pure_black"
-        android:layout_width="1dp"
-        android:layout_height="match_parent"/>
 
     <TextView
         android:id="@+id/id_tv_category"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@color/qmui_config_color_white"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
         android:layout_weight="1"
         android:gravity="center"
         android:text="@string/category"/>
-
-    <View
-        android:background="@color/qmui_config_color_pure_black"
-        android:layout_width="1dp"
-        android:layout_height="match_parent"/>
 
     <TextView
         android:id="@+id/id_tv_weight"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="1dp"
+        android:layout_marginBottom="1dp"
         android:gravity="center"
         android:text="@string/weight"/>
 

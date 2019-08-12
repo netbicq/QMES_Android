@@ -18,7 +18,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
         android:orientation="horizontal"
+        android:background="@color/qmui_config_color_pure_black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bar_container">
@@ -27,53 +30,45 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:background="@color/qmui_config_color_white"
+            android:layout_marginTop="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
             android:gravity="center"
             android:text="@string/count"/>
 
-        <View
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"/>
-
-
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_marginTop="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
+            android:background="@color/qmui_config_color_white"
             android:gravity="center"
             android:text="@string/category"/>
 
-        <View
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"/>
-
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_margin="1dp"
+            android:background="@color/qmui_config_color_white"
             android:gravity="center"
             android:text="@string/weight"/>
 
     </LinearLayout>
 
-    <View
-        android:id="@+id/view"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/qmui_config_color_black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_ll" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/id_sampling_recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view" />
+        app:layout_constraintTop_toBottomOf="@+id/id_ll" />
 
 </android.support.constraint.ConstraintLayout>
