@@ -9,6 +9,7 @@ import android.view.View;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
@@ -43,6 +44,7 @@ import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.mvpInterface.MvpModel;
 import kkkj.android.revgoods.ui.saveBill.BillModel;
+import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.NetUtils;
 
 /**
@@ -54,7 +56,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
     private LinearLayoutManager mLayoutManager;
     private BillAdapter billAdapter;
     private List<Bill> mBills;
-
+    private QMUITipDialog mQMUITipDialog;
 
     @Override
     public void initData() {
@@ -67,6 +69,11 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
     @Override
     public void initView(View view) {
         tvTitle.setText(R.string.bill_list);
+
+        mQMUITipDialog = new QMUITipDialog.Builder(getActivity())
+                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                .setTipWord("正在上传...")
+                .create();
 
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
         billAdapter = new BillAdapter(R.layout.item_bill_list, mBills);
@@ -128,6 +135,9 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                             new MyToasty(getActivity()).showWarning("当前网络连接不可用，请联网后重试！");
                             return;
                         }
+
+                        mQMUITipDialog.show();
+
                         MvpModel.apiApp.addBill(request)
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -151,12 +161,17 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
                                     @Override
                                     public void onError(Throwable e) {
-
+                                        if (mQMUITipDialog.isShowing()) {
+                                            mQMUITipDialog.dismiss();
+                                        }
+                                        new MyToasty(getActivity()).showError("上传失败：" + e.getMessage());
                                     }
 
                                     @Override
                                     public void onComplete() {
-
+                                        if (mQMUITipDialog.isShowing()) {
+                                            mQMUITipDialog.dismiss();
+                                        }
                                     }
                                 });
 
@@ -237,20 +252,24 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         //实际重量  :除去扣重，以及扣重率之后的
         double realWeight = mWeight * (100 - bill.getDeductionMix()) * 0.01;
 
-        //规格占比最大的采样
-        SamplingDetails maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
-            @Override
-            public int compare(SamplingDetails samplingDetails, SamplingDetails t1) {
-                if (samplingDetails.getSpecsProportion() > t1.getSpecsProportion()) {
-                    return 1;
-                } else if (samplingDetails.getSpecsProportion() == t1.getSpecsProportion()) {
-                    return 0;
-                } else {
-                    return -1;
+        SamplingDetails maxSamplingDetails;
+        if (samplingDetailsList.size() == 1) {
+            maxSamplingDetails = samplingDetailsList.get(0);
+        }else {
+            //规格占比最大的采样
+            maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
+                @Override
+                public int compare(SamplingDetails samplingDetails, SamplingDetails t1) {
+                    if (samplingDetails.getSpecsProportion() > t1.getSpecsProportion()) {
+                        return 1;
+                    } else if (samplingDetails.getSpecsProportion() == t1.getSpecsProportion()) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
                 }
-            }
-
-        });
+            });
+        }
         //占比最大的规格
         Specs specs = LitePal.find(Specs.class,maxSamplingDetails.getSpecsId());
 

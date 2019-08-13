@@ -342,14 +342,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_style"
-                android:text="@string/enter"
+                android:text="保存"
                 android:textColor="@color/qmui_config_color_white" />
 
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>
-
-
 
 
 </android.support.constraint.ConstraintLayout>

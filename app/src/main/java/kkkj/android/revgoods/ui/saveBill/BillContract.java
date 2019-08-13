@@ -15,6 +15,7 @@ public class BillContract {
     public interface View extends MvpView {
         void addBillSuc(boolean data);
         void uploadfileSuc(String date);
+        void onCompleted();
     }
 
     public static abstract class Presenter extends MvpPresenter<View> {

@@ -221,6 +221,13 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     }
 
     @Override
+    public void onCompleted() {
+        if (mQMUITipDialog.isShowing()) {
+            mQMUITipDialog.dismiss();
+        }
+    }
+
+    @Override
     public void uploadfileSuc(String date) {
 
     }

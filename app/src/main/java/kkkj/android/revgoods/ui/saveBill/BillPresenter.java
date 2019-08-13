@@ -25,6 +25,11 @@ public class BillPresenter extends BillContract.Presenter{
             public void onSuccess(BillModel.Response data) {
                 getView().addBillSuc(data.isData());
             }
+
+            @Override
+            public void onComplete() {
+                getView().onCompleted();
+            }
         });
     }
 
