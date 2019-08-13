@@ -2,6 +2,7 @@ package kkkj.android.revgoods.elcscale.view;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
@@ -57,10 +58,27 @@ public class ElcScaleActivity extends MvpBaseActivity {
     private StringAdapter mAdapter;
     Bluetooth mBluetooth;
 
+    private int type = -1;
+    private Device device;
+
+    public static Intent newIntent(Context context, int type) {
+        Intent intent = new Intent(context,ElcScaleActivity.class);
+        intent.putExtra("deviceType",type);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle bundle = getIntent().getExtras();
+
+        if (bundle != null) {
+            type = bundle.getInt("deviceType");
+        }
+        device = new Device();
+        device.setType(type);
+        Logger.d("deviceType" + type);
 
         /**
          * 沉浸式
@@ -98,8 +116,7 @@ public class ElcScaleActivity extends MvpBaseActivity {
         mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                Device device = new Device();
-                device.setType(3);
+
                 device.setBluetoothMac(mList.get(position).getBluetoothDevice().getAddress());
                 DeviceEvent deviceEvent = new DeviceEvent();
                 deviceEvent.setDevice(device);

@@ -10,7 +10,7 @@ package kkkj.android.revgoods.bean;
 public class Master {
 
     /**
-     * DeviceType : 1:蓝牙；2:继电器
+     * DeviceType : 1:蓝牙；2:wifi
      * DeviceAddr : 20:17:03:15:05:65
      */
 

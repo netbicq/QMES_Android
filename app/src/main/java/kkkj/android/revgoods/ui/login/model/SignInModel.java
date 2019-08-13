@@ -190,7 +190,7 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
             public ObservableSource<PriceModel.Response> apply(ProduceLineModel.Response response) throws Exception {
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
-
+                        LitePal.deleteAll(ProduceLine.class);
                         List<ProduceLine> list = response.getData();
                         for (int i = 0; i < list.size(); i++) {
                             String keyId = list.get(i).getKeyID();

@@ -334,20 +334,25 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         //实际重量  :除去扣重，以及扣重率之后的
         realWeight = DoubleCountUtils.keep(mWeight * (100 - deductionMix) * 0.01);
 
-        //规格占比最大的采样
-        SamplingDetails maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
-            @Override
-            public int compare(SamplingDetails samplingDetails, SamplingDetails t1) {
-                if (samplingDetails.getSpecsProportion() > t1.getSpecsProportion()) {
-                    return 1;
-                } else if (samplingDetails.getSpecsProportion() == t1.getSpecsProportion()) {
-                    return 0;
-                } else {
-                    return -1;
+        SamplingDetails maxSamplingDetails;
+        if (samplingDetailsList.size() == 1) {
+            maxSamplingDetails = samplingDetailsList.get(0);
+        }else {
+            //规格占比最大的采样
+            maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
+                @Override
+                public int compare(SamplingDetails samplingDetails, SamplingDetails t1) {
+                    if (samplingDetails.getSpecsProportion() > t1.getSpecsProportion()) {
+                        return 1;
+                    } else if (samplingDetails.getSpecsProportion() == t1.getSpecsProportion()) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
                 }
-            }
+            });
+        }
 
-        });
 
         supplierId = maxSamplingDetails.getSupplierId();
         matterId = maxSamplingDetails.getMatterId();

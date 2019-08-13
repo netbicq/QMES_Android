@@ -9,6 +9,7 @@ public class Device {
      * type = 1;蓝牙继电器
      * type = 2;wifi继电器
      * type = 3;蓝牙电子秤（采样连接的）
+     * type = 0;蓝牙电子秤（手动计重连接的,手动计重只有一个电子秤）
      * type = 4;蓝牙Ble显示屏
      */
     private int type = -1;

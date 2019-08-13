@@ -154,13 +154,13 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
         mPresenter.getSupplier();
 
-        if (NetUtils.checkNetWork()) {
-            billList = LitePal.where("isUpload < ?","0").find(Bill.class,true);
-            if (billList.size() > 0) {
-                BillModel.Request request = showBill(billList.get(i));
-                mPresenter.addBill(request);
-            }
-        }
+//        if (NetUtils.checkNetWork()) {
+//            billList = LitePal.where("isUpload < ?","0").find(Bill.class,true);
+//            if (billList.size() > 0) {
+//                BillModel.Request request = showBill(billList.get(i));
+//                mPresenter.addBill(request);
+//            }
+//        }
 
         adapter = new SupplierAdapter(R.layout.item_card_view,supplierList);
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -201,19 +201,19 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
 
     @Override
     public void addBillSuc(boolean data) {
-        if (data) {
-            billList.get(i).setIsUpload(0);
-            billList.get(i).save();
-            while (i < billList.size()) {
-                i++;
-                BillModel.Request request = showBill(billList.get(i));
-                mPresenter.addBill(request);
-            }
-
-        }else {
-            BillModel.Request request = showBill(billList.get(i));
-            mPresenter.addBill(request);
-        }
+//        if (data) {
+//            billList.get(i).setIsUpload(0);
+//            billList.get(i).save();
+//            while (i < billList.size()) {
+//                i++;
+//                BillModel.Request request = showBill(billList.get(i));
+//                mPresenter.addBill(request);
+//            }
+//
+//        }else {
+//            BillModel.Request request = showBill(billList.get(i));
+//            mPresenter.addBill(request);
+//        }
     }
 
     @Override

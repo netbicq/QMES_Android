@@ -432,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
                     connectBle(bleDevice);
 
+
                 default:
                     break;
             }
@@ -655,6 +656,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void disconnected() {
                 //myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
                 SmartToast.errorLong(R.string.bluetooth_diconnected);
+                blueMainScaleConnectionState = false;
             }
         });
     }
@@ -954,7 +956,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if (position == 1) {//移动计重
                     mTvHand.setVisibility(View.VISIBLE);
-                    startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+                    Intent intent = ElcScaleActivity.newIntent(MainActivity.this,0);
+                    startActivity(intent);
                     return;
                 }
 
@@ -1022,6 +1025,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         try {
                             BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
                             connectBluetoothRelay(bluetoothDevice1);
+
                         } catch (Exception e) {
                             e.printStackTrace();
                             myToasty.showInfo(e.getMessage());
@@ -1222,7 +1226,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onBondFail(BluetoothDevice device) {
-
+                myToasty.showInfo("配对失败，请重试！");
             }
 
             @Override
@@ -1245,7 +1249,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                        break;
 //                }
 
-                myToasty.showInfo("绑定成功，请点击重连！");
+                myToasty.showInfo("配对成功，请点击重连！");
 
             }
         }, "1234");
@@ -1426,7 +1430,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     } else {
                         myToasty.showInfo("未配置采样秤，请手动连接！");
-                        startActivity(new Intent(MainActivity.this, ElcScaleActivity.class));
+                        Intent intent = ElcScaleActivity.newIntent(MainActivity.this,3);
+                        startActivity(intent);
                     }
                 }
 
@@ -1510,10 +1515,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
-//                if (Double.valueOf(tvCumulativeWeight.getText().toString().trim()) <= 0) {
-//                    myToasty.showWarning("当前未称重！");
-//                    return;
-//                }
+                if (Double.valueOf(tvCumulativeWeight.getText().toString().trim()) <= 0) {
+                    myToasty.showWarning("当前未称重！");
+                    return;
+                }
 
                 final EditText editText1 = new EditText(MainActivity.this);
                 editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
