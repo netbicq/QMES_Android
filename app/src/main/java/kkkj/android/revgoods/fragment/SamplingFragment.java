@@ -59,6 +59,7 @@ import kkkj.android.revgoods.http.RetrofitServiceManager;
 import kkkj.android.revgoods.http.api.APIAttachfile;
 import kkkj.android.revgoods.http.api.UploadCallbacks;
 import kkkj.android.revgoods.ui.chooseSupplier.UpLoadFileModel;
+import kkkj.android.revgoods.utils.DoubleCountUtils;
 
 /**
  * 采样
@@ -345,7 +346,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 //最终的单价
                 if (position != 0) {
-                    samplingDetails.setPrice(Double.valueOf(tempPrice));
+                    samplingDetails.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
                     samplingDetails.setSpecsId(specs.getId());
                 } else {
                     myToasty.showWarning("请选择系统默认提供的规格！");
@@ -362,18 +363,11 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 samplingDetails.setPathList(pathList);
                 samplingDetails.setSupplierId(supplierId);
                 samplingDetails.setMatterId(matterId);
-                Logger.d("是否保存成功：" + pathList.size());
 
                 //品类等级
                 samplingDetails.setMatterLevelId(matterLevel.getId());
 
-                Logger.d("----------->" + matterLevel.getKeyID());
-
-
-                for (int i = 0; i < mList.size(); i++) {
-
-                    samplingDetails.getModelList().add(mList.get(i));
-                }
+                samplingDetails.setModelList(mList);
 
                 DeviceEvent deviceEvent = new DeviceEvent();
 
@@ -402,7 +396,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                         double specs = Double.parseDouble(weight) / Integer.parseInt(number);
                         //单重
-                        singalWeight = specs;
+                        singalWeight = DoubleCountUtils.keep(specs);
                         specsNameList.set(0, String.valueOf(specs));
                         specsAdapter.notifyDataSetChanged();
 

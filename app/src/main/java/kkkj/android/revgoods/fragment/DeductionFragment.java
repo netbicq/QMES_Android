@@ -22,6 +22,7 @@ import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.DeductionCategory;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.utils.DoubleCountUtils;
 
 /**
  * 扣重
@@ -125,7 +126,7 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
 
                         deduction = new Deduction();
                         deduction.setCategory(deductionCategory.getName());
-                        deduction.setWeight(Double.valueOf(wt));
+                        deduction.setWeight(DoubleCountUtils.keep(Double.valueOf(wt)));
                         deduction.setKeyID(deductionCategory.getKeyID());
                         deduction.save();
 

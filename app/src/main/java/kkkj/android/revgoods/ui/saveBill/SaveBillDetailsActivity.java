@@ -1,5 +1,6 @@
 package kkkj.android.revgoods.ui.saveBill;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,7 +9,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
-import android.text.InputType;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -17,12 +17,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,7 +34,16 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import kkkj.android.revgoods.MainActivity;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillDetailsAdapter;
 import kkkj.android.revgoods.bean.Bill;
@@ -51,11 +61,17 @@ import kkkj.android.revgoods.bean.bill.DelWeights;
 import kkkj.android.revgoods.bean.bill.PurPrices;
 import kkkj.android.revgoods.bean.bill.PurSamples;
 import kkkj.android.revgoods.bean.bill.Scales;
+import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.http.RetrofitServiceManager;
+import kkkj.android.revgoods.http.api.APIAttachfile;
+import kkkj.android.revgoods.http.api.UploadCallbacks;
 import kkkj.android.revgoods.ui.BaseActivity;
+import kkkj.android.revgoods.ui.chooseSupplier.UpLoadFileModel;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.NetUtils;
 
 public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> implements BillContract.View,
         View.OnClickListener {
@@ -84,6 +100,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     TextView mTvTotalWeight;
     @BindView(R.id.tv_total_price)
     TextView mTvTotalPrice;
+    @BindView(R.id.tv_right)
+    TextView tvRight;
 
     private BillDetailsAdapter adapter;
     private List<BillDetails> billDetailsList;
@@ -148,6 +166,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 .create();
 
         tvTitle.setText("单据明细");
+        tvRight.setText("上传附件");
+        tvRight.setOnClickListener(this);
         ivBack.setOnClickListener(this);
         mBtnSaveBill.setOnClickListener(this);
         tvDeductionMix.setText("计重明细（当前扣重率：" + deductionMix + "%）");//扣重率
@@ -169,7 +189,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         weight = intent.getStringExtra("weight");
         deductionMix = intent.getIntExtra("deductionMix", -1);
 
-        showBill();
+        request = showBill();
 
         billDetailsList = new ArrayList<>();
         for (int i = 0; i < samplingDetailsList.size(); i++) {
@@ -205,6 +225,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
     @Override
     public void addBillSuc(boolean data) {
+        Logger.d(data);
         if (data) {
             bill.setIsUpload(0);
             bill.save();
@@ -235,8 +256,15 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+
+            //上传附件
+            case R.id.tv_right:
+
+                break;
+
             //保存单据
             case R.id.button:
+
                 final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
                 //横屏时禁止输入法全屏
                 editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
@@ -244,15 +272,18 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 inputDialog1.setTitle("请输入单据名称").setView(editText1);
                 inputDialog1.setPositiveButton(R.string.enter,
                         new DialogInterface.OnClickListener() {
+                            @SuppressLint("CheckResult")
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if (editText1.getText().toString().trim().length() == 0) {
                                     new MyToasty(SaveBillDetailsActivity.this).showInfo("请输入单据名称");
                                     return;
                                 }
+                                mQMUITipDialog.show();
+                                mPresenter.addBill(request);
+
                                 //单据名称
                                 String name = editText1.getText().toString().trim();
-                                mQMUITipDialog.show();
 
                                 bill = new Bill();
                                 bill.setName(name);
@@ -261,6 +292,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                                 bill.setMatterId(matterId);
                                 bill.setTime(stringData);
                                 bill.setWeight(Double.valueOf(weight));
+
 
                                 ContentValues values = new ContentValues();
                                 values.put("hasBill", 0);
@@ -272,12 +304,119 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                                 bill.setDeductionList(deductionList);
                                 bill.setSamplingDetailsList(samplingDetailsList);
                                 bill.save();
-
-                                mPresenter.addBill(request);
+                                new MyToasty(SaveBillDetailsActivity.this).showSuccess("保存成功");
 
                                 DeviceEvent deviceEvent = new DeviceEvent();
                                 deviceEvent.setReset(true);
                                 EventBus.getDefault().post(deviceEvent);
+                                //finish();
+
+
+//                                if (NetUtils.checkNetWork()) {
+//                                    List<SamplingDetails> tempSamplingList = new ArrayList<>();
+//
+//                                    Observable.just(1)
+//                                            .subscribeOn(Schedulers.io())
+//                                            .observeOn(AndroidSchedulers.mainThread())
+//                                            .doOnNext(new Consumer<Integer>() {
+//                                                @Override
+//                                                public void accept(Integer integer) throws Exception {
+//
+//                                                }
+//                                            })
+//                                            .observeOn(Schedulers.io())
+//                                            .concatMap(new Function<Integer, ObservableSource<List<SamplingDetails>>>() {
+//                                                @Override
+//                                                public ObservableSource<List<SamplingDetails>> apply(Integer integer) throws Exception {
+//                                                    for (int i = 0; i < samplingDetailsList.size(); i++) {
+//                                                        int samplingDetailsId = samplingDetailsList.get(i).getId();
+//                                                        SamplingDetails samplingDetails = LitePal.find(SamplingDetails.class, samplingDetailsId, true);
+//                                                        List<GetPicModel> getPicModelList = samplingDetails.getModelList();
+//                                                        List<Path> pathList;
+//
+//                                                        if (getPicModelList.size() > 0) {
+//                                                            pathList = uploadFiles(getPicModelList);
+//                                                            samplingDetails.setPathList(pathList);
+//                                                            samplingDetails.save();
+//                                                            tempSamplingList.add(samplingDetails);
+//                                                        }
+//                                                    }
+//                                                    return Observable.create(new ObservableOnSubscribe<List<SamplingDetails>>() {
+//                                                        @Override
+//                                                        public void subscribe(ObservableEmitter<List<SamplingDetails>> emitter) throws Exception {
+//                                                            emitter.onNext(tempSamplingList);
+//                                                            emitter.onComplete();
+//                                                        }
+//                                                    });
+//                                                }
+//                                            }).subscribe(new Observer<List<SamplingDetails>>() {
+//                                        @Override
+//                                        public void onSubscribe(Disposable d) {
+//
+//                                        }
+//
+//                                        @Override
+//                                        public void onNext(List<SamplingDetails> samplingDetails) {
+//                                            /**
+//                                             * Weigth : 1.0
+//                                             * Amount : 2.0
+//                                             * SingalWeight : 3.0
+//                                             * NormsID : b8b62085-43a5-488e-9cfa-659f4c73927e
+//                                             * Ratio : 5.0
+//                                             * Files : ["sample string 1","sample string 2"]
+//                                             */
+//                                            List<PurSamples> purSamplesList = new ArrayList<>();//采样明细
+//                                            for (int i = 0; i < samplingDetails.size(); i++) {
+//                                                PurSamples purSamples = new PurSamples();
+//
+//                                                int samplingId = samplingDetails.get(i).getId();
+//                                                SamplingDetails samplingDetails1 = LitePal.find(SamplingDetails.class,samplingId,true);
+//
+//                                                double ratio = samplingDetails1.getSpecsProportion() * 100;//规格占比
+//                                                double amount = Double.valueOf(samplingDetails1.getNumber());//本次采样的数量
+//
+//                                                purSamples.setWeigth(DoubleCountUtils.keep(Double.valueOf(samplingDetails1.getWeight())));//本次采样的重量
+//                                                purSamples.setAmount(DoubleCountUtils.keep(amount));//本次采样的数量
+//                                                purSamples.setSingalWeight(samplingDetails1.getSingalWeight());//本次采样单重
+//
+//                                                Specs specs1 = LitePal.find(Specs.class, samplingDetails1.getSpecsId());
+//                                                purSamples.setNormsID(specs1.getKeyID());//规格ID
+//
+//                                                purSamples.setRatio(ratio);//规格占比
+//
+//
+//                                                //文件路径
+//                                                List<Path> pathList = samplingDetails1.getPathList();
+//                                                List<String> stringList = new ArrayList<>();
+//                                                for (int j = 0; j < pathList.size(); j++) {
+//                                                    stringList.add(pathList.get(j).getPath());
+//                                                }
+//                                                purSamples.setFiles(stringList);//文件路径
+//
+//                                                for (int j = 0; j < stringList.size(); j++) {
+//                                                    Logger.d(stringList.get(j));
+//                                                }
+//
+//                                                purSamplesList.add(purSamples);
+//                                            }
+//                                            request.setPurSamples(purSamplesList);//采样明细
+//
+//                                            mPresenter.addBill(request);
+//                                        }
+//
+//                                        @Override
+//                                        public void onError(Throwable e) {
+//
+//                                        }
+//
+//                                        @Override
+//                                        public void onComplete() {
+//
+//                                        }
+//                                    });
+//                                } else {
+//                                    new MyToasty(SaveBillDetailsActivity.this).showInfo("当前网络连接不可用，数据将保存到本地！");
+//                                }
 
                             }
                         })
@@ -298,7 +437,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
 
     //显示单据
-    private void showBill() {
+    private BillModel.Request showBill() {
+        BillModel.Request request = new BillModel.Request();
 
         deductionList = LitePal.where("hasBill < ?", "0")
                 .find(Deduction.class);
@@ -324,8 +464,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         LitePal.saveAll(samplingDetailsList);
 
 
-        request = new BillModel.Request();
-
         //计秤总重量
         double mWeight = Double.valueOf(weight);
         // 扣重总重量
@@ -344,7 +482,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         SamplingDetails maxSamplingDetails;
         if (samplingDetailsList.size() == 1) {
             maxSamplingDetails = samplingDetailsList.get(0);
-        }else {
+        } else {
             //规格占比最大的采样
             maxSamplingDetails = Collections.max(samplingDetailsList, new Comparator<SamplingDetails>() {
                 @Override
@@ -381,8 +519,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             PurPrices purPrices = new PurPrices();
-            double ratio = samplingDetailsList.get(i).getSpecsProportion();//规格占比
-            double weight = DoubleCountUtils.keep(realWeight * ratio);//当前占比的重量
+            double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
+            double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
             double price = samplingDetailsList.get(i).getPrice();//单价
 
             money = DoubleCountUtils.keep(weight * price) + money;//总金额
@@ -392,7 +530,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
             purPrices.setAmount(weight);//当前占比的重量
             purPrices.setPrice(price);//单价
-            purPrices.setMenoy(weight * price);//金额
+            purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
             purPrices.setRatio(ratio);//规格占比
             purPricesList.add(purPrices);
         }
@@ -426,8 +564,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
         billMasterBean.setAmount(realWeight);//总重量
         billMasterBean.setDelWeightRate(deductionMix);
-
         billMasterBean.setMoney(money);//总金额
+
 
         request.setBillMaster(billMasterBean);
 
@@ -457,29 +595,39 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         List<PurSamples> purSamplesList = new ArrayList<>();//采样明细
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             PurSamples purSamples = new PurSamples();
-            double ratio = samplingDetailsList.get(i).getSpecsProportion();//规格占比
-            double amount = Double.valueOf(samplingDetailsList.get(i).getNumber());//本次采样的数量
 
-            purSamples.setWeigth(Double.valueOf(samplingDetailsList.get(i).getWeight()));//本次采样的重量
-            purSamples.setAmount(amount);//本次采样的数量
-            purSamples.setSingalWeight(samplingDetailsList.get(i).getSingalWeight());//本次采样单重
+            int samplingId = samplingDetailsList.get(i).getId();
+            SamplingDetails samplingDetails1 = LitePal.find(SamplingDetails.class, samplingId, true);
 
-            Specs specs1 = LitePal.find(Specs.class, samplingDetailsList.get(i).getSpecsId());
+            double ratio = samplingDetails1.getSpecsProportion() * 100;//规格占比
+            double amount = Double.valueOf(samplingDetails1.getNumber());//本次采样的数量
+
+            purSamples.setWeigth(DoubleCountUtils.keep(Double.valueOf(samplingDetails1.getWeight())));//本次采样的重量
+            purSamples.setAmount(DoubleCountUtils.keep(amount));//本次采样的数量
+            purSamples.setSingalWeight(samplingDetails1.getSingalWeight());//本次采样单重
+
+            Specs specs1 = LitePal.find(Specs.class, samplingDetails1.getSpecsId());
             purSamples.setNormsID(specs1.getKeyID());//规格ID
 
             purSamples.setRatio(ratio);//规格占比
+
+
             //文件路径
-            List<Path> pathList = samplingDetailsList.get(i).getPathList();
+            List<Path> pathList = samplingDetails1.getPathList();
             List<String> stringList = new ArrayList<>();
             for (int j = 0; j < pathList.size(); j++) {
                 stringList.add(pathList.get(j).getPath());
             }
             purSamples.setFiles(stringList);//文件路径
 
+            for (int j = 0; j < stringList.size(); j++) {
+                Logger.d(stringList.get(j));
+            }
 
             purSamplesList.add(purSamples);
         }
         request.setPurSamples(purSamplesList);//采样明细
+
 
         /**
          * Weight : 1.0
@@ -491,6 +639,150 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             scalesList.add(scales);
         }
         request.setScales(scalesList);//计秤明细
+
+        return request;
+
+    }
+
+    /**
+     * 上传附件
+     */
+
+    private List<Path> uploadFiles(List<GetPicModel> getPicModelList) {
+
+        List<Path> paths = new ArrayList<>();
+
+        for (int i = 0; i < getPicModelList.size(); i++) {
+            GetPicModel picOrMp4 = getPicModelList.get(i);
+            //上传附件
+            APIAttachfile apiAttachfile = RetrofitServiceManager.getInstance().create(APIAttachfile.class);
+//            if (!qmuiTipDialog.isShowing()) {
+//                qmuiTipDialog.show();
+//            }
+
+            int type = picOrMp4.getType();//0照片  1视频
+            switch (type) {
+                case 0://照片
+                    String path = picOrMp4.getImagePath();
+                    UpLoadFileModel.Request request = new UpLoadFileModel.Request();
+                    request.setFile(new File(path));
+                    request.setMediaType("image");
+                    UploadCallbacks mListener = new UploadCallbacks() {
+                        @Override
+                        public void onProgressUpdate(int percentage) {
+//                        Logger.d(percentage);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Logger.d("错误");
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            //qmuiTipDialog.dismiss();
+                        }
+                    };
+                    request.setListener(mListener);
+                    apiAttachfile.uploadfile(request.getFiles())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<UpLoadFileModel.Response>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(UpLoadFileModel.Response response) {
+                                    if (response.getState() == 200) {
+                                        Path path1 = new Path();
+                                        path1.setPath(response.getData());
+                                        boolean b = path1.save();
+                                        Logger.d("是否保存成功：" + b);
+                                        paths.add(path1);
+                                    }
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onComplete() {
+//                                    if (qmuiTipDialog.isShowing()) {
+//                                        qmuiTipDialog.dismiss();
+//                                    }
+                                }
+                            });
+
+                    break;
+
+                case 1:
+
+                    String pathVideo = picOrMp4.getMp4Path();
+                    UpLoadFileModel.Request requestVideo = new UpLoadFileModel.Request();
+                    requestVideo.setFile(new File(pathVideo));
+                    requestVideo.setMediaType("video");
+                    UploadCallbacks mListenerVideo = new UploadCallbacks() {
+                        @Override
+                        public void onProgressUpdate(int percentage) {
+//                        Logger.d(percentage);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Logger.d("错误");
+                        }
+
+                        @Override
+                        public void onFinish() {
+
+                        }
+                    };
+                    requestVideo.setListener(mListenerVideo);
+                    apiAttachfile.uploadfile(requestVideo.getFiles())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<UpLoadFileModel.Response>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(UpLoadFileModel.Response response) {
+                                    if (response.getState() == 200) {
+                                        Path path1 = new Path();
+                                        path1.setPath(response.getData());
+                                        boolean b = path1.save();
+                                        Logger.d("是否保存成功：" + b);
+                                        paths.add(path1);
+                                    }
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onComplete() {
+//                                    if (qmuiTipDialog.isShowing()) {
+//                                        qmuiTipDialog.dismiss();
+//                                    }
+                                }
+                            });
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        return paths;
 
     }
 

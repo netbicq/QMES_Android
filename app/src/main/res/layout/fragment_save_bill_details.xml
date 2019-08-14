@@ -8,7 +8,7 @@
 
     <include
         android:id="@+id/bar_container"
-        layout="@layout/fragment_bar_theme"
+        layout="@layout/fragment_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"

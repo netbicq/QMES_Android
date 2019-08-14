@@ -45,6 +45,7 @@ import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.mvpInterface.MvpModel;
 import kkkj.android.revgoods.ui.saveBill.BillModel;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
+import kkkj.android.revgoods.utils.DoubleCountUtils;
 import kkkj.android.revgoods.utils.NetUtils;
 
 /**
@@ -64,7 +65,6 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         mBills = LitePal.findAll(Bill.class, true);
 
     }
-
 
     @Override
     public void initView(View view) {
@@ -219,6 +219,10 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         Supplier supplier = LitePal.find(Supplier.class,supplierId);
         Matter matter = LitePal.find(Matter.class,matterId);
 
+        Logger.d("deductionList:" + deductionList.size() );
+        Logger.d("samplingDetailsList:" + samplingDetailsList.size() );
+        Logger.d("cumulativeList:" + cumulativeList.size() );
+
         //重新计算占比
         //采样总重量
         double total = 0d;
@@ -231,7 +235,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         //计算占比
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-            samplingDetailsList.get(i).setSpecsProportion(specsProportion);
+            samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
         }
         LitePal.saveAll(samplingDetailsList);
 
@@ -250,8 +254,9 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         BigDecimal b2 = new BigDecimal(Double.toString(deductionWeight));
         mWeight = b1.subtract(b2).doubleValue();
         //实际重量  :除去扣重，以及扣重率之后的
-        double realWeight = mWeight * (100 - bill.getDeductionMix()) * 0.01;
+        double realWeight = DoubleCountUtils.keep(mWeight * (100 - bill.getDeductionMix()) * 0.01);
 
+        //规格占比最大的采样
         SamplingDetails maxSamplingDetails;
         if (samplingDetailsList.size() == 1) {
             maxSamplingDetails = samplingDetailsList.get(0);
@@ -285,18 +290,18 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             PurPrices purPrices = new PurPrices();
-            double ratio = samplingDetailsList.get(i).getSpecsProportion();//规格占比
-            double weight = realWeight * ratio;//当前占比的重量
+            double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
+            double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
             double price = samplingDetailsList.get(i).getPrice();//单价
 
-            money = weight * price + money;//总金额
+            money = DoubleCountUtils.keep(weight * price) + money;//总金额
 
             Specs specs1 = LitePal.find(Specs.class,samplingDetailsList.get(i).getSpecsId());
             purPrices.setNormsID(specs1.getKeyID());//规格ID
 
             purPrices.setAmount(weight);//当前占比的重量
             purPrices.setPrice(price);//单价
-            purPrices.setMenoy(weight * price);//金额
+            purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
             purPrices.setRatio(ratio);//规格占比
             purPricesList.add(purPrices);
         }
@@ -324,7 +329,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         MatterLevel matterLevel = LitePal.find(MatterLevel.class,maxSamplingDetails.getMatterLevelId());
         billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
 
-        billMasterBean.setPrice(money / realWeight);//整批单价
+        billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
         billMasterBean.setAmount(realWeight);//总重量
         billMasterBean.setDelWeightRate(bill.getDeductionMix());
 
@@ -358,25 +363,32 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         List<PurSamples> purSamplesList = new ArrayList<>();//采样明细
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             PurSamples purSamples = new PurSamples();
-            double ratio = samplingDetailsList.get(i).getSpecsProportion();//规格占比
+            double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
             double amount = Double.valueOf(samplingDetailsList.get(i).getNumber());//本次采样的数量
 
-            purSamples.setWeigth(Double.valueOf(samplingDetailsList.get(i).getWeight()));//本次采样的重量
-            purSamples.setAmount(amount);//本次采样的数量
+            purSamples.setWeigth(DoubleCountUtils.keep(Double.valueOf(samplingDetailsList.get(i).getWeight())));//本次采样的重量
+            purSamples.setAmount(DoubleCountUtils.keep(amount));//本次采样的数量
             purSamples.setSingalWeight(samplingDetailsList.get(i).getSingalWeight());//本次采样单重
 
             Specs specs1 = LitePal.find(Specs.class,samplingDetailsList.get(i).getSpecsId());
             purSamples.setNormsID(specs1.getKeyID());//规格ID
 
             purSamples.setRatio(ratio);//规格占比
+
+            int  samplingDetailsId = samplingDetailsList.get(i).getId();
+            SamplingDetails samplingDetails = LitePal.find(SamplingDetails.class,samplingDetailsId,true);
+
             //文件路径
-            List<Path> pathList = samplingDetailsList.get(i).getPathList();
+            List<Path> pathList = samplingDetails.getPathList();
             List<String> stringList = new ArrayList<>();
             for (int j = 0; j < pathList.size(); j++) {
                 stringList.add(pathList.get(j).getPath());
             }
             purSamples.setFiles(stringList);//文件路径
 
+            for (int j=0;j < stringList.size();j++) {
+                Logger.d(stringList.get(j));
+            }
 
             purSamplesList.add(purSamples);
         }
