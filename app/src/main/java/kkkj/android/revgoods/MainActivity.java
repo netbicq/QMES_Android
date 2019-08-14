@@ -41,7 +41,6 @@ import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
-
 import com.xuhao.didi.socket.client.sdk.client.action.ISocketActionListener;
 import com.xuhao.didi.socket.client.sdk.client.connection.IConnectionManager;
 
@@ -72,6 +71,7 @@ import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.Master;
 import kkkj.android.revgoods.bean.Matter;
+import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Power;
 import kkkj.android.revgoods.bean.ProduceLine;
 import kkkj.android.revgoods.bean.SamplingDetails;
@@ -96,7 +96,6 @@ import kkkj.android.revgoods.conn.classicbt.listener.TransferProgressListener;
 import kkkj.android.revgoods.conn.socket.CallBack;
 import kkkj.android.revgoods.conn.socket.MyOkSocket;
 import kkkj.android.revgoods.conn.socket.WriteData;
-
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
@@ -114,10 +113,11 @@ import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.relay.wifi.model.Order;
-import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
+import kkkj.android.revgoods.ui.ChooseMatterLevelActivity;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
+import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
@@ -177,6 +177,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvMatter;
     @BindView(R.id.tv_supplier)
     TextView mTvSupplier;
+    @BindView(R.id.tv_matter_level)
+    TextView mTvMatterLevel;
+    @BindView(R.id.id_iv_choose_matter_level)
+    ImageView mIvChooseMatterLevel;
 
     private CompositeDisposable compositeDisposable;
 
@@ -238,9 +242,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Supplier supplier;
     private Matter matter;
+    private MatterLevel matterLevel;
     private Specs specs;
     private int supplierId;
     private int matterId;
+    private int matterLevelId;
     private int specsId;
 
     private String samplingWeight = "";
@@ -358,6 +364,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             matterId = deviceEvent.getMatterId();
             matter = LitePal.find(Matter.class, matterId);
             mTvMatter.setText(matter.getName());
+        }
+        //更新品类等级
+        if (deviceEvent.getMatterLevelId() >=0) {
+            matterLevel = new MatterLevel();
+            matterLevelId = deviceEvent.getMatterLevelId();
+            matterLevel = LitePal.find(MatterLevel.class,matterLevelId);
+            mTvMatterLevel.setText(matterLevel.getName());
         }
         //更新规格
         if (deviceEvent.getSpecsId() >= 0) {
@@ -500,7 +513,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 cumulative.setWeight(str);
 
                                                 if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                    Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                    Cumulative cumulativeLast =
+                                                            LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
                                                     cumulative.setCount(cumulativeLast.getCount() + 1);
                                                 } else {
                                                     cumulative.setCount(1);
@@ -509,7 +523,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 cumulative.save();
 
                                                 int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                                double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+                                                double cWeight =
+                                                        Double.parseDouble(tvCumulativeWeight.getText().toString());
 
                                                 /**
                                                  * 相加：b1.add(b2).doubleValue();
@@ -569,7 +584,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 cumulative.setWeight(str);
 
                                                 if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                    Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                    Cumulative cumulativeLast =
+                                                            LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
                                                     cumulative.setCount(cumulativeLast.getCount() + 1);
                                                 } else {
                                                     cumulative.setCount(1);
@@ -578,7 +594,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 cumulative.save();
 
                                                 int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                                double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+                                                double cWeight =
+                                                        Double.parseDouble(tvCumulativeWeight.getText().toString());
 
                                                 /**
                                                  * 相加：b1.add(b2).doubleValue();
@@ -912,6 +929,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSamplingCount.setOnClickListener(this);
         mSamplingTextView.setOnClickListener(this);
         mChooseSupplierImageView.setOnClickListener(this);
+        mIvChooseMatterLevel.setOnClickListener(this);
         mPieceweightTextView.setOnClickListener(this);
         mChoosePrinterImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
@@ -956,7 +974,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if (position == 1) {//移动计重
                     mTvHand.setVisibility(View.VISIBLE);
-                    Intent intent = ElcScaleActivity.newIntent(MainActivity.this,0);
+                    Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
                     startActivity(intent);
                     return;
                 }
@@ -979,7 +997,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 address = address.trim();
-                Logger.d( "------------>"  + address);
+                Logger.d("------------>" + address);
 
                 try {
                     BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
@@ -1015,15 +1033,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 inLine = power.getInLine() - 1;
                 outLine = power.getOutLine() - 1;
 
-                Logger.d("inLine:" + inLine );
-                Logger.d("outLine:" + outLine );
+                Logger.d("inLine:" + inLine);
+                Logger.d("outLine:" + outLine);
 
                 switch (power.getDeviceType()) {
                     case 1://蓝牙继电器
                         CONNECT_TYPE = 2;
                         String address1 = power.getDeviceAddr().trim();
                         try {
-                            BluetoothDevice bluetoothDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                            BluetoothDevice bluetoothDevice1 =
+                                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
                             connectBluetoothRelay(bluetoothDevice1);
 
                         } catch (Exception e) {
@@ -1050,7 +1069,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //采样秤
                 String sapmleString = produceLine.getSapmle();
-                Sapmle sapmle = new Gson().fromJson(sapmleString,Sapmle.class);
+                Sapmle sapmle = new Gson().fromJson(sapmleString, Sapmle.class);
                 //是否配置了采样的秤
                 isSetSapmle = (sapmle.getDeviceAddr() != null);
                 if (isSetSapmle) {
@@ -1059,8 +1078,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //显示屏 蓝牙Ble设备
                 String showOutString = produceLine.getShowOut();
-                ShowOut showOut = new Gson().fromJson(showOutString,ShowOut.class);
-                if (!(showOut.getDeviceAddr() == null)){
+                ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
+                if (!(showOut.getDeviceAddr() == null)) {
                     String addressBle = showOut.getDeviceAddr().trim();
                     try {
                         BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
@@ -1069,7 +1088,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         e.printStackTrace();
                         myToasty.showInfo(e.getMessage());
                     }
-                }else {
+                } else {
                     myToasty.showInfo("当前未配置显示屏！");
                 }
 
@@ -1151,7 +1170,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this,
+                LinearLayoutManager.HORIZONTAL, false));
         //mWifiRelayRecyclerView.setAdapter(wifiAdapter);
         mWifiRelayRecyclerView.setAdapter(switchAdapter);
 
@@ -1394,6 +1414,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
 
+            case R.id.id_iv_choose_matter_level://选择品类等级
+
+                startActivity(new Intent(MainActivity.this, ChooseMatterLevelActivity.class));
+
+                break;
+
             case R.id.id_tv_choose_supplier://选择供应商
                 startActivity(new Intent(MainActivity.this, ChooseSupplierActivity.class));
                 break;
@@ -1410,19 +1436,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_sampling://采样
 
                 if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
-                //已连接
-                if (supplier != null && matter != null) {
-                    samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId);
-                    showDialogFragment(samplingFragment, SAMPLING);
-                } else {
-                    myToasty.showWarning("请先选择供应商，品类，规格！");
-                }
+                    //已连接
+                    if (supplier != null && matter != null && matterLevel != null) {
+                        samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId,matterLevelId);
+                        showDialogFragment(samplingFragment, SAMPLING);
+                    } else {
+                        myToasty.showWarning("请先选择供应商，品类，品类等级！");
+                    }
 
                 } else {//未连接
 
                     if (isSetSapmle) {//是否配置了采样秤
                         try {
-                            BluetoothDevice bluetoothDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(sampleMacAddress);
+                            BluetoothDevice bluetoothDevice2 =
+                                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(sampleMacAddress);
                             connectAndGetBluetoothScale(bluetoothDevice2);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -1430,7 +1457,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     } else {
                         myToasty.showInfo("未配置采样秤，请手动连接！");
-                        Intent intent = ElcScaleActivity.newIntent(MainActivity.this,3);
+                        Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 3);
                         startActivity(intent);
                     }
                 }
@@ -1536,7 +1563,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //扣重率
                                 int deduction = Integer.valueOf(editText1.getText().toString().trim());
                                 Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
-                                        deduction,tvCumulativeWeight.getText().toString().trim());
+                                        deduction, tvCumulativeWeight.getText().toString().trim());
 
                                 startActivity(intent);
 
@@ -1682,14 +1709,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         permissionHandler.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase,
+                SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
     }
 
     @Override

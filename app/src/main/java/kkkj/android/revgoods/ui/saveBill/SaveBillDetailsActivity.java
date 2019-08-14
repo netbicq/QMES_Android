@@ -65,6 +65,8 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.fileUpload.FileCallback;
+import kkkj.android.revgoods.fileUpload.FileUploadUtils;
 import kkkj.android.revgoods.http.RetrofitServiceManager;
 import kkkj.android.revgoods.http.api.APIAttachfile;
 import kkkj.android.revgoods.http.api.UploadCallbacks;
@@ -279,8 +281,11 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                                     new MyToasty(SaveBillDetailsActivity.this).showInfo("请输入单据名称");
                                     return;
                                 }
+
                                 mQMUITipDialog.show();
+
                                 mPresenter.addBill(request);
+
 
                                 //单据名称
                                 String name = editText1.getText().toString().trim();

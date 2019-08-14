@@ -61,6 +61,8 @@ import kkkj.android.revgoods.http.api.UploadCallbacks;
 import kkkj.android.revgoods.ui.chooseSupplier.UpLoadFileModel;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
 
+import static kkkj.android.revgoods.mvpInterface.MvpModel.apiAttachfile;
+
 /**
  * 采样
  */
@@ -81,8 +83,10 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private String weight;
     private int supplierId;
     private int matterId;
+    private int matterLevelId;
     private Supplier supplier;
     private Matter matter;
+    private MatterLevel matterLevel;
     private String tempPrice = "";
 
     //单重
@@ -94,7 +98,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private List<MatterLevel> matterLevelList;
     private List<String> matterNameList;
 
-    private MatterLevel matterLevel;
+    //private MatterLevel matterLevel;
     private Specs specs;
     private Specs tempSpecs;
     private int position = -1;
@@ -107,11 +111,12 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private List<Path> pathList = new ArrayList<>();
 
 
-    public static SamplingFragment newInstance(String weight, int supplierId, int matterId) {
+    public static SamplingFragment newInstance(String weight, int supplierId, int matterId,int matterLevelId) {
         Bundle args = new Bundle();
         args.putString("weight", weight);
         args.putInt("supplierId", supplierId);
         args.putInt("matterId", matterId);
+        args.putInt("matterLevelId", matterLevelId);
 
         SamplingFragment fragment = new SamplingFragment();
         fragment.setArguments(args);
@@ -340,7 +345,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 }
                 LitePal.saveAll(mList);
                 //上传附件
-                uploadFiles(mList);
+                //uploadFiles(mList);
 
                 SamplingDetails samplingDetails = new SamplingDetails();
 
@@ -425,6 +430,128 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
             mList.add(picOrMp4);
             Logger.d("-------------------->" + picOrMp4.getImagePath());
             picOrMp4Adapter.notifyDataSetChanged();
+
+
+            int type = picOrMp4.getType();//0照片  1视频
+            switch (type) {
+                case 0://照片
+                    String path = picOrMp4.getImagePath();
+                    UpLoadFileModel.Request request = new UpLoadFileModel.Request();
+                    request.setFile(new File(path));
+                    request.setMediaType("image");
+                    UploadCallbacks mListener = new UploadCallbacks() {
+                        @Override
+                        public void onProgressUpdate(int percentage) {
+//                        Logger.d(percentage);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Logger.d("错误");
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            //qmuiTipDialog.dismiss();
+                        }
+                    };
+                    request.setListener(mListener);
+                    apiAttachfile.uploadfile(request.getFiles())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<UpLoadFileModel.Response>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(UpLoadFileModel.Response response) {
+                                    if (response.getState() == 200) {
+                                        Path path1 = new Path();
+                                        path1.setPath(response.getData());
+                                        boolean b = path1.save();
+                                        Logger.d("是否保存成功：" + b);
+                                        pathList.add(path1);
+                                    }
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onComplete() {
+                                    if (qmuiTipDialog.isShowing()) {
+                                        qmuiTipDialog.dismiss();
+                                    }
+                                }
+                            });
+
+                    break;
+
+                case 1:
+
+                    String pathVideo = picOrMp4.getMp4Path();
+                    UpLoadFileModel.Request requestVideo = new UpLoadFileModel.Request();
+                    requestVideo.setFile(new File(pathVideo));
+                    requestVideo.setMediaType("video");
+                    UploadCallbacks mListenerVideo = new UploadCallbacks() {
+                        @Override
+                        public void onProgressUpdate(int percentage) {
+//                        Logger.d(percentage);
+                        }
+
+                        @Override
+                        public void onError() {
+                            Logger.d("错误");
+                        }
+
+                        @Override
+                        public void onFinish() {
+
+                        }
+                    };
+                    requestVideo.setListener(mListenerVideo);
+                    apiAttachfile.uploadfile(requestVideo.getFiles())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<UpLoadFileModel.Response>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(UpLoadFileModel.Response response) {
+                                    if (response.getState() == 200) {
+                                        Path path1 = new Path();
+                                        path1.setPath(response.getData());
+                                        boolean b = path1.save();
+                                        Logger.d("是否保存成功：" + b);
+                                        pathList.add(path1);
+                                    }
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onComplete() {
+                                    if (qmuiTipDialog.isShowing()) {
+                                        qmuiTipDialog.dismiss();
+                                    }
+                                }
+                            });
+                    break;
+
+                default:
+                    break;
+            }
 
         }
 

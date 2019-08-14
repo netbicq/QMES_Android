@@ -11,6 +11,35 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/tv_matter_level"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:text="品类等级"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
+        app:layout_constraintStart_toEndOf="@+id/tv_matter"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_choose_matter"
+        app:layout_constraintVertical_bias="0.0"/>
+
+    <ImageView
+        android:id="@+id/id_iv_choose_matter_level"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/text_background"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_takePicture"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_matter"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_takePicture"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/ic_matter_level_36dp"/>
+
+    <TextView
         android:id="@+id/id_tv_hand"
         android:visibility="gone"
         android:layout_width="wrap_content"
@@ -66,14 +95,14 @@
         android:id="@+id/id_iv_choose_specs"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:background="@drawable/text_background"
         android:padding="6dp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_takePicture"
-        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_matter"
+        app:layout_constraintStart_toEndOf="@+id/id_iv_choose_matter_level"
         app:layout_constraintTop_toTopOf="@+id/id_iv_takePicture"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/ic_specs_36dp" />
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/ic_specs_36dp"/>
 
     <TextView
         android:id="@+id/id_tv_save_bill"
@@ -139,7 +168,7 @@
         android:id="@+id/tv_specs"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:gravity="center"
         android:maxLines="1"
         android:padding="5dp"
@@ -147,9 +176,9 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
-        app:layout_constraintStart_toEndOf="@+id/tv_matter"
+        app:layout_constraintStart_toEndOf="@+id/tv_matter_level"
         app:layout_constraintTop_toTopOf="@+id/id_iv_choose_matter"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.0"/>
 
     <TextView
         android:id="@+id/id_tv_sampling_number"

@@ -36,6 +36,12 @@ public class DeviceEvent {
     public int matterId = -1;
 
     /**
+     * 品类等级MatterLevel Id
+     */
+    public int matterLevelId = -1;
+
+
+    /**
      * 规格Specs Id
      */
     public int specsId = -1;
@@ -44,6 +50,14 @@ public class DeviceEvent {
      *扣重数 + 1
      */
     public boolean add = false;
+
+    public int getMatterLevelId() {
+        return matterLevelId;
+    }
+
+    public void setMatterLevelId(int matterLevelId) {
+        this.matterLevelId = matterLevelId;
+    }
 
     public int getSupplierId() {
         return supplierId;

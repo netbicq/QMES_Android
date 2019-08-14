@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="kkkj.android.revgoods">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="kkkj.android.revgoods">
 
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
-    <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature android:name="android.hardware.camera"/>
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
 
-    <uses-permission android:name="android.permission.FLASHLIGHT" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ChANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
-    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ChANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.READ_LOGS"/>
 
     <application
         android:name=".app.BaseApplication"
@@ -39,27 +39,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/RevGTheme">
+        <activity android:name=".ui.ChooseMatterLevelActivity">
+        </activity>
 
-        <receiver
-            android:name=".receiver.NetBroadcastReceiver">
+        <receiver android:name=".receiver.NetBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.net.wifi.STATE_CHANGE"/>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
             </intent-filter>
-
         </receiver>
-
 
         <service
             android:name=".conn.classicbt.ConnectService"
             android:enabled="true"
-            android:exported="true" /> <!-- AndroidAutoSize -->
+            android:exported="true"/> <!-- AndroidAutoSize -->
         <meta-data
             android:name="design_width_in_dp"
-            android:value="720" />
+            android:value="720"/>
         <meta-data
             android:name="design_height_in_dp"
-            android:value="2280" /> <!-- bugly -->
+            android:value="2280"/> <!-- bugly -->
         <provider
             android:name=".utils.BuglyFileProvider"
             android:authorities="${applicationId}.fileProvider"
@@ -69,13 +68,13 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths"
-                tools:replace="name,resource" />
+                tools:replace="name,resource"/>
         </provider>
 
         <activity
             android:name="com.tencent.bugly.beta.ui.BetaActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|locale"
-            android:theme="@android:style/Theme.Translucent" /> <!-- TBS播放器 -->
+            android:theme="@android:style/Theme.Translucent"/> <!-- TBS播放器 -->
         <activity
             android:name="com.tencent.smtt.sdk.VideoActivity"
             android:alwaysRetainTaskState="true"
@@ -83,9 +82,9 @@
             android:exported="false"
             android:launchMode="singleTask">
             <intent-filter>
-                <action android:name="com.tencent.smtt.tbs.video.PLAY" />
+                <action android:name="com.tencent.smtt.tbs.video.PLAY"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
         <activity
@@ -94,9 +93,9 @@
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
@@ -104,50 +103,47 @@
             android:configChanges="locale|orientation|screenSize"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar">
-
         </activity>
-
         <activity
             android:name=".ui.saveBill.SaveBillDetailsActivity"
             android:configChanges="locale|orientation|screenSize"
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar">
         </activity>
-
         <activity
             android:name=".elcscale.view.ElcScaleActivity"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
-        <activity android:name=".relay.wifi.view.SocketTestActivity" />
-        <activity android:name=".relay.wifi.view.WifiRelayActivity" />
-        <activity android:name=".relay.wifi.view.BlueToothRelayActivity" />
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
+        <activity android:name=".relay.wifi.view.SocketTestActivity"/>
+        <activity android:name=".relay.wifi.view.WifiRelayActivity"/>
+        <activity android:name=".relay.wifi.view.BlueToothRelayActivity"/>
         <activity
             android:name=".common.getpic.PhotoViewActivity"
             android:configChanges="locale"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
-        <activity android:name=".common.getpic.GetPicOrMP4Activity" />
-        <activity android:name=".HomeActivity" />
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
+        <activity android:name=".common.getpic.GetPicOrMP4Activity"/>
+        <activity android:name=".HomeActivity"/>
         <activity
             android:name=".ui.chooseMatter.ChooseMatterActivity"
             android:configChanges="locale"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
         <activity
             android:name=".ui.chooseSupplier.ChooseSupplierActivity"
             android:configChanges="locale"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
         <activity
             android:name=".ui.chooseSpecs.ChooseSpecsActivity"
             android:configChanges="locale"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
         <activity
             android:name=".ui.addDeductionCategory.DeductionCategoryActivity"
             android:configChanges="locale"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar" />
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
     </application>
 
 </manifest>
