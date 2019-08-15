@@ -118,6 +118,7 @@ import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
+import kkkj.android.revgoods.ui.saveBill.SaveBillWithoutSamplingActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
@@ -289,17 +290,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        //打开Wifi
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (!wifiManager.isWifiEnabled()) {
-            myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
-            Intent it = new Intent();
-            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
-            it.setComponent(cn);
-            startActivity(it);
-            return;
-        }
-
         initBlue();
         initData();
         initView();
@@ -455,6 +445,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //蓝牙Ble显示屏
     private void connectBle(BluetoothDevice bleDevice) {
+        if (bleScreenConnectionState) {
+            return;
+        }
+
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -1175,6 +1169,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //mWifiRelayRecyclerView.setAdapter(wifiAdapter);
         mWifiRelayRecyclerView.setAdapter(switchAdapter);
 
+
+        //打开Wifi
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (!wifiManager.isWifiEnabled()) {
+            myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
+            Intent it = new Intent();
+            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
+            it.setComponent(cn);
+            startActivity(it);
+            return;
+        }
+
     }
 
     private void initData() {
@@ -1535,45 +1541,84 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.id_tv_save_bill://保存单据
 
-                if (LitePal.where("hasBill < ?", "0")
-                        .find(SamplingDetails.class, true).size() <= 0) {
-
-                    myToasty.showWarning("请先先采样确定单价！");
-                    return;
-                }
-
                 if (Double.valueOf(tvCumulativeWeight.getText().toString().trim()) <= 0) {
-                    myToasty.showWarning("当前未称重！");
+                    myToasty.showWarning("当前还未称重！");
                     return;
                 }
+                int samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
 
-                final EditText editText1 = new EditText(MainActivity.this);
-                editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
-                inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
-                inputDialog1.setPositiveButton(R.string.enter,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (editText1.getText().toString().trim().length() == 0) {
-                                    myToasty.showInfo("请输入扣重率");
-                                    return;
+                if ( samplingSize <= 0) {
+                    //未采样，则必须选择供应商，品类，品类等级，规格
+                    if (supplier == null || matter == null || matterLevel == null || specs == null) { //未选择，直接返回
+                        myToasty.showWarning("请先选择供应商，品类，品类等级，规格！");
+                        return;
+                    }
+
+                    //已选择供应商，品类，品类等级，规格
+
+                    final EditText editText1 = new EditText(MainActivity.this);
+                    editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                    AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
+                    inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
+                    inputDialog1.setPositiveButton(R.string.enter,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (editText1.getText().toString().trim().length() == 0) {
+                                        myToasty.showInfo("请输入扣重率");
+                                        return;
+                                    }
+                                    //扣重率
+                                    int deduction = Integer.valueOf(editText1.getText().toString().trim());
+                                    Intent intent = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
+                                            deduction, tvCumulativeWeight.getText().toString().trim(),supplierId,matterId,
+                                            matterLevelId,specsId);
+
+                                    startActivity(intent);
+
                                 }
-                                //扣重率
-                                int deduction = Integer.valueOf(editText1.getText().toString().trim());
-                                Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
-                                        deduction, tvCumulativeWeight.getText().toString().trim());
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                }
+                            }).show();
 
-                                startActivity(intent);
 
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                            }
-                        }).show();
+                }else {
+                    //已采样
+                    final EditText editText1 = new EditText(MainActivity.this);
+                    editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                    AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
+                    inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
+                    inputDialog1.setPositiveButton(R.string.enter,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (editText1.getText().toString().trim().length() == 0) {
+                                        myToasty.showInfo("请输入扣重率");
+                                        return;
+                                    }
+                                    //扣重率
+                                    int deduction = Integer.valueOf(editText1.getText().toString().trim());
+                                    Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
+                                            deduction, tvCumulativeWeight.getText().toString().trim());
+
+                                    startActivity(intent);
+
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                }
+                            }).show();
+
+
+                }
+
 
                 break;
 

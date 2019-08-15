@@ -223,21 +223,23 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         Logger.d("samplingDetailsList:" + samplingDetailsList.size() );
         Logger.d("cumulativeList:" + cumulativeList.size() );
 
-        //重新计算占比
-        //采样总重量
-        double total = 0d;
-        for (int i = 0; i < samplingDetailsList.size(); i++) {
-            BigDecimal b1 = new BigDecimal(Double.toString(total));
-            BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
-            total = b1.add(b2).doubleValue();
-        }
-
-        //计算占比
-        for (int i = 0; i < samplingDetailsList.size(); i++) {
-            double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-            samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
-        }
-        LitePal.saveAll(samplingDetailsList);
+//        if (samplingDetailsList.size() > 1) {
+//            //重新计算占比
+//            //采样总重量
+//            double total = 0d;
+//            for (int i = 0; i < samplingDetailsList.size(); i++) {
+//                BigDecimal b1 = new BigDecimal(Double.toString(total));
+//                BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
+//                total = b1.add(b2).doubleValue();
+//            }
+//
+//            //计算占比
+//            for (int i = 0; i < samplingDetailsList.size(); i++) {
+//                double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
+//                samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
+//            }
+//            LitePal.saveAll(samplingDetailsList);
+//        }
 
 
         //计秤总重量

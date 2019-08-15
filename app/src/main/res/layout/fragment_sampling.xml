@@ -64,17 +64,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:gravity="center"
-            android:text="品类等级" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
             android:layout_margin="1dp"
             android:gravity="center"
             android:text="单价" />
@@ -141,17 +130,6 @@
             android:layout_width="1dp"
             android:layout_height="match_parent"/>
 
-        <Spinner
-            android:id="@+id/id_sp_matter_level"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center" />
-
-        <View
-            android:background="@color/qmui_config_color_pure_black"
-            android:layout_width="1dp"
-            android:layout_height="match_parent"/>
 
         <EditText
             android:id="@+id/id_et_price"
@@ -162,7 +140,8 @@
             android:imeOptions="flagNoExtractUi"
             android:inputType="number|numberDecimal"
             android:background="@color/qmui_config_color_white"
-            tools:text="0" />
+            android:hint="请输入单价"
+            />
 
         <View
             android:background="@color/qmui_config_color_pure_black"

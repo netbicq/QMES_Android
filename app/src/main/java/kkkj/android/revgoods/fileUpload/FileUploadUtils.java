@@ -4,8 +4,12 @@ import org.litepal.LitePal;
 
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
+import kkkj.android.revgoods.http.RetrofitServiceManager;
+import kkkj.android.revgoods.http.api.APIAttachfile;
 
 /**
  * 项目名:   RevGoods
@@ -29,7 +33,17 @@ public class FileUploadUtils {
 
     }
 
+    APIAttachfile apiAttachfile = RetrofitServiceManager.getInstance().create(APIAttachfile.class);
+
     private void uplodaFiles() {
+
+//        Observable.just(samplingDetailsList.get(0))
+//                .map(new Function<SamplingDetails, List<GetPicModel>>() {
+//                    @Override
+//                    public List<GetPicModel> apply(SamplingDetails samplingDetails) throws Exception {
+//                        return null;
+//                    }
+//                })
 
         for (int i = 0; i < samplingDetailsList.size(); i++) {
 

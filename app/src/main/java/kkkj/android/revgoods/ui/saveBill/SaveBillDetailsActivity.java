@@ -168,7 +168,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 .create();
 
         tvTitle.setText("单据明细");
-        tvRight.setText("上传附件");
         tvRight.setOnClickListener(this);
         ivBack.setOnClickListener(this);
         mBtnSaveBill.setOnClickListener(this);
@@ -241,6 +240,9 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 mQMUITipDialog.dismiss();
             }
         }
+
+        finish();
+
     }
 
     @Override
@@ -282,11 +284,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                                     return;
                                 }
 
-                                mQMUITipDialog.show();
-
-                                mPresenter.addBill(request);
-
-
                                 //单据名称
                                 String name = editText1.getText().toString().trim();
 
@@ -309,12 +306,21 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                                 bill.setDeductionList(deductionList);
                                 bill.setSamplingDetailsList(samplingDetailsList);
                                 bill.save();
-                                new MyToasty(SaveBillDetailsActivity.this).showSuccess("保存成功");
 
                                 DeviceEvent deviceEvent = new DeviceEvent();
                                 deviceEvent.setReset(true);
                                 EventBus.getDefault().post(deviceEvent);
-                                //finish();
+
+
+                                if (!NetUtils.checkNetWork()) {
+                                    new MyToasty(SaveBillDetailsActivity.this).showSuccess("保存成功");
+                                    finish();
+                                    return;
+                                }
+
+                                mQMUITipDialog.show();
+
+                                mPresenter.addBill(request);
 
 
 //                                if (NetUtils.checkNetWork()) {

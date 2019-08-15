@@ -95,7 +95,7 @@ public class PicOrMp4Adapter extends BaseQuickAdapter<GetPicModel, BaseViewHolde
         if(item.getIsUpload()==0)
         {
             //ed_content.setEnabled(false);
-            upload.setVisibility(View.GONE);
+            //upload.setVisibility(View.GONE);
         }
         else {
 //            upload.setVisibility(View.VISIBLE);
