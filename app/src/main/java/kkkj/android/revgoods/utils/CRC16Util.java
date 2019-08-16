@@ -23,6 +23,36 @@ public class CRC16Util {
             (byte) 0x75, (byte) 0xB5, (byte) 0x77, (byte) 0xB7, (byte) 0xB6, (byte) 0x76, (byte) 0x72, (byte) 0xB2, (byte) 0xB3, (byte) 0x73, (byte) 0xB1, (byte) 0x71, (byte) 0x70, (byte) 0xB0, (byte) 0x50, (byte) 0x90, (byte) 0x91, (byte) 0x51, (byte) 0x93, (byte) 0x53, (byte) 0x52, (byte) 0x92, (byte) 0x96, (byte) 0x56, (byte) 0x57, (byte) 0x97, (byte) 0x55, (byte) 0x95, (byte) 0x94, (byte) 0x54, (byte) 0x9C, (byte) 0x5C, (byte) 0x5D, (byte) 0x9D, (byte) 0x5F, (byte) 0x9F, (byte) 0x9E, (byte) 0x5E, (byte) 0x5A, (byte) 0x9A, (byte) 0x9B, (byte) 0x5B, (byte) 0x99, (byte) 0x59, (byte) 0x58, (byte) 0x98, (byte) 0x88, (byte) 0x48, (byte) 0x49, (byte) 0x89, (byte) 0x4B, (byte) 0x8B, (byte) 0x8A, (byte) 0x4A, (byte) 0x4E, (byte) 0x8E, (byte) 0x8F, (byte) 0x4F, (byte) 0x8D, (byte) 0x4D,
             (byte) 0x4C, (byte) 0x8C, (byte) 0x44, (byte) 0x84, (byte) 0x85, (byte) 0x45, (byte) 0x87, (byte) 0x47, (byte) 0x46, (byte) 0x86, (byte) 0x82, (byte) 0x42, (byte) 0x43, (byte) 0x83, (byte) 0x41, (byte) 0x81, (byte) 0x80, (byte) 0x40};
 
+
+    /**
+     *
+     * @param s 字符串类型的数据       例：55.24
+     * @return  代CRC校验的byte数组    01 06 00 00 15 94 86 f5
+     */
+
+    public static byte[] stringToByte(String s) {
+
+        double d = Double.valueOf(s);
+        int i = (int) (d * 100);
+
+        byte[] bytes0 = {0x01, 0x06, 0x00, 0x00};
+        byte[] bytes = intToBytes(i);
+
+
+        byte[] bytes1 = addBytes(bytes0,bytes);
+
+
+        int crcInt = CRC16Util.calcCrc16(bytes1);
+
+
+        byte[] bytes2 = intToBytesHigh(crcInt);
+
+        byte[] finalByte = addBytes(bytes1,bytes2);
+
+        return finalByte;
+
+    }
+
     /**
      * 计算CRC16校验  对外的接口
      *
@@ -78,4 +108,57 @@ public class CRC16Util {
         Log.i("BLUEDATA", "crc ---- : " + substring + "  " + substring1);
         return substring1.concat(" ").concat(substring).concat(" ");
     }
+
+
+    /**
+     * 将int转换成byte数组，低位在前，高位在后
+     * 改变高低位顺序只需调换数组序号
+     */
+    private static byte[] intToBytesHigh(int value) {
+        byte[] src = new byte[2];
+        src[1] = (byte) ((value >> 8) & 0xFF);
+        src[0] = (byte) (value & 0xFF);
+        return src;
+    }
+
+    /**
+     * 将int转换成byte数组，低位在前，高位在后
+     * 改变高低位顺序只需调换数组序号
+     */
+    private static byte[] intToBytes(int value) {
+        byte[] src = new byte[2];
+        src[0] = (byte) ((value >> 8) & 0xFF);
+        src[1] = (byte) (value & 0xFF);
+        return src;
+    }
+
+
+    /**
+     * 生成打印16进制日志所需的字符串
+     *
+     * @param data 数据源
+     * @return 字符串给日志使用
+     */
+    public static String toHexStringForLog(byte[] data) {
+        StringBuilder sb = new StringBuilder();
+        if (data != null) {
+            for (int i = 0; i < data.length; i++) {
+                String tempHexStr = Integer.toHexString(data[i] & 0xff) + " ";
+                tempHexStr = tempHexStr.length() == 2 ? "0" + tempHexStr : tempHexStr;
+                sb.append(tempHexStr);
+            }
+        }
+        return sb.toString();
+    }
+
+
+
+    public static byte[] addBytes(byte[] data1, byte[] data2) {
+        byte[] data3 = new byte[data1.length + data2.length];
+        System.arraycopy(data1,0,data3,0,data1.length);
+        System.arraycopy(data2,0,data3,data1.length,data2.length);
+        return data3;
+    }
+
+
 }

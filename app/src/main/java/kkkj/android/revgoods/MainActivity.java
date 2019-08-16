@@ -119,6 +119,7 @@ import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillWithoutSamplingActivity;
+import kkkj.android.revgoods.utils.CRC16Util;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
@@ -499,20 +500,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 Logger.d("读取到的数据：" + str);
                                 mWeightTextView.setText(str);
 
-//                                double d = Double.valueOf(str);
-//                                int i = (int) (d * 100);
-//                                String j = i + "";
-//                                String left = j.substring(0,2);
-//                                String right = j.substring(2,4);
-//
-//                                int a = Integer.parseInt(j,16);
-//
-//                                byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
-//                                byte[] weightByte = {};
-//                                if (ble != null && bleScreenConnectionState) {
-//
-//                                    ble.send(point);
-//                                }
+                                //小数位数，固定2位
+                                byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
+                                byte[] weightByte = CRC16Util.stringToByte(str);
+                                if (ble != null && bleScreenConnectionState) {
+
+                                    ble.send(point);
+                                    ble.send(weightByte);
+                                }
 
 
                                 double weight = Double.parseDouble(str);
@@ -1097,7 +1092,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String showOutString = produceLine.getShowOut();
                 ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
                 if (!(showOut.getDeviceAddr() == null)) {
-                    String addressBle = "D8:E0:4B:FD:31:F6";//showOut.getDeviceAddr().trim();
+                    String addressBle = showOut.getDeviceAddr().trim();//"D8:E0:4B:FD:31:F6"
                     try {
                         BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
                         connectBle(bleDevice);
