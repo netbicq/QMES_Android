@@ -224,6 +224,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean blueSamplingScaleConnectionState = false;
     //蓝牙Ble显示屏的连接状态
     private boolean bleScreenConnectionState = false;
+    //蓝牙Ble设备
+    private Ble ble;
 
     private BillListFragment billListFragment;
     private DeviceListFragment deviceListFragment;
@@ -452,8 +454,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        Ble ble = new Ble(bleDevice, this);
+        ble = new Ble(bleDevice, this);
         bleScreenConnectionState = ble.connect();
+        if (bleScreenConnectionState) {
+            myToasty.showSuccess("显示屏连接成功！");
+        }
+
     }
 
     //蓝牙电子秤
@@ -492,6 +498,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                                 Logger.d("读取到的数据：" + str);
                                 mWeightTextView.setText(str);
+
+//                                double d = Double.valueOf(str);
+//                                int i = (int) (d * 100);
+//                                String j = i + "";
+//                                String left = j.substring(0,2);
+//                                String right = j.substring(2,4);
+//
+//                                int a = Integer.parseInt(j,16);
+//
+//                                byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
+//                                byte[] weightByte = {};
+//                                if (ble != null && bleScreenConnectionState) {
+//
+//                                    ble.send(point);
+//                                }
+
+
                                 double weight = Double.parseDouble(str);
                                 double compareWeight = Double.parseDouble(SharedPreferenceUtil
                                         .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
@@ -1074,7 +1097,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String showOutString = produceLine.getShowOut();
                 ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
                 if (!(showOut.getDeviceAddr() == null)) {
-                    String addressBle = showOut.getDeviceAddr().trim();
+                    String addressBle = "D8:E0:4B:FD:31:F6";//showOut.getDeviceAddr().trim();
                     try {
                         BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
                         connectBle(bleDevice);
