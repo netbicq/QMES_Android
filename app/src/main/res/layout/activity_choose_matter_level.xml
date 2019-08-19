@@ -36,7 +36,7 @@
             android:layout_toRightOf="@+id/id_iv_back"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="请选择品类等级"
+            android:text="@string/choose_matter_level"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 

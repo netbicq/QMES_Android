@@ -18,7 +18,7 @@
         android:gravity="center"
         android:maxLines="1"
         android:padding="5dp"
-        android:text="品类等级"
+        android:text="@string/matter_level"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
