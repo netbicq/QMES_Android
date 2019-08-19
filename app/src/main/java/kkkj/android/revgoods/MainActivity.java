@@ -1112,6 +1112,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+
+
         wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay, mWifiList);
         switchAdapter = new SwitchAdapter(R.layout.item_switch, mWifiList);
         switchAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
@@ -1746,6 +1748,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (BleManager.getInstance() != null && bluetoothManager != null) {
             BleManager.getInstance().destory();
+        }
+
+        if (ble != null) {
+            ble.destory();
         }
 
         EventBus.getDefault().unregister(this);

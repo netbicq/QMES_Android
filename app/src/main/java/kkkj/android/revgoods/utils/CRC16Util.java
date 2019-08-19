@@ -27,7 +27,7 @@ public class CRC16Util {
     /**
      *
      * @param s 字符串类型的数据       例：55.24
-     * @return  代CRC校验的byte数组    01 06 00 00 15 94 86 f5
+     * @return  带CRC校验的byte数组    01 06 00 00 15 94 86 f5
      */
 
     public static byte[] stringToByte(String s) {

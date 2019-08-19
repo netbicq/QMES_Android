@@ -97,6 +97,7 @@ public class Ble {
             }
 
             //发现服务回调。
+            @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 Log.d("haha", "onServicesDiscovered: " + "发现服务 : " + status);
                 if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -211,7 +212,7 @@ public class Ble {
 //            bytes[0] = 04;
 //            bytes[1] = 01;
             characteristic.setValue(bytes);
-            characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             mBluetoothGatt.writeCharacteristic(characteristic);
         }
 
