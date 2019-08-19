@@ -457,6 +457,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBluetoothAdapter = bluetoothManager.getAdapter();
         ble = new Ble(bleDevice, this);
         bleScreenConnectionState = ble.connect();
+
+//        //小数位数，固定2位
+//        byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
+//        ble.send(point);
+
         if (bleScreenConnectionState) {
             myToasty.showSuccess("显示屏连接成功！");
         }
@@ -466,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //蓝牙电子秤
     private void connect(BluetoothDevice device) {
         qmuiTipDialog.show();
-
+        final boolean[] isSend = {false};
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
             @Override
             public void connectSuccess(Connect connect) {
@@ -485,30 +490,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void transferSuccess(String str) {
                         //String s = new String(bytes);
-                        Logger.d("原始数据：" + str);
+                        //Logger.d("原始数据：" + str);
                         //String str = new String(s.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8);
                         if (str.length() == 8) {
                             //取反
                             str = new StringBuilder(str).reverse().toString();
-                            Logger.d("处理之前的数据：" + str);
+                            //Logger.d("处理之前的数据：" + str);
                             if (!str.endsWith("=") && !str.startsWith("=") && str.substring(5, 6).equals(".")) {
                                 //去掉前面的“=”号和零
                                 str = str.replaceFirst("^0*", "");
                                 if (str.startsWith(".")) {
                                     str = "0" + str;
                                 }
-                                Logger.d("读取到的数据：" + str);
+                                //Logger.d("读取到的数据：" + str);
                                 mWeightTextView.setText(str);
 
-                                //小数位数，固定2位
-                                byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
-                                byte[] weightByte = CRC16Util.stringToByte(str);
-                                if (ble != null && bleScreenConnectionState) {
 
-                                    ble.send(point);
+                                byte[] weightByte = CRC16Util.stringToByte(str);
+                                Logger.d("weightByte" + CRC16Util.toHexStringForLog(weightByte));
+                                if (ble != null) {
+                                    if (!isSend[0]) {
+                                        //小数位数，固定2位
+                                        byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
+                                        ble.send(point);
+                                        isSend[0] = true;
+                                    }
+
                                     ble.send(weightByte);
                                 }
-
 
                                 double weight = Double.parseDouble(str);
                                 double compareWeight = Double.parseDouble(SharedPreferenceUtil
@@ -1047,6 +1056,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 Logger.d("inLine:" + inLine);
                 Logger.d("outLine:" + outLine);
+                Logger.d("------------->" + power.toString());
 
                 switch (power.getDeviceType()) {
                     case 1://蓝牙继电器
@@ -1067,6 +1077,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         CONNECT_TYPE = 1;
                         //分割 ：
                         String[] strarr = power.getDeviceAddr().split(":");
+                        if (strarr.length < 2) {
+                            myToasty.showWarning("Wifi继电器参数格式配置异常，请前往网页端检查！");
+                            return;
+                        }
                         String ip = strarr[0].trim();
                         int port = Integer.valueOf(strarr[1]);
                         Device device = new Device();
@@ -1634,7 +1648,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             }).show();
 
-
                 }
 
 
@@ -1746,6 +1759,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (BleManager.getInstance() != null && bluetoothManager != null) {
             BleManager.getInstance().destory();
+        }
+
+        if (ble != null) {
+            ble.destory();
         }
 
         EventBus.getDefault().unregister(this);

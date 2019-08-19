@@ -215,7 +215,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     public void initView(View view) {
         qmuiTipDialog = new QMUITipDialog.Builder(getActivity())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在上传...")
+                .setTipWord(getResources().getString(R.string.is_uploading))
                 .create();
 
         ivRight.setImageResource(R.drawable.ic_camera);
@@ -334,7 +334,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 SamplingDetails samplingDetails = new SamplingDetails();
 
                 if (tempPrice.length() == 0) {
-                    myToasty.showWarning("请输入单价！");
+                    myToasty.showWarning(getResources().getString(R.string.input_price));
                     return;
                 }
 

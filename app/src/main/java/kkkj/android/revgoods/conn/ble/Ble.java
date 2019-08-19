@@ -211,7 +211,7 @@ public class Ble {
 //            bytes[0] = 04;
 //            bytes[1] = 01;
             characteristic.setValue(bytes);
-            characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             mBluetoothGatt.writeCharacteristic(characteristic);
         }
 

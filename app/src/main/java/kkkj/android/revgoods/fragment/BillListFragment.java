@@ -72,7 +72,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
         mQMUITipDialog = new QMUITipDialog.Builder(getActivity())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在上传...")
+                .setTipWord(getResources().getString(R.string.is_uploading))
                 .create();
 
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
@@ -102,7 +102,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                         builder.setTitle("删除采购单")
                                 .setMessage("确定要删除吗？")
-                                .setPositiveButton("删除", new DialogInterface.OnClickListener() {
+                                .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -118,7 +118,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                         Logger.d("删除");
                                     }
                                 })
-                                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         Logger.d("取消");

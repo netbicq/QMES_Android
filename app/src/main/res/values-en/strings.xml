@@ -73,6 +73,7 @@
     <string name="Please_open_the_wifi">Please open the Wifi!</string>
     <string name="is_connecting">Connecting(…, &#8230;)</string>
     <string name="is_saving">Saving(…, &#8230;)</string>
+    <string name="is_uploading">Uploading(…, &#8230;)</string>
     <string name="connect_failed">The device connect failed,please retry!</string>
     <string name="bluetooth_diconnected">The device is disconnect！</string>
 

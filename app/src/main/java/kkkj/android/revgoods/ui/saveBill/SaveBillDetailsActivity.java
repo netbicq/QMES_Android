@@ -164,10 +164,10 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     protected void initView() {
         mQMUITipDialog = new QMUITipDialog.Builder(SaveBillDetailsActivity.this)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在保存...")
+                .setTipWord(getResources().getString(R.string.is_saving))
                 .create();
 
-        tvTitle.setText("单据明细");
+        tvTitle.setText(R.string.bill_details);
         tvRight.setOnClickListener(this);
         ivBack.setOnClickListener(this);
         mBtnSaveBill.setOnClickListener(this);
@@ -273,14 +273,14 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 //横屏时禁止输入法全屏
                 editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                 AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillDetailsActivity.this);
-                inputDialog1.setTitle("请输入单据名称").setView(editText1);
+                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
                 inputDialog1.setPositiveButton(R.string.enter,
                         new DialogInterface.OnClickListener() {
                             @SuppressLint("CheckResult")
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if (editText1.getText().toString().trim().length() == 0) {
-                                    new MyToasty(SaveBillDetailsActivity.this).showInfo("请输入单据名称");
+                                    new MyToasty(SaveBillDetailsActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
                                     return;
                                 }
 

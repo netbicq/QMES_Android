@@ -73,6 +73,7 @@
     <string name="Please_open_the_wifi">请先打开Wifi！</string>
     <string name="is_connecting">正在链接...</string>
     <string name="is_saving">正在保存...</string>
+    <string name="is_uploading">正在上传...</string>
     <string name="connect_failed">蓝牙电子秤连接失败,请尝试重连！</string>
     <string name="bluetooth_diconnected">蓝牙电子秤连接已断开！</string>
 
