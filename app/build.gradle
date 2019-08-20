@@ -14,6 +14,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         android.defaultConfig.vectorDrawables.useSupportLibrary = true
 
+        ndk{abiFilters"armeabi","armeabi-v7a","x86","mips"}
+
     }
     buildTypes {
         release {
@@ -83,12 +85,10 @@ dependencies {
     implementation 'me.jessyan:autosize:1.1.2'
     //Smart-show
     implementation 'com.github.the-pig-of-jungle.smart-show:toast:2.7.8'
-
     implementation 'com.android.support:multidex:1.0.3'
-
-
     implementation project(path: ':socket-client')
     implementation files('libs/tencentx5.jar')
     implementation project(path: ':camera')
     implementation project(path: ':lib-zxing')
+
 }

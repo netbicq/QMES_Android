@@ -80,6 +80,8 @@ public class BaseApplication extends ZApplication {
     }
 
     private void initX5() {
+        //非wifi情况下，主动下载x5内核
+        QbSdk.setDownloadWithoutWifi(true);
         QbSdk.initX5Environment(this, new QbSdk.PreInitCallback() {
             @Override
             public void onCoreInitFinished() {
@@ -88,7 +90,7 @@ public class BaseApplication extends ZApplication {
 
             @Override
             public void onViewInitFinished(boolean b) {
-
+                Logger.d("X5内核加载" + b);
             }
         });
     }
@@ -104,6 +106,7 @@ public class BaseApplication extends ZApplication {
         super.onCreate();
         mContext = this;
         LitePal.initialize(getApplicationContext());
+
 
         //Smart-show
         SmartShow.init(this);
@@ -136,13 +139,16 @@ public class BaseApplication extends ZApplication {
 //        Logger.addLogAdapter(new DiskLogAdapter(formatStrategy));
 
                 Logger.d("Logger初始化成功");
+
+                Logger.d("X5内核加载");
+                initX5();
+
                 //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式
                 Bugly.init(mContext, "76506509d0", false);
-                initX5();
+
 
             }
         }).start();
-
 
         instance = this;
 

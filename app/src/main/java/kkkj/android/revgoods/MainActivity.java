@@ -505,7 +505,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //Logger.d("读取到的数据：" + str);
                                 mWeightTextView.setText(str);
 
-
                                 byte[] weightByte = CRC16Util.stringToByte(str);
                                 Logger.d("weightByte" + CRC16Util.toHexStringForLog(weightByte));
                                 if (ble != null) {
