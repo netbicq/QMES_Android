@@ -359,10 +359,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mTvMatter.setText(matter.getName());
         }
         //更新品类等级
-        if (deviceEvent.getMatterLevelId() >=0) {
+        if (deviceEvent.getMatterLevelId() >= 0) {
             matterLevel = new MatterLevel();
             matterLevelId = deviceEvent.getMatterLevelId();
-            matterLevel = LitePal.find(MatterLevel.class,matterLevelId);
+            matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
             mTvMatterLevel.setText(matterLevel.getName());
         }
         //更新规格
@@ -1442,13 +1442,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (view.getId()) {
             case R.id.id_iv_choose_matter://选择品类
-                if (supplier != null) {
-                    Intent intent = new Intent(MainActivity.this, ChooseMatterActivity.class);
-                    startActivity(intent);
-                } else {
-                    myToasty.showWarning("请先选择供应商！");
-                }
-
+                Intent intent = new Intent(MainActivity.this, ChooseMatterActivity.class);
+                startActivity(intent);
                 break;
 
             case R.id.id_iv_choose_matter_level://选择品类等级
@@ -1462,12 +1457,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_iv_choose_specs://选择规格
-                if (matter != null) {
-                    Intent intent = ChooseSpecsActivity.newIntent(MainActivity.this, String.valueOf(matter.getId()));
-                    startActivity(intent);
-                } else {
-                    myToasty.showWarning("请先选择品类！");
-                }
+
+                Intent intent1 = ChooseSpecsActivity.newIntent(MainActivity.this, String.valueOf(matter.getId()));
+                startActivity(intent1);
+
                 break;
 
             case R.id.id_tv_sampling://采样
@@ -1475,7 +1468,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
                     //已连接
                     if (supplier != null && matter != null && matterLevel != null) {
-                        samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId,matterLevelId);
+                        samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId, matterLevelId);
                         showDialogFragment(samplingFragment, SAMPLING);
                     } else {
                         myToasty.showWarning("请先选择供应商，品类，品类等级！");
@@ -1494,8 +1487,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     } else {
                         myToasty.showInfo("未配置采样秤，请手动连接！");
-                        Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 3);
-                        startActivity(intent);
+                        Intent intent2 = ElcScaleActivity.newIntent(MainActivity.this, 3);
+                        startActivity(intent2);
                     }
                 }
 
@@ -1578,7 +1571,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 int samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
 
-                if ( samplingSize <= 0) {
+                if (samplingSize <= 0) {
                     //未采样，则必须选择供应商，品类，品类等级，规格
                     if (supplier == null || matter == null || matterLevel == null || specs == null) { //未选择，直接返回
                         myToasty.showWarning("请先选择供应商，品类，品类等级，规格！");
@@ -1603,8 +1596,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     //扣重率
                                     int deduction = Integer.valueOf(editText1.getText().toString().trim());
                                     Intent intent = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
-                                            deduction, tvCumulativeWeight.getText().toString().trim(),supplierId,matterId,
-                                            matterLevelId,specsId);
+                                            deduction, tvCumulativeWeight.getText().toString().trim(), supplierId, matterId,
+                                            matterLevelId, specsId);
 
                                     startActivity(intent);
 
@@ -1617,7 +1610,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }).show();
 
 
-                }else {
+                } else {
                     //已采样
                     final EditText editText1 = new EditText(MainActivity.this);
                     editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
