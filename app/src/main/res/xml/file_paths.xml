@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- /storage/emulated/0/JCamera/video_1566352239649.mp4-->
+    <external-path name="video_path" path="JCamera/"/>
+</paths>

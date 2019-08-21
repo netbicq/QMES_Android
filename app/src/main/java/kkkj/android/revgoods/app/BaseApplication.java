@@ -5,8 +5,6 @@ import android.content.Context;
 import android.os.Process;
 import android.support.multidex.MultiDex;
 
-import com.coder.zzq.smartshow.core.SmartShow;
-import com.coder.zzq.smartshow.toast.SmartToast;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.FormatStrategy;
 import com.orhanobut.logger.Logger;
@@ -20,6 +18,8 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
+import com.squareup.leakcanary.LeakCanary;
+import com.squareup.leakcanary.internal.FragmentRefWatcher;
 import com.tencent.bugly.Bugly;
 import com.tencent.smtt.sdk.QbSdk;
 import com.uuzuche.lib_zxing.ZApplication;
@@ -101,17 +101,18 @@ public class BaseApplication extends ZApplication {
         MultiDex.install(this);
     }
 
+
     @Override
     public void onCreate() {
         super.onCreate();
         mContext = this;
         LitePal.initialize(getApplicationContext());
+        //内存泄露工具
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            return;
+        }
+        LeakCanary.install(this);
 
-
-        //Smart-show
-        SmartShow.init(this);
-        SmartToast.globalSetting().dismissOnLeave(true);
-        SmartToast.typeSetting().themeColorRes(R.color.theme);
 
         new Thread(new Runnable() {
             @Override
@@ -140,7 +141,6 @@ public class BaseApplication extends ZApplication {
 
                 Logger.d("Logger初始化成功");
 
-                Logger.d("X5内核加载");
                 initX5();
 
                 //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式

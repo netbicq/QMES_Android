@@ -12,6 +12,7 @@ import android.view.WindowManager;
 
 import butterknife.ButterKnife;
 import kkkj.android.revgoods.app.BaseApplication;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
 import kkkj.android.revgoods.mvpInterface.MvpView;
 import kkkj.android.revgoods.utils.LangUtils;
@@ -22,6 +23,7 @@ public  abstract class BaseActivity <T extends MvpPresenter> extends AppCompatAc
     public T mPresenter;
     public FragmentActivity mActivity;
     public Context mContext;
+    public MyToasty myToasty;
 
 
     @Override
@@ -46,6 +48,7 @@ public  abstract class BaseActivity <T extends MvpPresenter> extends AppCompatAc
         getWindow().setAttributes(lp);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
+        myToasty = new MyToasty(this);
         mContext = this;
         mActivity = this;
         mPresenter = getPresenter();

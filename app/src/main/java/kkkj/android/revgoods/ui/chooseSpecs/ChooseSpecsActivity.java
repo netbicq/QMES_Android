@@ -50,15 +50,6 @@ public class ChooseSpecsActivity extends BaseActivity<ChooseSpecsPresenter> impl
     private SpecsAdapter mAdapter;
     private GridLayoutManager mLayoutManager;
 
-    public static final String MATTER_ID = "matterID";
-    private String matterId;
-
-    public static Intent newIntent(Context context, String matterId) {
-        Intent intent = new Intent(context, ChooseSpecsActivity.class);
-        intent.putExtra(MATTER_ID, matterId);
-        return intent;
-    }
-
     @Override
     protected ChooseSpecsPresenter getPresenter() {
         return new ChooseSpecsPresenter();
@@ -68,11 +59,6 @@ public class ChooseSpecsActivity extends BaseActivity<ChooseSpecsPresenter> impl
     protected void initData() {
         mSpecs = new ArrayList<>();
         mTempSpecs = new ArrayList<>();
-
-        Intent intent = getIntent();
-        if (intent != null) {
-            matterId = intent.getStringExtra(MATTER_ID);
-        }
 
         mPresenter.getSpecses();
 

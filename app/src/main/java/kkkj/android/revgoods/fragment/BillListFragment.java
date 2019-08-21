@@ -132,7 +132,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                         Bill bill = mBills.get(position);
                         BillModel.Request request = getBillRequest(bill);
                         if (!NetUtils.checkNetWork()) {
-                            new MyToasty(getActivity()).showWarning("当前网络连接不可用，请联网后重试！");
+                            myToasty.showWarning("当前网络连接不可用，请联网后重试！");
                             return;
                         }
 
@@ -150,12 +150,12 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                     @Override
                                     public void onNext(BillModel.Response response) {
                                         if (response.isData()) {
-                                            new MyToasty(getActivity()).showSuccess("上传成功");
+                                            myToasty.showSuccess("上传成功!");
                                             bill.setIsUpload(0);
                                             bill.save();
                                             adapter.notifyDataSetChanged();
                                         }else {
-                                            new MyToasty(getActivity()).showError("上传失败：" + response.getMsg());
+                                            myToasty.showError("上传失败：" + response.getMsg());
                                         }
                                     }
 
@@ -164,7 +164,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                         if (mQMUITipDialog.isShowing()) {
                                             mQMUITipDialog.dismiss();
                                         }
-                                        new MyToasty(getActivity()).showError("上传失败：" + e.getMessage());
+                                        myToasty.showError("上传失败：" + e.getMessage());
                                     }
 
                                     @Override
@@ -218,29 +218,6 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         int matterId = bill.getMatterId();
         Supplier supplier = LitePal.find(Supplier.class,supplierId);
         Matter matter = LitePal.find(Matter.class,matterId);
-
-        Logger.d("deductionList:" + deductionList.size() );
-        Logger.d("samplingDetailsList:" + samplingDetailsList.size() );
-        Logger.d("cumulativeList:" + cumulativeList.size() );
-
-//        if (samplingDetailsList.size() > 1) {
-//            //重新计算占比
-//            //采样总重量
-//            double total = 0d;
-//            for (int i = 0; i < samplingDetailsList.size(); i++) {
-//                BigDecimal b1 = new BigDecimal(Double.toString(total));
-//                BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
-//                total = b1.add(b2).doubleValue();
-//            }
-//
-//            //计算占比
-//            for (int i = 0; i < samplingDetailsList.size(); i++) {
-//                double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-//                samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
-//            }
-//            LitePal.saveAll(samplingDetailsList);
-//        }
-
 
         //计秤总重量
         double mWeight = bill.getWeight();

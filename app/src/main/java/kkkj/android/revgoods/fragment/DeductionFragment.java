@@ -43,8 +43,6 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     private DeductionCategory deductionCategory;
     private Deduction deduction;
 
-    private MyToasty myToasty;
-
     public static DeductionFragment newInstance(String weight) {
         Bundle args = new Bundle();
         args.putString("weight",weight);
@@ -62,7 +60,6 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
 
 
     public void initData() {
-        myToasty = new MyToasty(getContext());
 
         deductionList = LitePal.findAll(DeductionCategory.class);
 

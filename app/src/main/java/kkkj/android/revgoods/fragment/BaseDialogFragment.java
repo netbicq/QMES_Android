@@ -18,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.customer.MyToasty;
 
 
 public abstract class BaseDialogFragment extends DialogFragment {
@@ -25,12 +26,14 @@ public abstract class BaseDialogFragment extends DialogFragment {
     public ImageView ivBack;
     public TextView tvTitle;
     public ImageView ivRight;
+    public MyToasty myToasty;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(setLayout(), container, false);
 
+        myToasty = new MyToasty(getActivity());
         barContainer = view.findViewById(R.id.bar_container);
         ivBack = barContainer.findViewById(R.id.iv_back);
         tvTitle = barContainer.findViewById(R.id.tv_title);

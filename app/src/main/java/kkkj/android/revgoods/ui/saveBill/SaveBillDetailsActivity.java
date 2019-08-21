@@ -34,15 +34,9 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillDetailsAdapter;
@@ -65,8 +59,6 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
-import kkkj.android.revgoods.fileUpload.FileCallback;
-import kkkj.android.revgoods.fileUpload.FileUploadUtils;
 import kkkj.android.revgoods.http.RetrofitServiceManager;
 import kkkj.android.revgoods.http.api.APIAttachfile;
 import kkkj.android.revgoods.http.api.UploadCallbacks;
@@ -162,6 +154,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
     @Override
     protected void initView() {
+
         mQMUITipDialog = new QMUITipDialog.Builder(SaveBillDetailsActivity.this)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord(getResources().getString(R.string.is_saving))
@@ -233,7 +226,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             if (mQMUITipDialog.isShowing()) {
                 mQMUITipDialog.dismiss();
             }
-            Toast.makeText(SaveBillDetailsActivity.this, "上传成功！", Toast.LENGTH_LONG).show();
+            myToasty.showSuccess("上传成功！");
         } else {
 
             if (mQMUITipDialog.isShowing()) {
@@ -313,7 +306,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
 
                                 if (!NetUtils.checkNetWork()) {
-                                    new MyToasty(SaveBillDetailsActivity.this).showSuccess("保存成功");
+                                    myToasty.showSuccess("保存成功!");
                                     finish();
                                     return;
                                 }
@@ -321,113 +314,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                                 mQMUITipDialog.show();
 
                                 mPresenter.addBill(request);
-
-
-//                                if (NetUtils.checkNetWork()) {
-//                                    List<SamplingDetails> tempSamplingList = new ArrayList<>();
-//
-//                                    Observable.just(1)
-//                                            .subscribeOn(Schedulers.io())
-//                                            .observeOn(AndroidSchedulers.mainThread())
-//                                            .doOnNext(new Consumer<Integer>() {
-//                                                @Override
-//                                                public void accept(Integer integer) throws Exception {
-//
-//                                                }
-//                                            })
-//                                            .observeOn(Schedulers.io())
-//                                            .concatMap(new Function<Integer, ObservableSource<List<SamplingDetails>>>() {
-//                                                @Override
-//                                                public ObservableSource<List<SamplingDetails>> apply(Integer integer) throws Exception {
-//                                                    for (int i = 0; i < samplingDetailsList.size(); i++) {
-//                                                        int samplingDetailsId = samplingDetailsList.get(i).getId();
-//                                                        SamplingDetails samplingDetails = LitePal.find(SamplingDetails.class, samplingDetailsId, true);
-//                                                        List<GetPicModel> getPicModelList = samplingDetails.getModelList();
-//                                                        List<Path> pathList;
-//
-//                                                        if (getPicModelList.size() > 0) {
-//                                                            pathList = uploadFiles(getPicModelList);
-//                                                            samplingDetails.setPathList(pathList);
-//                                                            samplingDetails.save();
-//                                                            tempSamplingList.add(samplingDetails);
-//                                                        }
-//                                                    }
-//                                                    return Observable.create(new ObservableOnSubscribe<List<SamplingDetails>>() {
-//                                                        @Override
-//                                                        public void subscribe(ObservableEmitter<List<SamplingDetails>> emitter) throws Exception {
-//                                                            emitter.onNext(tempSamplingList);
-//                                                            emitter.onComplete();
-//                                                        }
-//                                                    });
-//                                                }
-//                                            }).subscribe(new Observer<List<SamplingDetails>>() {
-//                                        @Override
-//                                        public void onSubscribe(Disposable d) {
-//
-//                                        }
-//
-//                                        @Override
-//                                        public void onNext(List<SamplingDetails> samplingDetails) {
-//                                            /**
-//                                             * Weigth : 1.0
-//                                             * Amount : 2.0
-//                                             * SingalWeight : 3.0
-//                                             * NormsID : b8b62085-43a5-488e-9cfa-659f4c73927e
-//                                             * Ratio : 5.0
-//                                             * Files : ["sample string 1","sample string 2"]
-//                                             */
-//                                            List<PurSamples> purSamplesList = new ArrayList<>();//采样明细
-//                                            for (int i = 0; i < samplingDetails.size(); i++) {
-//                                                PurSamples purSamples = new PurSamples();
-//
-//                                                int samplingId = samplingDetails.get(i).getId();
-//                                                SamplingDetails samplingDetails1 = LitePal.find(SamplingDetails.class,samplingId,true);
-//
-//                                                double ratio = samplingDetails1.getSpecsProportion() * 100;//规格占比
-//                                                double amount = Double.valueOf(samplingDetails1.getNumber());//本次采样的数量
-//
-//                                                purSamples.setWeigth(DoubleCountUtils.keep(Double.valueOf(samplingDetails1.getWeight())));//本次采样的重量
-//                                                purSamples.setAmount(DoubleCountUtils.keep(amount));//本次采样的数量
-//                                                purSamples.setSingalWeight(samplingDetails1.getSingalWeight());//本次采样单重
-//
-//                                                Specs specs1 = LitePal.find(Specs.class, samplingDetails1.getSpecsId());
-//                                                purSamples.setNormsID(specs1.getKeyID());//规格ID
-//
-//                                                purSamples.setRatio(ratio);//规格占比
-//
-//
-//                                                //文件路径
-//                                                List<Path> pathList = samplingDetails1.getPathList();
-//                                                List<String> stringList = new ArrayList<>();
-//                                                for (int j = 0; j < pathList.size(); j++) {
-//                                                    stringList.add(pathList.get(j).getPath());
-//                                                }
-//                                                purSamples.setFiles(stringList);//文件路径
-//
-//                                                for (int j = 0; j < stringList.size(); j++) {
-//                                                    Logger.d(stringList.get(j));
-//                                                }
-//
-//                                                purSamplesList.add(purSamples);
-//                                            }
-//                                            request.setPurSamples(purSamplesList);//采样明细
-//
-//                                            mPresenter.addBill(request);
-//                                        }
-//
-//                                        @Override
-//                                        public void onError(Throwable e) {
-//
-//                                        }
-//
-//                                        @Override
-//                                        public void onComplete() {
-//
-//                                        }
-//                                    });
-//                                } else {
-//                                    new MyToasty(SaveBillDetailsActivity.this).showInfo("当前网络连接不可用，数据将保存到本地！");
-//                                }
 
                             }
                         })
@@ -655,146 +541,5 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
     }
 
-    /**
-     * 上传附件
-     */
-
-    private List<Path> uploadFiles(List<GetPicModel> getPicModelList) {
-
-        List<Path> paths = new ArrayList<>();
-
-        for (int i = 0; i < getPicModelList.size(); i++) {
-            GetPicModel picOrMp4 = getPicModelList.get(i);
-            //上传附件
-            APIAttachfile apiAttachfile = RetrofitServiceManager.getInstance().create(APIAttachfile.class);
-//            if (!qmuiTipDialog.isShowing()) {
-//                qmuiTipDialog.show();
-//            }
-
-            int type = picOrMp4.getType();//0照片  1视频
-            switch (type) {
-                case 0://照片
-                    String path = picOrMp4.getImagePath();
-                    UpLoadFileModel.Request request = new UpLoadFileModel.Request();
-                    request.setFile(new File(path));
-                    request.setMediaType("image");
-                    UploadCallbacks mListener = new UploadCallbacks() {
-                        @Override
-                        public void onProgressUpdate(int percentage) {
-//                        Logger.d(percentage);
-                        }
-
-                        @Override
-                        public void onError() {
-                            Logger.d("错误");
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            //qmuiTipDialog.dismiss();
-                        }
-                    };
-                    request.setListener(mListener);
-                    apiAttachfile.uploadfile(request.getFiles())
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<UpLoadFileModel.Response>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
-
-                                }
-
-                                @Override
-                                public void onNext(UpLoadFileModel.Response response) {
-                                    if (response.getState() == 200) {
-                                        Path path1 = new Path();
-                                        path1.setPath(response.getData());
-                                        boolean b = path1.save();
-                                        Logger.d("是否保存成功：" + b);
-                                        paths.add(path1);
-                                    }
-
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                                }
-
-                                @Override
-                                public void onComplete() {
-//                                    if (qmuiTipDialog.isShowing()) {
-//                                        qmuiTipDialog.dismiss();
-//                                    }
-                                }
-                            });
-
-                    break;
-
-                case 1:
-
-                    String pathVideo = picOrMp4.getMp4Path();
-                    UpLoadFileModel.Request requestVideo = new UpLoadFileModel.Request();
-                    requestVideo.setFile(new File(pathVideo));
-                    requestVideo.setMediaType("video");
-                    UploadCallbacks mListenerVideo = new UploadCallbacks() {
-                        @Override
-                        public void onProgressUpdate(int percentage) {
-//                        Logger.d(percentage);
-                        }
-
-                        @Override
-                        public void onError() {
-                            Logger.d("错误");
-                        }
-
-                        @Override
-                        public void onFinish() {
-
-                        }
-                    };
-                    requestVideo.setListener(mListenerVideo);
-                    apiAttachfile.uploadfile(requestVideo.getFiles())
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<UpLoadFileModel.Response>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
-
-                                }
-
-                                @Override
-                                public void onNext(UpLoadFileModel.Response response) {
-                                    if (response.getState() == 200) {
-                                        Path path1 = new Path();
-                                        path1.setPath(response.getData());
-                                        boolean b = path1.save();
-                                        Logger.d("是否保存成功：" + b);
-                                        paths.add(path1);
-                                    }
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                                }
-
-                                @Override
-                                public void onComplete() {
-//                                    if (qmuiTipDialog.isShowing()) {
-//                                        qmuiTipDialog.dismiss();
-//                                    }
-                                }
-                            });
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        return paths;
-
-    }
 
 }

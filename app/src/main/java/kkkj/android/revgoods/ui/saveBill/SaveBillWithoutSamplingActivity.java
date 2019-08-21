@@ -147,11 +147,6 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
         return intent;
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
 
     @Override
     protected int setLayout() {
@@ -239,7 +234,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
             if (mQMUITipDialog.isShowing()) {
                 mQMUITipDialog.dismiss();
             }
-            new MyToasty(SaveBillWithoutSamplingActivity.this).showSuccess("上传成功！");
+            myToasty.showSuccess("上传成功！");
         } else {
 
             if (mQMUITipDialog.isShowing()) {
@@ -323,7 +318,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
                                 EventBus.getDefault().post(deviceEvent);
 
                                 if (!NetUtils.checkNetWork()) {
-                                    new MyToasty(SaveBillWithoutSamplingActivity.this).showSuccess("保存成功");
+                                    myToasty.showSuccess("保存成功!");
                                     finish();
                                     return;
                                 }
@@ -413,7 +408,6 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
                 request.setBillMaster(billMasterBean);
 
 
-
                 break;
 
             case R.id.iv_back:
@@ -468,7 +462,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
             tvPrice.setText(String.valueOf(lastPrice.getPrice()));
             tempPrice = String.valueOf(lastPrice.getPrice());
         }else {
-            new MyToasty(SaveBillWithoutSamplingActivity.this).showInfo("当前未配置单价，请手动输入！");
+            myToasty.showWarning("当前未配置单价，请手动输入！");
         }
 
 

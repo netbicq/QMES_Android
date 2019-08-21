@@ -91,7 +91,7 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
 
             case R.id.button:
                 if (!NetUtils.checkNetWork()) {
-                    Toast.makeText(DeductionCategoryActivity.this,"当前网络连接不可用，请联网后重试！",Toast.LENGTH_LONG).show();
+                    myToasty.showWarning("当前网络连接不可用，请联网后重试！");
                     return;
                 }
                 String category = mEditTextCategory.getText().toString().trim();
@@ -130,9 +130,11 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
 
     @Override
     public void addDeductionCategorySuc(DeductionCategory data) {
+        if (data != null) {
+            myToasty.showSuccess("添加成功！");
+            data.save();
+        }
 
-        Toast.makeText(DeductionCategoryActivity.this,"添加成功！",Toast.LENGTH_LONG).show();
-        data.save();
 
     }
 }
