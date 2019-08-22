@@ -583,6 +583,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             ProduceLine produceLine = deviceEvent.getProduceLine();
+            tvProduceLine.setText(produceLine.getName());
             Logger.d(produceLine.toString());
 
             if (produceLine.getName().equals("移动称重")) {

@@ -102,7 +102,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     private Specs specs;
     private Specs tempSpecs;
-    private int position = -1;
+    private int position = 0;
     private PicOrMp4Adapter picOrMp4Adapter;
 
     private QMUITipDialog qmuiTipDialog;
@@ -334,6 +334,21 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     @Override
     public void onClick(View view) {
+
+        String weight = mEtWeight.getText().toString().trim();
+        String number = mEtNumber.getText().toString().trim();
+        if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
+            if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
+
+            } else {
+                myToasty.showWarning("输入不能为零！请重新输入！");
+                return;
+            }
+        } else {
+            myToasty.showWarning("请填写数量和重量！");
+            return;
+        }
+
         switch (view.getId()) {
 
             case R.id.iv_right:
@@ -350,6 +365,12 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 SamplingDetails samplingDetails = new SamplingDetails();
 
+
+                if (position == 0) {
+                    myToasty.showWarning("请选择系统默认提供的规格！");
+                    return;
+                }
+
                 if (tempPrice.length() == 0) {
                     myToasty.showWarning(getResources().getString(R.string.input_price));
                     return;
@@ -359,15 +380,10 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                     myToasty.showWarning("单价不能为零！");
                     return;
                 }
-
                 //最终的单价
-                if (position != 0) {
-                    samplingDetails.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
-                    samplingDetails.setSpecsId(specs.getId());
-                } else {
-                    myToasty.showWarning("请选择系统默认提供的规格！");
-                    return;
-                }
+                samplingDetails.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
+                samplingDetails.setSpecsId(specs.getId());
+
 
                 samplingDetails.setWeight(mEtWeight.getText().toString().trim());
                 samplingDetails.setNumber(mEtNumber.getText().toString().trim());
@@ -400,24 +416,12 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 break;
 
             case R.id.button_enter://计算
-                String weight = mEtWeight.getText().toString().trim();
-                String number = mEtNumber.getText().toString().trim();
 
-                if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
-                    if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
-
-                        double specs = Double.parseDouble(weight) / Integer.parseInt(number);
-                        //单重
-                        singalWeight = DoubleCountUtils.keep(specs);
-                        specsNameList.set(0, String.valueOf(specs));
-                        specsAdapter.notifyDataSetChanged();
-
-                    } else {
-                        myToasty.showWarning("输入不能为零！请重新输入！");
-                    }
-                } else {
-                    myToasty.showWarning("请填写相关信息！");
-                }
+                double specs = Double.parseDouble(weight) / Integer.parseInt(number);
+                //单重
+                singalWeight = DoubleCountUtils.keep(specs);
+                specsNameList.set(0, String.valueOf(specs));
+                specsAdapter.notifyDataSetChanged();
 
                 break;
 

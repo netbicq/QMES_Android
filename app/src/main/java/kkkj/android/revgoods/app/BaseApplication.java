@@ -18,9 +18,6 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
-import com.squareup.leakcanary.internal.FragmentRefWatcher;
 import com.tencent.bugly.Bugly;
 import com.tencent.smtt.sdk.QbSdk;
 import com.uuzuche.lib_zxing.ZApplication;
@@ -43,7 +40,7 @@ public class BaseApplication extends ZApplication {
     private static Context mContext;
     private Map<String, String> commonparts;
 
-    private RefWatcher refWatcher;
+    //private RefWatcher refWatcher;
 
     public Auth_UserProfile getUserProfile() {
         Auth_UserProfile userProfile = new Auth_UserProfile();
@@ -104,10 +101,10 @@ public class BaseApplication extends ZApplication {
         MultiDex.install(this);
     }
 
-    public static RefWatcher getRefWatcher(Context context) {
-        BaseApplication application = (BaseApplication) context.getApplicationContext();
-        return application.refWatcher;
-    }
+//    public static RefWatcher getRefWatcher(Context context) {
+//        BaseApplication application = (BaseApplication) context.getApplicationContext();
+//        return application.refWatcher;
+//    }
 
 
 

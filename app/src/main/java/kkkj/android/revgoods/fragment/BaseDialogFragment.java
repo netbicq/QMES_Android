@@ -17,8 +17,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.leakcanary.RefWatcher;
-
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.app.BaseApplication;
 import kkkj.android.revgoods.customer.MyToasty;
