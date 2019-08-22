@@ -17,7 +17,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.leakcanary.RefWatcher;
+
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.app.BaseApplication;
 import kkkj.android.revgoods.customer.MyToasty;
 
 
@@ -82,4 +85,10 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+//        RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
+//        refWatcher.watch(this);
+    }
 }

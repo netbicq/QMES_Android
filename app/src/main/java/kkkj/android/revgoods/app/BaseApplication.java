@@ -19,6 +19,7 @@ import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import com.squareup.leakcanary.LeakCanary;
+import com.squareup.leakcanary.RefWatcher;
 import com.squareup.leakcanary.internal.FragmentRefWatcher;
 import com.tencent.bugly.Bugly;
 import com.tencent.smtt.sdk.QbSdk;
@@ -41,6 +42,8 @@ public class BaseApplication extends ZApplication {
     private Set<Activity> allActivities;
     private static Context mContext;
     private Map<String, String> commonparts;
+
+    private RefWatcher refWatcher;
 
     public Auth_UserProfile getUserProfile() {
         Auth_UserProfile userProfile = new Auth_UserProfile();
@@ -101,17 +104,23 @@ public class BaseApplication extends ZApplication {
         MultiDex.install(this);
     }
 
+    public static RefWatcher getRefWatcher(Context context) {
+        BaseApplication application = (BaseApplication) context.getApplicationContext();
+        return application.refWatcher;
+    }
+
+
 
     @Override
     public void onCreate() {
         super.onCreate();
         mContext = this;
         LitePal.initialize(getApplicationContext());
-        //内存泄露工具
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return;
-        }
-        LeakCanary.install(this);
+//        //内存泄露工具
+//        if (LeakCanary.isInAnalyzerProcess(this)) {
+//            return;
+//        }
+//        refWatcher = LeakCanary.install(this);
 
 
         new Thread(new Runnable() {

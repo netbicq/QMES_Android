@@ -421,6 +421,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             double price = samplingDetailsList.get(i).getPrice();//单价
 
             money = DoubleCountUtils.keep(weight * price) + money;//总金额
+            money = DoubleCountUtils.keep(money);
 
             Specs specs1 = LitePal.find(Specs.class, samplingDetailsList.get(i).getSpecsId());
             purPrices.setNormsID(specs1.getKeyID());//规格ID
