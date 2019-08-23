@@ -61,6 +61,19 @@ public class DeviceEvent {
         return produceLine;
     }
 
+    /**
+     * 间隔时间
+     */
+    private int intervalTime = -1;
+
+    public int getIntervalTime() {
+        return intervalTime;
+    }
+
+    public void setIntervalTime(int intervalTime) {
+        this.intervalTime = intervalTime;
+    }
+
     public void setProduceLine(ProduceLine produceLine) {
         this.produceLine = produceLine;
     }

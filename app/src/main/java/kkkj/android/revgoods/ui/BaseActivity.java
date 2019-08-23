@@ -83,7 +83,7 @@ public  abstract class BaseActivity <T extends MvpPresenter> extends AppCompatAc
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG,0)));
     }
 
     @Override

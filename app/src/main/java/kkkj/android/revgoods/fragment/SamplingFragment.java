@@ -418,6 +418,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
             case R.id.button_enter://计算
 
                 double specs = Double.parseDouble(weight) / Integer.parseInt(number);
+                specs = DoubleCountUtils.keep(specs);
                 //单重
                 singalWeight = DoubleCountUtils.keep(specs);
                 specsNameList.set(0, String.valueOf(specs));

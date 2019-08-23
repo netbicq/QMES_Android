@@ -27,11 +27,9 @@ import android.text.InputType;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -97,7 +95,6 @@ import kkkj.android.revgoods.conn.socket.CallBack;
 import kkkj.android.revgoods.conn.socket.MyOkSocket;
 import kkkj.android.revgoods.conn.socket.WriteData;
 import kkkj.android.revgoods.customer.MyToasty;
-import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
 import kkkj.android.revgoods.elcscale.view.ElcScaleActivity;
 import kkkj.android.revgoods.event.DeviceEvent;
@@ -182,6 +179,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView mIvChooseMatterLevel;
     @BindView(R.id.tv_produce_line)
     TextView tvProduceLine;
+    @BindView(R.id.id_tv_deductionMix)
+    TextView mTvDeductionMix;
 
     private CompositeDisposable compositeDisposable;
 
@@ -224,6 +223,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean bleScreenConnectionState = false;
     //蓝牙Ble设备
     private Ble ble;
+    //间隔时间
+    private int intervalTime;
+    //扣重率
+    private int deductionMix = 0;
 
 //    private BillListFragment billListFragment;
 //    private DeviceListFragment deviceListFragment;
@@ -339,11 +342,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTvSaveBill.setOnClickListener(this);
         mTvHand.setOnClickListener(this);
         tvProduceLine.setOnClickListener(this);
+        mTvDeductionMix.setOnClickListener(this);
         mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
 
         mTvIsUpload.setText(isUploadCount);
         mSamplingNumber.setText(mSampling);
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+
+        //品类等级
+        matterLevel = new MatterLevel();
+        matterLevelId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_MATTER_LEVEL, -1);
+        if (matterLevelId > 0) {
+            matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
+            mTvMatterLevel.setText(matterLevel.getName());
+        }
+        //品类
+        matter = new Matter();
+        matterId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_MATTER, -1);
+        if (matterId > 0) {
+            matter = LitePal.find(Matter.class, matterId);
+            mTvMatter.setText(matter.getName());
+        }
 
         if (LitePal.isExist(Cumulative.class) || LitePal.isExist(Deduction.class)) {
             int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
@@ -444,12 +463,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
             it.setComponent(cn);
             startActivity(it);
-            return;
         }
 
     }
 
     private void initData() {
+        //间隔时间,默认2秒
+        intervalTime = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_INTERVAL_TIME, 2);
 
         compositeDisposable = new CompositeDisposable();
 
@@ -501,6 +521,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
         Device device = deviceEvent.getDevice();
+
+        //更新间隔时间
+        if (deviceEvent.getIntervalTime() > 0) {
+            intervalTime = deviceEvent.getIntervalTime();
+        }
+
         //更新累计数+1
         if (deviceEvent.isAdd()) {
             int count = Integer.parseInt(tvCumulativeCount.getText().toString());
@@ -532,17 +558,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         //更新品类（物料）
         if (deviceEvent.getMatterId() >= 0) {
-            matter = new Matter();
+
             matterId = deviceEvent.getMatterId();
             matter = LitePal.find(Matter.class, matterId);
             mTvMatter.setText(matter.getName());
+
+            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_MATTER, matterId);
         }
         //更新品类等级
         if (deviceEvent.getMatterLevelId() >= 0) {
-            matterLevel = new MatterLevel();
+
             matterLevelId = deviceEvent.getMatterLevelId();
             matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
             mTvMatterLevel.setText(matterLevel.getName());
+
+            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_MATTER_LEVEL, matterLevelId);
         }
         //更新规格
         if (deviceEvent.getSpecsId() >= 0) {
@@ -590,7 +620,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mTvHand.setVisibility(View.VISIBLE);
                 Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
                 startActivity(intent);
-            }else {
+            } else {
                 mTvHand.setVisibility(View.GONE);
 
                 //主秤
@@ -768,14 +798,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
 //        ble.send(point);
 
-        if (bleScreenConnectionState) {
-            myToasty.showSuccess("显示屏连接成功！");
-        }
-
     }
 
     //蓝牙电子秤
     private void connect(BluetoothDevice device) {
+
         qmuiTipDialog.show();
         final boolean[] isSend = {false};
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
@@ -814,12 +841,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 byte[] weightByte = CRC16Util.stringToByte(str);
                                 Logger.d("weightByte" + CRC16Util.toHexStringForLog(weightByte));
                                 if (ble != null) {
-                                    if (!isSend[0]) {
+                                    bleScreenConnectionState = ble.isConnected();
+                                    if (!isSend[0] && bleScreenConnectionState) {
+
+                                        myToasty.showSuccess("显示屏连接成功！");
+
                                         //小数位数，固定2位
                                         byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
                                         ble.send(point);
-                                        myToasty.showSuccess("修改小数位数成功！");
                                         isSend[0] = true;
+
                                     }
                                     ble.send(weightByte);
                                 }
@@ -877,8 +908,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         }
                                                     });
 
-                                            //两秒之后开关置反
-                                            Observable.timer(2, TimeUnit.SECONDS)
+                                            //intervalTime秒之后开关置反
+                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
                                                     .subscribe(new Consumer<Long>() {
                                                         @Override
                                                         public void accept(Long aLong) throws Exception {
@@ -948,8 +979,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         }
                                                     });
 
-                                            //两秒之后开关置反
-                                            Observable.timer(2, TimeUnit.SECONDS)
+                                            //intervalTime秒之后开关置反
+                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
                                                     .subscribe(new Consumer<Long>() {
                                                         @Override
                                                         public void accept(Long aLong) throws Exception {
@@ -1372,7 +1403,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
                     //已连接
-                    if (supplier != null && matter != null && matterLevel != null) {
+                    if (supplier != null && matterId > 0 && matterLevelId > 0) {
                         SamplingFragment samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId, matterLevelId);
                         showDialogFragment(samplingFragment, SAMPLING);
                     } else {
@@ -1417,6 +1448,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_deduction://扣重
                 DeductionFragment deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
                 showDialogFragment(deductionFragment, DEDUCTION);
+                break;
+
+            case R.id.id_tv_deductionMix://扣重率
+                final EditText editText1 = new EditText(MainActivity.this);
+                editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
+                inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
+                inputDialog1.setPositiveButton(R.string.enter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (editText1.getText().toString().trim().length() == 0) {
+                                    myToasty.showInfo("请输入扣重率");
+                                    return;
+                                }
+                                //扣重率
+                                deductionMix = Integer.valueOf(editText1.getText().toString().trim());
+
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
+
                 break;
 
             case R.id.id_iv_choose_printer://选择打印机
@@ -1478,74 +1536,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 if (samplingSize <= 0) {
                     //未采样，则必须选择供应商，品类，品类等级，规格
-                    if (supplier == null || matter == null || matterLevel == null || specs == null) { //未选择，直接返回
+                    if (supplier == null || matterId <= 0 || matterLevelId <= 0 || specs == null) { //未选择，直接返回
                         myToasty.showWarning("请先选择供应商，品类，品类等级，规格！");
                         return;
                     }
 
                     //已选择供应商，品类，品类等级，规格
 
-                    final EditText editText1 = new EditText(MainActivity.this);
-                    editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                    AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
-                    inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
-                    inputDialog1.setPositiveButton(R.string.enter,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (editText1.getText().toString().trim().length() == 0) {
-                                        myToasty.showInfo("请输入扣重率");
-                                        return;
-                                    }
-                                    //扣重率
-                                    int deduction = Integer.valueOf(editText1.getText().toString().trim());
-                                    Intent intent = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
-                                            deduction, tvCumulativeWeight.getText().toString().trim(), supplierId, matterId,
-                                            matterLevelId, specsId);
+                    Intent intent1 = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
+                            deductionMix, tvCumulativeWeight.getText().toString().trim(), supplierId, matterId,
+                            matterLevelId, specsId);
 
-                                    startActivity(intent);
-
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                }
-                            }).show();
+                    startActivity(intent1);
 
                 } else {
                     //已采样
-                    final EditText editText1 = new EditText(MainActivity.this);
-                    editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                    AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
-                    inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
-                    inputDialog1.setPositiveButton(R.string.enter,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (editText1.getText().toString().trim().length() == 0) {
-                                        myToasty.showInfo("请输入扣重率");
-                                        return;
-                                    }
-                                    //扣重率
-                                    int deduction = Integer.valueOf(editText1.getText().toString().trim());
-                                    Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
-                                            deduction, tvCumulativeWeight.getText().toString().trim());
-
-                                    startActivity(intent);
-
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                }
-                            }).show();
+                    Intent intent2 = SaveBillDetailsActivity.newInstance(MainActivity.this,
+                            deductionMix, tvCumulativeWeight.getText().toString().trim());
+                    startActivity(intent2);
 
                 }
-
 
                 break;
 
@@ -1694,7 +1704,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(LangUtils.getAttachBaseContext(newBase,
-                SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+                SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG, 0)));
     }
 
     @Override

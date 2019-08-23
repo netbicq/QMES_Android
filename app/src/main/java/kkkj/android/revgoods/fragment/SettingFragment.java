@@ -9,6 +9,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -16,19 +18,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 
+import org.greenrobot.eventbus.EventBus;
+
 import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
+import kkkj.android.revgoods.customer.MyToasty;
+import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.addDeductionCategory.DeductionCategoryActivity;
+import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class SettingFragment extends DialogFragment implements View.OnClickListener {
 
     private TextView mSettingDeductionCategoryTextView;
     private TextView mChangeLanguageTv;
+    private TextView mTvSetTime;
 
     @Nullable
     @Override
@@ -50,8 +60,10 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
     private void initView(View view) {
         mChangeLanguageTv = view.findViewById(R.id.id_tv_change_language);
         mSettingDeductionCategoryTextView = view.findViewById(R.id.id_tv_deduction_category);
+        mTvSetTime = view.findViewById(R.id.tv_set_time);
         mSettingDeductionCategoryTextView.setOnClickListener(this);
         mChangeLanguageTv.setOnClickListener(this);
+        mTvSetTime.setOnClickListener(this);
     }
 
 
@@ -101,6 +113,47 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
                         changeLanguage(i);
                     }
                 }).show();
+                break;
+
+            case R.id.tv_set_time:
+                //间隔时间,默认2秒
+                int intervalTime = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_INTERVAL_TIME,2);
+
+                final EditText editText = new EditText(getActivity());
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+
+                editText.setText(String.valueOf(intervalTime));
+
+                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(getActivity());
+                inputDialog1.setTitle("请输入间隔时间").setView(editText);
+                inputDialog1.setPositiveButton(R.string.enter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String time = editText.getText().toString().trim();
+                                MyToasty myToasty = new MyToasty(getActivity());
+                                if (time.length() == 0) {
+                                    myToasty.showWarning("请输入间隔时间");
+                                    return;
+                                }
+                                if (Double.valueOf(time) <= 0) {
+                                    myToasty.showWarning("间隔时间需大于0");
+                                    return;
+                                }
+
+                                SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_INTERVAL_TIME,Integer.valueOf(time));
+                                DeviceEvent deviceEvent = new DeviceEvent();
+                                deviceEvent.setIntervalTime(Integer.valueOf(time));
+                                EventBus.getDefault().post(deviceEvent);
+                                dismiss();
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
                 break;
 
             default:

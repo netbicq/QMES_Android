@@ -44,7 +44,7 @@
     <string name="deduction_category">扣重类别</string>
     <string name="price">单价</string>
     <string name="price_no">价格</string>
-    <string name="confirm_price">确认单价</string>
+    <string name="confirm_price">确认金额</string>
     <string name="enter">确定</string>
     <string name="cancel">取消</string>
     <string name="submit">提交</string>

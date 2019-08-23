@@ -2,6 +2,8 @@ package kkkj.android.revgoods.fragment;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Environment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,7 +15,9 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
+import org.litepal.util.SharedUtil;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +38,7 @@ import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Path;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.bean.Student;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.bill.BillMaster;
 import kkkj.android.revgoods.bean.bill.DelWeights;
@@ -43,10 +48,13 @@ import kkkj.android.revgoods.bean.bill.Scales;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.mvpInterface.MvpModel;
+import kkkj.android.revgoods.ui.ShowBillDetailsActivity;
 import kkkj.android.revgoods.ui.saveBill.BillModel;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.ExcelUtils;
 import kkkj.android.revgoods.utils.NetUtils;
+import kkkj.android.revgoods.utils.ShareFile;
 
 /**
  * 单据列表
@@ -59,11 +67,63 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
     private List<Bill> mBills;
     private QMUITipDialog mQMUITipDialog;
 
+    private ArrayList<ArrayList<String>> recordList;
+    private List<Student> students;
+    private static String[] title = { "编号","姓名","性别","年龄","班级","数学","英语","语文" };
+    private File file;
+    private String fileName;
+
     @Override
     public void initData() {
         mBills = new ArrayList<>();
         mBills = LitePal.findAll(Bill.class, true);
 
+        //模拟数据集合
+        students = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            students.add(new Student("小红"+i,"女","12","1"+i,"一班","85","77","98"));
+            students.add(new Student("小明"+i,"男","14","2"+i,"二班","65","57","100"));
+        }
+
+
+
+    }
+
+
+    /**
+     * 导出excel
+     */
+    public void exportExcel() {
+        file = new File(Environment.getExternalStorageDirectory().getPath() + "/Record");
+        if (!file.exists()) {
+           file.mkdir();
+        }
+
+        ExcelUtils.initExcel(Environment.getExternalStorageDirectory().getPath() + "/Record" + "/test.xls", title);
+        fileName = Environment.getExternalStorageDirectory().getPath() + "/Record/test.xls";
+        ExcelUtils.writeObjListToExcel(getRecordData(), fileName, getActivity());
+    }
+
+    /**
+     * 将数据集合 转化成ArrayList<ArrayList<String>>
+     * @return
+     */
+    private  ArrayList<ArrayList<String>> getRecordData() {
+        recordList = new ArrayList<>();
+        for (int i = 0; i <students.size(); i++) {
+            Student student = students.get(i);
+            ArrayList<String> beanList = new ArrayList<String>();
+            beanList.add(student.id);
+            beanList.add(student.name);
+            beanList.add(student.sex);
+            beanList.add(student.age);
+            beanList.add(student.classNo);
+            beanList.add(student.math);
+            beanList.add(student.english);
+            beanList.add(student.chinese);
+            recordList.add(beanList);
+        }
+        return recordList;
     }
 
     @Override
@@ -87,8 +147,8 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         billAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
-
+                Intent intent = ShowBillDetailsActivity.newInstance(getActivity(),mBills.get(position).getId());
+                startActivity(intent);
             }
         });
 
@@ -174,6 +234,14 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                         }
                                     }
                                 });
+
+                        break;
+
+                    case R.id.tv_share://分享文件
+//                        exportExcel();
+//                        String path = Environment.getExternalStorageDirectory().getPath() + "/Record/test.xls";
+//                        File file = new File(path);
+//                        ShareFile.shareFile(getActivity(),file);
 
                         break;
 

@@ -3,6 +3,7 @@ package kkkj.android.revgoods.app;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Process;
+import android.os.StrictMode;
 import android.support.multidex.MultiDex;
 
 import com.orhanobut.logger.AndroidLogAdapter;
@@ -119,6 +120,10 @@ public class BaseApplication extends ZApplication {
 //        }
 //        refWatcher = LeakCanary.install(this);
 
+
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+        builder.detectFileUriExposure();
 
         new Thread(new Runnable() {
             @Override

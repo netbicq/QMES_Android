@@ -39,6 +39,8 @@ import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.mvpInterface.MvpBaseActivity;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
+import kkkj.android.revgoods.utils.LangUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 蓝牙电子秤
@@ -216,6 +218,11 @@ public class ElcScaleActivity extends MvpBaseActivity {
                 smartRefreshLayout.finishRefresh();
             }
         }
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LangUtils.getAttachBaseContext(newBase, SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG,0)));
     }
 
     @Override
