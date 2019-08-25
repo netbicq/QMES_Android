@@ -1,5 +1,6 @@
 package kkkj.android.revgoods.ui.login.view;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AppOpsManager;
 import android.content.Context;
@@ -17,16 +18,24 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.app.BaseApplication;
 import kkkj.android.revgoods.mvpInterface.MvpBaseActivity;
+import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.ui.login.contract.LoginContract;
 import kkkj.android.revgoods.ui.login.model.SignInModel;
 import kkkj.android.revgoods.ui.login.presenter.LoginPresenter;
@@ -66,6 +75,7 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
         return new LoginPresenter();
     }
 
+    @SuppressLint("CheckResult")
     @Override
     protected void initMonitorAndData() {
         getPermission();
@@ -113,7 +123,19 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
             if(!TextUtils.isEmpty(password))
             {
                 ed_pwd.setText(password);
-                btn_login.callOnClick();
+                //延时3秒后自动登录
+                Observable.timer(3, TimeUnit.SECONDS)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<Long>() {
+                            @Override
+                            public void accept(Long aLong) throws Exception {
+
+                                login();
+                            }
+                        });
+
+
             }
         }
     }
@@ -124,33 +146,7 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
 //                startActivity(new Intent(mContext,RegistActivity.class));
                 break;
             case  R.id.btn_login:
-                SignInModel.Request request = new SignInModel.Request();
-                if(!TextUtils.isEmpty(ed_code.getText().toString().trim()))
-                {
-                    request.setAccountCode(ed_code.getText().toString());
-                }
-                else {
-                    showToast("请输入账套代码");
-                    return;
-                }
-                if(!TextUtils.isEmpty(ed_tel.getText().toString().trim()))
-                {
-                    request.setLogin(ed_tel.getText().toString());
-                }
-                else {
-                    showToast("请输入用户名");
-                    return;
-                }
-
-                if(!TextUtils.isEmpty(ed_pwd.getText().toString().trim()))
-                {
-                    request.setPwd(ed_pwd.getText().toString());
-                }
-                else {
-                    showToast("请输入密码");
-                    return;
-                }
-                mPresenter.signin(request);
+                login();
 
                 break;
             case R.id.ic_eys:
@@ -163,6 +159,9 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
                     ed_pwd.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 }
                 break;
+
+                default:
+                    break;
         }
     }
 
@@ -195,6 +194,36 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
         startActivity(new Intent(mContext, MainActivity.class));
         finish();
 
+    }
+
+    private void login() {
+        SignInModel.Request request = new SignInModel.Request();
+        if(!TextUtils.isEmpty(ed_code.getText().toString().trim()))
+        {
+            request.setAccountCode(ed_code.getText().toString());
+        }
+        else {
+            showToast("请输入账套代码");
+            return;
+        }
+        if(!TextUtils.isEmpty(ed_tel.getText().toString().trim()))
+        {
+            request.setLogin(ed_tel.getText().toString());
+        }
+        else {
+            showToast("请输入用户名");
+            return;
+        }
+
+        if(!TextUtils.isEmpty(ed_pwd.getText().toString().trim()))
+        {
+            request.setPwd(ed_pwd.getText().toString());
+        }
+        else {
+            showToast("请输入密码");
+            return;
+        }
+        mPresenter.signin(request);
     }
 
     public void getPermission()

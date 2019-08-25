@@ -102,6 +102,7 @@ dependencies {
 
     //SwitchButton
     implementation 'com.github.zcweng:switch-button:0.0.3@aar'
+
     implementation 'com.android.support:multidex:1.0.3'
     implementation project(path: ':socket-client')
     implementation files('libs/tencentx5.jar')
