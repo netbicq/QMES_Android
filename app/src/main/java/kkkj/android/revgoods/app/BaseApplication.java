@@ -3,10 +3,9 @@ package kkkj.android.revgoods.app;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Process;
+import android.os.StrictMode;
 import android.support.multidex.MultiDex;
 
-import com.coder.zzq.smartshow.core.SmartShow;
-import com.coder.zzq.smartshow.toast.SmartToast;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.FormatStrategy;
 import com.orhanobut.logger.Logger;
@@ -41,6 +40,8 @@ public class BaseApplication extends ZApplication {
     private Set<Activity> allActivities;
     private static Context mContext;
     private Map<String, String> commonparts;
+
+    //private RefWatcher refWatcher;
 
     public Auth_UserProfile getUserProfile() {
         Auth_UserProfile userProfile = new Auth_UserProfile();
@@ -80,6 +81,8 @@ public class BaseApplication extends ZApplication {
     }
 
     private void initX5() {
+        //非wifi情况下，主动下载x5内核
+        QbSdk.setDownloadWithoutWifi(true);
         QbSdk.initX5Environment(this, new QbSdk.PreInitCallback() {
             @Override
             public void onCoreInitFinished() {
@@ -88,7 +91,7 @@ public class BaseApplication extends ZApplication {
 
             @Override
             public void onViewInitFinished(boolean b) {
-
+                Logger.d("X5内核加载" + b);
             }
         });
     }
@@ -99,16 +102,28 @@ public class BaseApplication extends ZApplication {
         MultiDex.install(this);
     }
 
+//    public static RefWatcher getRefWatcher(Context context) {
+//        BaseApplication application = (BaseApplication) context.getApplicationContext();
+//        return application.refWatcher;
+//    }
+
+
+
     @Override
     public void onCreate() {
         super.onCreate();
         mContext = this;
         LitePal.initialize(getApplicationContext());
+//        //内存泄露工具
+//        if (LeakCanary.isInAnalyzerProcess(this)) {
+//            return;
+//        }
+//        refWatcher = LeakCanary.install(this);
 
-        //Smart-show
-        SmartShow.init(this);
-        SmartToast.globalSetting().dismissOnLeave(true);
-        SmartToast.typeSetting().themeColorRes(R.color.theme);
+
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+        builder.detectFileUriExposure();
 
         new Thread(new Runnable() {
             @Override
@@ -136,13 +151,15 @@ public class BaseApplication extends ZApplication {
 //        Logger.addLogAdapter(new DiskLogAdapter(formatStrategy));
 
                 Logger.d("Logger初始化成功");
+
+                initX5();
+
                 //是否开启debug模式，true表示打开debug模式，false表示关闭调试模式
                 Bugly.init(mContext, "76506509d0", false);
-                initX5();
+
 
             }
         }).start();
-
 
         instance = this;
 

@@ -47,9 +47,6 @@ public class ChooseMatterLevelActivity extends BaseActivity implements View.OnCl
      * 扫描跳转Activity RequestCode
      */
     public static final int REQUEST_CODE = 111;
-    public static final String SUPPLIER_ID = "supplierId";
-
-
 
     @Override
     protected MvpPresenter getPresenter() {

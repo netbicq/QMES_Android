@@ -2,6 +2,8 @@ package kkkj.android.revgoods.fragment;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.DialogFragment;
 import android.graphics.Color;
@@ -9,6 +11,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -27,6 +30,7 @@ import com.tencent.smtt.sdk.TbsVideo;
 
 import org.litepal.LitePal;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,15 +99,30 @@ public class ShowSamplingPictureFragment extends BaseDialogFragment implements V
                             startActivityForResult(new Intent(getActivity(), PhotoViewActivity.class).putExtra(
                                     "picUrl", mList.get(position).getImagePath()), 200);
                         } else {
+
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            String path = mList.get(position).getMp4Path();
+                            File file = new File(path);
+                            Uri uri;
+                            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
+                                uri = FileProvider.getUriForFile(getActivity(),"kkkj.android.revgoods.fileprovider",file);
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            }else {
+                                uri = Uri.fromFile(file);
+                            }
+                            intent.setDataAndType(uri, "video/*");
+                            startActivity(intent);
+
+
                             //用腾讯TBS播放视频
                             //判断当前是否可用
-                            if (TbsVideo.canUseTbsPlayer(getActivity().getApplicationContext())) {
-                                //播放视频
-                                TbsVideo.openVideo(getActivity().getApplicationContext(),
-                                        mList.get(position).getMp4Path());
-                            } else {
-                                Toast.makeText(getActivity(), "TBS视频播放器异常", Toast.LENGTH_LONG);
-                            }
+//                            if (TbsVideo.canUseTbsPlayer(getActivity().getApplicationContext())) {
+//                                //播放视频
+//                                TbsVideo.openVideo(getActivity().getApplicationContext(),
+//                                        mList.get(position).getMp4Path());
+//                            } else {
+//                                Toast.makeText(getActivity(), "TBS视频播放器异常", Toast.LENGTH_LONG);
+//                            }
                         }
                         break;
                     case R.id.iv_delete:

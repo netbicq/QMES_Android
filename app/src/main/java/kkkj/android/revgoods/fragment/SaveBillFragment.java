@@ -263,7 +263,6 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                         }
 
 
-
                         Bill bill = new Bill();
                         bill.setName(billName);
                        // bill.setDeductionMix(deductionMix);
@@ -299,11 +298,11 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                         dismiss();
 
                     } else {
-                        new MyToasty(getContext()).showWarning("请选择品类等级！");
+                        new MyToasty(getContext()).showWarning(getResources().getString(R.string.choose_matter_level));
                     }
 
                 } else {
-                    new MyToasty(getContext()).showWarning("请输入单据名称！");
+                    new MyToasty(getContext()).showWarning(getResources().getString(R.string.input_bill_name));
                 }
 
                 break;

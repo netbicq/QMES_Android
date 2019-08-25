@@ -1,6 +1,7 @@
 package kkkj.android.revgoods.event;
 
 import kkkj.android.revgoods.bean.Device;
+import kkkj.android.revgoods.bean.ProduceLine;
 
 /**
  * MainActivity  EventBus
@@ -50,6 +51,32 @@ public class DeviceEvent {
      *扣重数 + 1
      */
     public boolean add = false;
+
+    /**
+     * 生产线
+     */
+    private ProduceLine produceLine;
+
+    public ProduceLine getProduceLine() {
+        return produceLine;
+    }
+
+    /**
+     * 间隔时间
+     */
+    private int intervalTime = -1;
+
+    public int getIntervalTime() {
+        return intervalTime;
+    }
+
+    public void setIntervalTime(int intervalTime) {
+        this.intervalTime = intervalTime;
+    }
+
+    public void setProduceLine(ProduceLine produceLine) {
+        this.produceLine = produceLine;
+    }
 
     public int getMatterLevelId() {
         return matterLevelId;

@@ -78,7 +78,7 @@
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:gravity="center"
-            android:text="单价"/>
+            android:text="@string/price"/>
 
         <TextView
             android:layout_width="0dp"

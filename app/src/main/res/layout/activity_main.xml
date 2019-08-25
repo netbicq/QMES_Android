@@ -11,6 +11,24 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/tv_produce_line"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="@string/choose_produce_line"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="14sp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_specs"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_specs" />
+
+    <TextView
         android:id="@+id/tv_matter_level"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
@@ -18,7 +36,7 @@
         android:gravity="center"
         android:maxLines="1"
         android:padding="5dp"
-        android:text="品类等级"
+        android:text="@string/matter_level"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_choose_matter"
@@ -134,7 +152,7 @@
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_tv_save_bill"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.95"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/guideline7"
         app:layout_constraintTop_toTopOf="@+id/id_tv_save_bill"
         app:layout_constraintVertical_bias="0.0" />
@@ -209,7 +227,7 @@
         android:id="@+id/id_tv_cumulative"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginLeft="4dp"
+        android:layout_marginStart="4dp"
         android:background="@drawable/text_background"
         android:gravity="center"
         android:padding="@dimen/dp_10"
@@ -217,9 +235,9 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
-        app:layout_constraintStart_toEndOf="@+id/id_tv_deduction"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_deductionMix"
         app:layout_constraintTop_toTopOf="@+id/id_iv_print"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/textView16"
@@ -330,19 +348,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_camera_36dp" />
 
-    <kkkj.android.revgoods.customer.ReSpinner
-        android:id="@+id/id_tv_choose_device"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:gravity="center|right"
-        android:textColor="@color/qmui_config_color_white"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_specs"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_specs"
-        app:layout_constraintVertical_bias="0.0" />
-
     <ImageView
         android:id="@+id/id_iv_choose_matter"
         android:layout_width="wrap_content"
@@ -375,7 +380,7 @@
         android:id="@+id/id_tv_deduction"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginLeft="4dp"
+        android:layout_marginStart="4dp"
         android:background="@drawable/text_background"
         android:gravity="center"
         android:padding="@dimen/dp_10"
@@ -385,7 +390,23 @@
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
         app:layout_constraintStart_toEndOf="@+id/id_tv_piece_weight"
         app:layout_constraintTop_toTopOf="@+id/id_iv_print"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/id_tv_deductionMix"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="扣重率"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_deduction"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/id_tv_piece_weight"
@@ -418,16 +439,17 @@
         app:layout_constraintTop_toTopOf="@+id/id_iv_print"
         app:layout_constraintVertical_bias="0.0" />
 
-    <Switch
+    <com.suke.widget.SwitchButton
         android:id="@+id/id_tv_hand_switch"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/hand_switch"
-        android:textColor="@color/qmui_config_color_white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/id_tv_choose_device"
-        app:layout_constraintTop_toBottomOf="@+id/id_tv_choose_device" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/tv_produce_line"
+        app:layout_constraintStart_toStartOf="@+id/tv_produce_line"
+        app:layout_constraintTop_toBottomOf="@+id/tv_produce_line"
+        app:sb_checked_color="@color/green" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline7"
@@ -451,7 +473,7 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/id_tv_is_upload"
         app:layout_constraintEnd_toEndOf="@+id/id_tv_hand_switch"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="@+id/id_tv_hand_switch"
         app:layout_constraintTop_toBottomOf="@+id/id_tv_hand_switch"
         app:layout_constraintVertical_bias="0.0" />

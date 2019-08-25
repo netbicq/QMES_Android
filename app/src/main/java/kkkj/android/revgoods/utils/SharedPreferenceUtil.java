@@ -16,6 +16,10 @@ public class SharedPreferenceUtil {
 
     public static final String SP_AUTO_LOGIN = "SP_AUTO_LOGIN";
 
+    public static final String SP_INTERVAL_TIME = "Interval_Time";
+    public static final String SP_MATTER = "Matter";
+    public static final String SP_MATTER_LEVEL = "Matter_Level";
+
     public static final String SP_REMEBER_PWD = "SP_REMEBER_PWD";
 
     public static final String SP_APK_URL = "SP_APK_URL";
@@ -46,9 +50,9 @@ public class SharedPreferenceUtil {
     {
         getAppSp().edit().putString(key, value).commit();
     }
-    public static int getInt(String key)
+    public static int getInt(String key,int value)
     {
-        return getAppSp().getInt(key,0);
+        return getAppSp().getInt(key,value);
     }
     public static void setInt(String key,int value)
     {

@@ -27,26 +27,41 @@ public class CRC16Util {
     /**
      *
      * @param s 字符串类型的数据       例：55.24
-     * @return  带CRC校验的byte数组    01 06 00 00 15 94 86 f5
+     * @return  带CRC校验的byte数组    01 06 00 00   15 94   86 f5
      */
 
     public static byte[] stringToByte(String s) {
 
+        /**
+         * 前4位固定
+         */
+        byte[] bytes0 = {0x01, 0x06, 0x00, 0x00};
+        /**
+         * 数据位，int 转化成byte[]
+         */
         double d = Double.valueOf(s);
         int i = (int) (d * 100);
-
-        byte[] bytes0 = {0x01, 0x06, 0x00, 0x00};
         byte[] bytes = intToBytes(i);
 
-
+        /**
+         * 2个byte[] 拼接
+         */
         byte[] bytes1 = addBytes(bytes0,bytes);
 
-
+        /**
+         * 计算CRC校验位
+         * 返回一个整数
+         */
         int crcInt = CRC16Util.calcCrc16(bytes1);
 
-
+        /**
+         * CRC校验位，int 转化成byte[]
+         */
         byte[] bytes2 = intToBytesHigh(crcInt);
 
+        /**
+         * 拼接，得到最终的byte[]
+         */
         byte[] finalByte = addBytes(bytes1,bytes2);
 
         return finalByte;
@@ -150,7 +165,6 @@ public class CRC16Util {
         }
         return sb.toString();
     }
-
 
 
     public static byte[] addBytes(byte[] data1, byte[] data2) {

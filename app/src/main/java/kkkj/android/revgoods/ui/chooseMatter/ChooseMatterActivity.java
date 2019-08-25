@@ -51,7 +51,6 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
      * 扫描跳转Activity RequestCode
      */
     public static final int REQUEST_CODE = 111;
-    public static final String SUPPLIER_ID = "supplierId";
 
     @Override
     protected ChooseMatterPresenter getPresenter() {
@@ -178,7 +177,6 @@ public class ChooseMatterActivity extends BaseActivity<ChooseMatterPresenter> im
             }
         }
     }
-
 
     /**
      * 二维码扫描

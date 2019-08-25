@@ -13,9 +13,11 @@
     <string name="cumulative_weight">Cumulative Weight:</string>
     <string name="cumulative_details">Cumulative Details</string>
     <string name="sampling_details">Sampling Details</string>
+    <string name="price_details">Price Details</string>
     <string name="count">Count</string>
     <string name="quantity">Quantity</string>
     <string name="weight">Weight</string>
+    <string name="weight_no">Weight</string>
     <string name="piece_weight">Piece Weight</string>
     <string name="piece_weight_colon">Piece Weight:</string>
     <string name="deduction">Deduction</string>
@@ -24,7 +26,9 @@
     <string name="gross_weight">Gross Weight</string>
     <string name="supplier">Supplier</string>
     <string name="matter">Matter</string>
-    <string name="name">name</string>
+    <string name="matter_level">Matter Level</string>
+    <string name="choose_matter_level">Choose Matter Level</string>
+    <string name="name">Specs</string>
     <string name="choose_produce_line">Choose Produce Line</string>
     <string name="choose_specs">Choose Specs</string>
     <string name="input_specs">Please input Specs !</string>
@@ -35,19 +39,23 @@
     <string name="input_quantity">Please input Quantity</string>
     <string name="input_bill_name">Please input Bill Name</string>
     <string name="input_piece_weight">Please input Piece Weight</string>
+    <string name="input_price">Please input Price</string>
     <string name="add">Add</string>
     <string name="deduction_category">Deduction Category</string>
     <string name="price">Price</string>
+    <string name="price_no">Price</string>
+    <string name="confirm_price">Confirm The Price</string>
     <string name="enter">Enter</string>
     <string name="cancel">Cancel</string>
     <string name="submit">Submit</string>
     <string name="category">Category</string>
+    <string name="save">Save</string>
     <string name="save_bill">Save Bill</string>
     <string name="bill_name">Bill Name</string>
     <string name="bill_list">Bill List</string>
+    <string name="bill_details">Bill Details</string>
     <string name="pic_details">Picture Details</string>
     <string name="input_category">Please input Category</string>
-    <string name="input_price">Please input Price</string>
     <string name="percentage">Percentage</string>
     <string name="user">Purchaser</string>
     <string name="enter_description">Please enter a description</string>
@@ -58,9 +66,14 @@
     <string name="hand_weight">Make Weight</string>
     <string name="calculate">Calculate</string>
 
+    <string name="upload">Upload</string>
+    <string name="delete">Delete</string>
+
     <string name="Electronic_scale_is_connected">Electronic scale is connected!</string>
     <string name="Please_open_the_wifi">Please open the Wifi!</string>
     <string name="is_connecting">Connecting(…, &#8230;)</string>
+    <string name="is_saving">Saving(…, &#8230;)</string>
+    <string name="is_uploading">Uploading(…, &#8230;)</string>
     <string name="connect_failed">The device connect failed,please retry!</string>
     <string name="bluetooth_diconnected">The device is disconnect！</string>
 

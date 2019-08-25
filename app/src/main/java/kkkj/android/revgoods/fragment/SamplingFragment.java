@@ -3,8 +3,12 @@ package kkkj.android.revgoods.fragment;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -98,9 +102,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     private Specs specs;
     private Specs tempSpecs;
-    private int position = -1;
+    private int position = 0;
     private PicOrMp4Adapter picOrMp4Adapter;
-    private MyToasty myToasty;
 
     private QMUITipDialog qmuiTipDialog;
 
@@ -173,15 +176,29 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                             startActivityForResult(new Intent(getActivity(), PhotoViewActivity.class).putExtra(
                                     "picUrl", mList.get(position).getImagePath()), 200);
                         } else {
+
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            String path = mList.get(position).getMp4Path();
+                            File file = new File(path);
+                            Uri uri;
+                            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
+                                uri = FileProvider.getUriForFile(getActivity(),"kkkj.android.revgoods.fileprovider",file);
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            }else {
+                                uri = Uri.fromFile(file);
+                            }
+                            intent.setDataAndType(uri, "video/*");
+                            startActivity(intent);
+
                             //用腾讯TBS播放视频
                             //判断当前是否可用
-                            if (TbsVideo.canUseTbsPlayer(getActivity().getApplicationContext())) {
-                                //播放视频
-                                TbsVideo.openVideo(getActivity().getApplicationContext(),
-                                        mList.get(position).getMp4Path());
-                            } else {
-                                myToasty.showError("TBS视频播放器异常");
-                            }
+//                            if (TbsVideo.canUseTbsPlayer(getActivity().getApplicationContext())) {
+//                                //播放视频
+//                                TbsVideo.openVideo(getActivity().getApplicationContext(),
+//                                        mList.get(position).getMp4Path());
+//                            } else {
+//                                myToasty.showError("TBS视频播放器异常");
+//                            }
                         }
                         break;
                     case R.id.iv_delete:
@@ -215,7 +232,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     public void initView(View view) {
         qmuiTipDialog = new QMUITipDialog.Builder(getActivity())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在上传...")
+                .setTipWord(getResources().getString(R.string.is_uploading))
                 .create();
 
         ivRight.setImageResource(R.drawable.ic_camera);
@@ -282,7 +299,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                     Price lastPrice = tempPriceList.get(tempPriceList.size() - 1);//最新一个价格
                     mEtPrice.setText(String.valueOf(lastPrice.getPrice()));
                 }else {
-                    myToasty.showInfo("当前未配置价格，请手动填写！");
+                    myToasty.showWarning("当前未配置价格，请手动填写！");
                     mEtPrice.setText("");
                 }
 
@@ -317,6 +334,21 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     @Override
     public void onClick(View view) {
+
+        String weight = mEtWeight.getText().toString().trim();
+        String number = mEtNumber.getText().toString().trim();
+        if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
+            if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
+
+            } else {
+                myToasty.showWarning("输入不能为零！请重新输入！");
+                return;
+            }
+        } else {
+            myToasty.showWarning("请填写数量和重量！");
+            return;
+        }
+
         switch (view.getId()) {
 
             case R.id.iv_right:
@@ -333,8 +365,14 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 SamplingDetails samplingDetails = new SamplingDetails();
 
+
+                if (position == 0) {
+                    myToasty.showWarning("请选择系统默认提供的规格！");
+                    return;
+                }
+
                 if (tempPrice.length() == 0) {
-                    myToasty.showWarning("请输入单价！");
+                    myToasty.showWarning(getResources().getString(R.string.input_price));
                     return;
                 }
 
@@ -342,15 +380,10 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                     myToasty.showWarning("单价不能为零！");
                     return;
                 }
-
                 //最终的单价
-                if (position != 0) {
-                    samplingDetails.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
-                    samplingDetails.setSpecsId(specs.getId());
-                } else {
-                    myToasty.showWarning("请选择系统默认提供的规格！");
-                    return;
-                }
+                samplingDetails.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
+                samplingDetails.setSpecsId(specs.getId());
+
 
                 samplingDetails.setWeight(mEtWeight.getText().toString().trim());
                 samplingDetails.setNumber(mEtNumber.getText().toString().trim());
@@ -383,24 +416,13 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 break;
 
             case R.id.button_enter://计算
-                String weight = mEtWeight.getText().toString().trim();
-                String number = mEtNumber.getText().toString().trim();
 
-                if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
-                    if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
-
-                        double specs = Double.parseDouble(weight) / Integer.parseInt(number);
-                        //单重
-                        singalWeight = DoubleCountUtils.keep(specs);
-                        specsNameList.set(0, String.valueOf(specs));
-                        specsAdapter.notifyDataSetChanged();
-
-                    } else {
-                        myToasty.showError("输入不能为零！请重新输入！");
-                    }
-                } else {
-                    myToasty.showError("请填写相关信息！");
-                }
+                double specs = Double.parseDouble(weight) / Integer.parseInt(number);
+                specs = DoubleCountUtils.keep(specs);
+                //单重
+                singalWeight = DoubleCountUtils.keep(specs);
+                specsNameList.set(0, String.valueOf(specs));
+                specsAdapter.notifyDataSetChanged();
 
                 break;
 
@@ -420,128 +442,6 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
             mList.add(picOrMp4);
             Logger.d("-------------------->" + picOrMp4.getImagePath());
             picOrMp4Adapter.notifyDataSetChanged();
-
-
-//            int type = picOrMp4.getType();//0照片  1视频
-//            switch (type) {
-//                case 0://照片
-//                    String path = picOrMp4.getImagePath();
-//                    UpLoadFileModel.Request request = new UpLoadFileModel.Request();
-//                    request.setFile(new File(path));
-//                    request.setMediaType("image");
-//                    UploadCallbacks mListener = new UploadCallbacks() {
-//                        @Override
-//                        public void onProgressUpdate(int percentage) {
-////                        Logger.d(percentage);
-//                        }
-//
-//                        @Override
-//                        public void onError() {
-//                            Logger.d("错误");
-//                        }
-//
-//                        @Override
-//                        public void onFinish() {
-//                            //qmuiTipDialog.dismiss();
-//                        }
-//                    };
-//                    request.setListener(mListener);
-//                    apiAttachfile.uploadfile(request.getFiles())
-//                            .subscribeOn(Schedulers.io())
-//                            .observeOn(AndroidSchedulers.mainThread())
-//                            .subscribe(new Observer<UpLoadFileModel.Response>() {
-//                                @Override
-//                                public void onSubscribe(Disposable d) {
-//
-//                                }
-//
-//                                @Override
-//                                public void onNext(UpLoadFileModel.Response response) {
-//                                    if (response.getState() == 200) {
-//                                        Path path1 = new Path();
-//                                        path1.setPath(response.getData());
-//                                        boolean b = path1.save();
-//                                        Logger.d("是否保存成功：" + b);
-//                                        pathList.add(path1);
-//                                    }
-//
-//                                }
-//
-//                                @Override
-//                                public void onError(Throwable e) {
-//                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-//                                }
-//
-//                                @Override
-//                                public void onComplete() {
-//                                    if (qmuiTipDialog.isShowing()) {
-//                                        qmuiTipDialog.dismiss();
-//                                    }
-//                                }
-//                            });
-//
-//                    break;
-//
-//                case 1:
-//
-//                    String pathVideo = picOrMp4.getMp4Path();
-//                    UpLoadFileModel.Request requestVideo = new UpLoadFileModel.Request();
-//                    requestVideo.setFile(new File(pathVideo));
-//                    requestVideo.setMediaType("video");
-//                    UploadCallbacks mListenerVideo = new UploadCallbacks() {
-//                        @Override
-//                        public void onProgressUpdate(int percentage) {
-////                        Logger.d(percentage);
-//                        }
-//
-//                        @Override
-//                        public void onError() {
-//                            Logger.d("错误");
-//                        }
-//
-//                        @Override
-//                        public void onFinish() {
-//
-//                        }
-//                    };
-//                    requestVideo.setListener(mListenerVideo);
-//                    apiAttachfile.uploadfile(requestVideo.getFiles())
-//                            .subscribeOn(Schedulers.io())
-//                            .observeOn(AndroidSchedulers.mainThread())
-//                            .subscribe(new Observer<UpLoadFileModel.Response>() {
-//                                @Override
-//                                public void onSubscribe(Disposable d) {
-//
-//                                }
-//
-//                                @Override
-//                                public void onNext(UpLoadFileModel.Response response) {
-//                                    if (response.getState() == 200) {
-//                                        Path path1 = new Path();
-//                                        path1.setPath(response.getData());
-//                                        boolean b = path1.save();
-//                                        Logger.d("是否保存成功：" + b);
-//                                        pathList.add(path1);
-//                                    }
-//                                }
-//
-//                                @Override
-//                                public void onError(Throwable e) {
-//                                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-//                                }
-//
-//                                @Override
-//                                public void onComplete() {
-//                                    if (qmuiTipDialog.isShowing()) {
-//                                        qmuiTipDialog.dismiss();
-//                                    }
-//                                }
-//                            });
-//                    break;
-//
-//                default:
-//                    break;
-//            }
 
         }
 
@@ -623,13 +523,15 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                                     Logger.d("是否保存成功：" + b);
                                     pathList.add(path1);
                                     myToasty.showSuccess("上传成功！");
+                                } else {
+                                    myToasty.showError("上传失败：" + response.getMsg());
                                 }
 
                             }
 
                             @Override
                             public void onError(Throwable e) {
-                                //Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                                myToasty.showError("上传失败：" + e.getMessage());
                             }
 
                             @Override
@@ -683,12 +585,14 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                                     Logger.d("是否保存成功：" + b);
                                     pathList.add(path1);
                                     myToasty.showSuccess("上传成功！");
+                                }else {
+                                    myToasty.showError("上传失败：" + response.getMsg());
                                 }
                             }
 
                             @Override
                             public void onError(Throwable e) {
-                                //Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                                myToasty.showError("上传失败：" + e.getMessage());
                             }
 
                             @Override

@@ -27,18 +27,16 @@ import android.text.InputType;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.coder.zzq.smartshow.toast.SmartToast;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import com.suke.widget.SwitchButton;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
 import com.xuhao.didi.socket.client.sdk.client.action.ISocketActionListener;
@@ -97,19 +95,16 @@ import kkkj.android.revgoods.conn.socket.CallBack;
 import kkkj.android.revgoods.conn.socket.MyOkSocket;
 import kkkj.android.revgoods.conn.socket.WriteData;
 import kkkj.android.revgoods.customer.MyToasty;
-import kkkj.android.revgoods.customer.ReSpinner;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
 import kkkj.android.revgoods.elcscale.view.ElcScaleActivity;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.fragment.BillListFragment;
 import kkkj.android.revgoods.fragment.CumulativeFragment;
 import kkkj.android.revgoods.fragment.DeductionFragment;
-import kkkj.android.revgoods.fragment.DeviceListFragment;
+import kkkj.android.revgoods.fragment.ProduceLineListFragment;
 import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
 import kkkj.android.revgoods.fragment.SamplingFragment;
-import kkkj.android.revgoods.fragment.SaveBillFragment;
 import kkkj.android.revgoods.fragment.SettingFragment;
-import kkkj.android.revgoods.relay.adapter.RelayAdapter;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.relay.wifi.model.Order;
@@ -139,8 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView mPrintImageView;
     @BindView(R.id.id_tv_choose_supplier)
     ImageView mChooseSupplierImageView;
-    @BindView(R.id.id_tv_choose_device)
-    ReSpinner mChooseProductionLine;
+
     @BindView(R.id.id_tv_weight)
     TextView mWeightTextView;
     @BindView(R.id.id_tv_show_piece_weight)
@@ -174,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @BindView(R.id.id_tv_is_upload)
     TextView mTvIsUpload;
     @BindView(R.id.id_tv_hand_switch)
-    Switch mTvHandSwitch;
+    SwitchButton mTvHandSwitch;
     @BindView(R.id.tv_matter)
     TextView mTvMatter;
     @BindView(R.id.tv_supplier)
@@ -183,13 +177,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvMatterLevel;
     @BindView(R.id.id_iv_choose_matter_level)
     ImageView mIvChooseMatterLevel;
+    @BindView(R.id.tv_produce_line)
+    TextView tvProduceLine;
+    @BindView(R.id.id_tv_deductionMix)
+    TextView mTvDeductionMix;
 
     private CompositeDisposable compositeDisposable;
 
     private String mSampling = "(0)";//采样累计默认数字
 
     private PinBlueReceiver pinBlueReceiver;
-    private List<BluetoothBean> mList_b;
+
     private List<RelayBean> mWifiList;
     private ISocketActionListener listener;
     private IConnectionManager manager;
@@ -199,16 +197,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //蓝牙电子秤
     private BluetoothBean bluetoothScale;
-    private RelayAdapter wifiAdapter;
+
     private SwitchAdapter switchAdapter;
     //蓝牙继电器
     private BluetoothBean bluetoothRelay;
-
+    //蓝牙显示屏
     private BluetoothAdapter mBluetoothAdapter;
 
-    //生产线
-    private List<String> produceLineList;
-    private List<ProduceLine> produceLines;
+
     //是否配置了采样的秤
     private boolean isSetSapmle = false;
     //采样秤Mac地址
@@ -227,15 +223,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean bleScreenConnectionState = false;
     //蓝牙Ble设备
     private Ble ble;
+    //间隔时间
+    private int intervalTime;
+    //扣重率
+    private int deductionMix = 0;
 
-    private BillListFragment billListFragment;
-    private DeviceListFragment deviceListFragment;
-    private SamplingFragment samplingFragment;
-    private SamplingDetailsFragment samplingDetailsFragment;
-    private CumulativeFragment cumulativeFragment;
-    private DeductionFragment deductionFragment;
-    private SettingFragment settingFragment;
-    private SaveBillFragment saveBillFragment;
+//    private BillListFragment billListFragment;
+//    private DeviceListFragment deviceListFragment;
+//    private SamplingFragment samplingFragment;
+//    private SamplingDetailsFragment samplingDetailsFragment;
+//    private CumulativeFragment cumulativeFragment;
+//    private DeductionFragment deductionFragment;
+//    private SettingFragment settingFragment;
+//    private SaveBillFragment saveBillFragment;
 
     private Observer<String> stateOB;
     private String isUploadCount = "0/0";
@@ -263,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String BILL_LIST = "billListFragment";
     private static final String SETTING = "settingFragment";
     private static final String SAVE_BILL = "saveBillFragment";
+    private static final String PRODUCE_LINE_LIST = "produceLineListFragment";
 
     //继电器控制的开关
     private int inLine;
@@ -318,10 +319,214 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void initView() {
+
+        qmuiTipDialog = new QMUITipDialog.Builder(MainActivity.this)
+                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                .setTipWord(getResources().getString(R.string.is_connecting))
+                .create();
+
+        mPrintImageView.setOnClickListener(this);
+        mDeductionTextView.setOnClickListener(this);
+        mCumulativeTextView.setOnClickListener(this);
+        mSamplingCount.setOnClickListener(this);
+        mSamplingTextView.setOnClickListener(this);
+        mChooseSupplierImageView.setOnClickListener(this);
+        mIvChooseMatterLevel.setOnClickListener(this);
+        mPieceweightTextView.setOnClickListener(this);
+        mChoosePrinterImageView.setOnClickListener(this);
+        mTakePictureImageView.setOnClickListener(this);
+        mChooseMatterImageView.setOnClickListener(this);
+        mChooseSpecsImageView.setOnClickListener(this);
+        mSettingImageView.setOnClickListener(this);
+        mTvSaveBill.setOnClickListener(this);
+        mTvHand.setOnClickListener(this);
+        tvProduceLine.setOnClickListener(this);
+        mTvDeductionMix.setOnClickListener(this);
+        mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
+
+        mTvIsUpload.setText(isUploadCount);
+        mSamplingNumber.setText(mSampling);
+        mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+
+        //品类等级
+        matterLevel = new MatterLevel();
+        matterLevelId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_MATTER_LEVEL, -1);
+        if (matterLevelId > 0) {
+            matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
+            mTvMatterLevel.setText(matterLevel.getName());
+        }
+        //品类
+        matter = new Matter();
+        matterId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_MATTER, -1);
+        if (matterId > 0) {
+            matter = LitePal.find(Matter.class, matterId);
+            mTvMatter.setText(matter.getName());
+        }
+
+        if (LitePal.isExist(Cumulative.class) || LitePal.isExist(Deduction.class)) {
+            int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
+            int deductionSize = LitePal.where("hasBill < ?", "0").find(Deduction.class).size();
+            tvCumulativeCount.setText(String.valueOf(cumulativeSize + deductionSize));
+        }
+        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+            List<Cumulative> cumulatives = LitePal.where("hasBill < ?", "0").find(Cumulative.class);
+            String weight = "0";
+            for (int i = 0; i < cumulatives.size(); i++) {
+                BigDecimal b1 = new BigDecimal(weight);
+                BigDecimal b2 = new BigDecimal(cumulatives.get(i).getWeight());
+                weight = String.valueOf(b1.add(b2).doubleValue());
+            }
+            tvCumulativeWeight.setText(weight);
+        }
+
+
+        switchAdapter = new SwitchAdapter(R.layout.item_switch, mWifiList);
+        switchAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+
+                switch (CONNECT_TYPE) {
+                    /**
+                     * Wifi继电器
+                     */
+                    case 1:
+                        if (manager != null && manager.isConnect()) {
+                            if (isClickable) {
+                                switch (view.getId()) {
+                                    case R.id.iv_switch_left:
+                                        manager.send(new WriteData((Order.getTurnOn().get(position))));
+                                        break;
+
+                                    case R.id.iv_switch_right:
+                                        manager.send(new WriteData(Order.getTurnOff().get(position)));
+                                        break;
+                                }
+                            } else {
+                                myToasty.showInfo("请先打开手动开关！");
+                            }
+                        } else {
+                            myToasty.showInfo("继电器未连接，请先连接继电器！");
+                        }
+                        break;
+
+                    case 2:
+                        /**
+                         * 蓝牙继电器
+                         */
+                        if (bluetoothRelay != null && bluetoothRelay.isConnect()) {
+
+                            if (isClickable) {
+
+                                switch (view.getId()) {
+                                    case R.id.iv_switch_left:
+                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(position)).subscribe(stateOB);
+
+                                        break;
+
+                                    case R.id.iv_switch_right:
+                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(position)).subscribe(stateOB);
+
+                                        break;
+
+                                    default:
+                                        break;
+                                }
+                            } else {
+                                myToasty.showWarning("请先打开手动开关！");
+                            }
+
+                        } else {
+                            myToasty.showWarning("继电器未连接，请先连接继电器！");
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+            }
+        });
+
+        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this,
+                LinearLayoutManager.HORIZONTAL, false));
+        mWifiRelayRecyclerView.setAdapter(switchAdapter);
+
+
+        //打开Wifi
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (!wifiManager.isWifiEnabled()) {
+            myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
+            Intent it = new Intent();
+            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
+            it.setComponent(cn);
+            startActivity(it);
+        }
+
+    }
+
+    private void initData() {
+        //间隔时间,默认2秒
+        intervalTime = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_INTERVAL_TIME, 2);
+
+        compositeDisposable = new CompositeDisposable();
+
+        myToasty = new MyToasty(this);
+        if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
+            mSampling = "(" + LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class).getCount() + ")";
+        }
+
+        if (LitePal.isExist(Bill.class)) {
+            total = LitePal.findAll(Bill.class).size();
+            //大于等于0，已上传
+            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
+            isUploadCount = isUpload + "/" + total;
+        }
+
+
+        Bluetooth mBluetooth = new Bluetooth();
+
+        //Wifi继电器
+        mWifiList = new ArrayList<>();
+
+
+        //初始化wifi继电器实体类
+        List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
+        List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
+
+        for (int i = 0; i < leftIcon.size(); i++) {
+            RelayBean relayBean = new RelayBean();
+            relayBean.setLeftIamgeView(leftIcon.get(i));
+            relayBean.setRightImageView(rightIcon.get(i));
+            mWifiList.add(relayBean);
+
+        }
+
+        //打开蓝牙
+        if (!mBluetooth.isSupportBlue()) {
+            myToasty.showError("当前设备不支持蓝牙！");
+            return;
+        } else if (!mBluetooth.isBlueEnable()) {
+            //直接打开
+            mBluetooth.openBlueAsyn();
+        }
+        //注册蓝牙广播
+        registerReceiver();
+    }
+
+
     //EventBus
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
         Device device = deviceEvent.getDevice();
+
+        //更新间隔时间
+        if (deviceEvent.getIntervalTime() > 0) {
+            intervalTime = deviceEvent.getIntervalTime();
+        }
+
         //更新累计数+1
         if (deviceEvent.isAdd()) {
             int count = Integer.parseInt(tvCumulativeCount.getText().toString());
@@ -338,32 +543,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             supplier = LitePal.find(Supplier.class, supplierId);
             mTvSupplier.setText(supplier.getName());
             //刷新生产线
-            produceLineList.clear();
-            produceLines.clear();
-
-            produceLineList.add(getResources().getString(R.string.choose_produce_line));
-            produceLineList.add("移动称重");
-
-            produceLines = LitePal.findAll(ProduceLine.class);
-            for (int i = 0; i < produceLines.size(); i++) {
-                produceLineList.add(produceLines.get(i).getName());
-            }
-            spinnerAdapter.notifyDataSetChanged();
+//            produceLineList.clear();
+//            produceLines.clear();
+//
+//            produceLineList.add(getResources().getString(R.string.choose_produce_line));
+//            produceLineList.add("移动称重");
+//
+//            produceLines = LitePal.findAll(ProduceLine.class);
+//            for (int i = 0; i < produceLines.size(); i++) {
+//                produceLineList.add(produceLines.get(i).getName());
+//            }
+//            spinnerAdapter.notifyDataSetChanged();
 
         }
         //更新品类（物料）
         if (deviceEvent.getMatterId() >= 0) {
-            matter = new Matter();
+
             matterId = deviceEvent.getMatterId();
             matter = LitePal.find(Matter.class, matterId);
             mTvMatter.setText(matter.getName());
+
+            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_MATTER, matterId);
         }
         //更新品类等级
-        if (deviceEvent.getMatterLevelId() >=0) {
-            matterLevel = new MatterLevel();
+        if (deviceEvent.getMatterLevelId() >= 0) {
+
             matterLevelId = deviceEvent.getMatterLevelId();
-            matterLevel = LitePal.find(MatterLevel.class,matterLevelId);
+            matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
             mTvMatterLevel.setText(matterLevel.getName());
+
+            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_MATTER_LEVEL, matterLevelId);
         }
         //更新规格
         if (deviceEvent.getSpecsId() >= 0) {
@@ -394,6 +603,133 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
             isUploadCount = isUpload + "/" + total;
             mTvIsUpload.setText(isUploadCount);
+        }
+
+        if (deviceEvent.getProduceLine() != null) {
+
+            if (SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT).length() == 0) {
+                myToasty.showInfo("请先配置单重！");
+                return;
+            }
+
+            ProduceLine produceLine = deviceEvent.getProduceLine();
+            tvProduceLine.setText(produceLine.getName());
+            Logger.d(produceLine.toString());
+
+            if (produceLine.getName().equals("移动称重")) {
+                mTvHand.setVisibility(View.VISIBLE);
+                Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
+                startActivity(intent);
+            } else {
+                mTvHand.setVisibility(View.GONE);
+
+                //主秤
+                String masterString = produceLine.getMaster();
+                Master master = new Gson().fromJson(masterString, Master.class);
+                String address = master.getDeviceAddr();
+                if (address == null) {
+                    myToasty.showInfo("当前未配置收料秤，请前往网页端配置！");
+                    return;
+                }
+                address = address.trim();
+                Logger.d("------------>" + address);
+
+                try {
+                    BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+
+                    if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                        //connectAndGetBluetoothScale(bluetoothDevice);
+                        if (!blueMainScaleConnectionState) {
+                            connect(bluetoothDevice);
+                        }
+
+                    } else {
+                        BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
+                            @Override
+                            public void paired(BluetoothDevice device) {
+                                connect(device);
+                                //connectAndGetBluetoothScale(device);
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    myToasty.showInfo(e.getMessage());
+                }
+
+                //继电器
+                String powerString = produceLine.getPower();
+                Power power = new Gson().fromJson(powerString, Power.class);
+                if (power.getDeviceAddr() == null) {
+                    myToasty.showInfo("当前未配置继电器，请前往网页端配置！");
+                    return;
+                }
+
+                inLine = power.getInLine() - 1;
+                outLine = power.getOutLine() - 1;
+
+                switch (power.getDeviceType()) {
+                    case 1://蓝牙继电器
+                        CONNECT_TYPE = 2;
+                        String address1 = power.getDeviceAddr().trim();
+                        try {
+                            BluetoothDevice bluetoothDevice1 =
+                                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                            connectBluetoothRelay(bluetoothDevice1);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            myToasty.showInfo(e.getMessage());
+                        }
+                        break;
+
+                    case 2://Wifi继电器
+                        CONNECT_TYPE = 1;
+                        //分割 ：
+                        String[] strarr = power.getDeviceAddr().split(":");
+                        if (strarr.length < 2) {
+                            myToasty.showWarning("Wifi继电器参数格式配置异常，请前往网页端检查！");
+                            return;
+                        }
+                        String ip = strarr[0].trim();
+                        int port = Integer.valueOf(strarr[1]);
+                        Device device1 = new Device();
+                        device1.setWifiIp(ip);
+                        device1.setWifiPort(port);
+                        connectWifi(device1);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                //采样秤
+                String sapmleString = produceLine.getSapmle();
+                Sapmle sapmle = new Gson().fromJson(sapmleString, Sapmle.class);
+                //是否配置了采样的秤
+                isSetSapmle = (sapmle.getDeviceAddr() != null);
+                if (isSetSapmle) {
+                    sampleMacAddress = sapmle.getDeviceAddr().trim();
+                }
+
+                //显示屏 蓝牙Ble设备
+                String showOutString = produceLine.getShowOut();
+                ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
+                if (!(showOut.getDeviceAddr() == null)) {
+                    String addressBle = showOut.getDeviceAddr().trim();//"D8:E0:4B:FD:31:F6"
+                    try {
+                        BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
+                        connectBle(bleDevice);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        myToasty.showInfo(e.getMessage());
+                    }
+                } else {
+                    myToasty.showInfo("当前未配置显示屏！");
+                }
+            }
+
+
         }
 
         if (device.getType() >= 0) {
@@ -457,24 +793,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBluetoothAdapter = bluetoothManager.getAdapter();
         ble = new Ble(bleDevice, this);
         bleScreenConnectionState = ble.connect();
-        if (bleScreenConnectionState) {
-            myToasty.showSuccess("显示屏连接成功！");
-        }
+
+//        //小数位数，固定2位
+//        byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
+//        ble.send(point);
 
     }
 
     //蓝牙电子秤
     private void connect(BluetoothDevice device) {
-        qmuiTipDialog.show();
 
+        qmuiTipDialog.show();
+        final boolean[] isSend = {false};
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
             @Override
             public void connectSuccess(Connect connect) {
                 bluetoothManager = connect;
                 blueMainScaleConnectionState = true;
                 qmuiTipDialog.dismiss();
-                //myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
-                SmartToast.successLong(R.string.Electronic_scale_is_connected);
+                myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
+
                 final boolean[] isWrite = {false};
                 bluetoothManager.read(new TransferProgressListener() {
                     @Override
@@ -485,30 +823,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void transferSuccess(String str) {
                         //String s = new String(bytes);
-                        Logger.d("原始数据：" + str);
+                        //Logger.d("原始数据：" + str);
                         //String str = new String(s.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8);
                         if (str.length() == 8) {
                             //取反
                             str = new StringBuilder(str).reverse().toString();
-                            Logger.d("处理之前的数据：" + str);
+                            //Logger.d("处理之前的数据：" + str);
                             if (!str.endsWith("=") && !str.startsWith("=") && str.substring(5, 6).equals(".")) {
                                 //去掉前面的“=”号和零
                                 str = str.replaceFirst("^0*", "");
                                 if (str.startsWith(".")) {
                                     str = "0" + str;
                                 }
-                                Logger.d("读取到的数据：" + str);
+                                //Logger.d("读取到的数据：" + str);
                                 mWeightTextView.setText(str);
 
-                                //小数位数，固定2位
-                                byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
                                 byte[] weightByte = CRC16Util.stringToByte(str);
-                                if (ble != null && bleScreenConnectionState) {
+                                Logger.d("weightByte" + CRC16Util.toHexStringForLog(weightByte));
+                                if (ble != null) {
+                                    bleScreenConnectionState = ble.isConnected();
+                                    if (!isSend[0] && bleScreenConnectionState) {
 
-                                    ble.send(point);
+                                        myToasty.showSuccess("显示屏连接成功！");
+
+                                        //小数位数，固定2位
+                                        byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
+                                        ble.send(point);
+                                        isSend[0] = true;
+
+                                    }
                                     ble.send(weightByte);
                                 }
-
 
                                 double weight = Double.parseDouble(str);
                                 double compareWeight = Double.parseDouble(SharedPreferenceUtil
@@ -563,8 +908,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         }
                                                     });
 
-                                            //两秒之后开关置反
-                                            Observable.timer(2, TimeUnit.SECONDS)
+                                            //intervalTime秒之后开关置反
+                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
                                                     .subscribe(new Consumer<Long>() {
                                                         @Override
                                                         public void accept(Long aLong) throws Exception {
@@ -634,8 +979,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         }
                                                     });
 
-                                            //两秒之后开关置反
-                                            Observable.timer(2, TimeUnit.SECONDS)
+                                            //intervalTime秒之后开关置反
+                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
                                                     .subscribe(new Consumer<Long>() {
                                                         @Override
                                                         public void accept(Long aLong) throws Exception {
@@ -677,14 +1022,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void connectFailed(Exception e) {
                 qmuiTipDialog.dismiss();
-                //myToasty.showError(getResources().getString(R.string.connect_failed));
-                SmartToast.errorLong(R.string.connect_failed);
+                myToasty.showError(getResources().getString(R.string.connect_failed));
             }
 
             @Override
             public void disconnected() {
-                //myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
-                SmartToast.errorLong(R.string.bluetooth_diconnected);
+                myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
+
                 blueMainScaleConnectionState = false;
             }
         });
@@ -703,7 +1047,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             bluetoothBean.getMyBluetoothManager().getConnectOB().subscribe(new Observer<Boolean>() {
                 QMUITipDialog qmuiTipDialog = new QMUITipDialog.Builder(MainActivity.this)
                         .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                        .setTipWord("正在链接...")
+                        .setTipWord(getResources().getString(R.string.is_connecting))
                         .create();
 
                 @Override
@@ -838,6 +1182,72 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    //初始化蓝牙继电器
+    public void initBluetoothRelay() {
+        stateOB = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                compositeDisposable.add(d);
+            }
+
+            @Override
+            public void onNext(String s) {
+
+                bluetoothRelay.getMyBluetoothManager().getReadOBModbus().subscribe(new Observer<byte[]>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        compositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onNext(byte[] bytes) {
+                        Logger.d("----" + BytesUtils.toHexStringForLog(bytes) + "----");
+                        String message = BytesUtils.toHexStringForLog(bytes);
+
+                        if (message.indexOf("01 05 00 ") == 0) {
+                            //收到状态
+                            String index = message.substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
+                            String state = message.substring("01 05 00 ".length() + 3, "01 05 00 ".length() + 5);
+                            Logger.d("---" + index + "---" + state + "---");
+
+                            //第几号开关
+                            int whichSwitch = Integer.parseInt(index.substring(1, 2));
+
+                            if (state.equals("00")) {
+                                mWifiList.get(whichSwitch).setState("0");
+                            } else {
+                                mWifiList.get(whichSwitch).setState("1");
+                            }
+
+                            switchAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+
+    }
+
 
     //连接Wifi继电器
     private void connectWifi(Device device) {
@@ -863,10 +1273,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 manager.send(new WriteData(Order.GET_STATE));
                 //连接成功之后就打开某个开关
                 manager.send(new WriteData(Order.getTurnOn().get(inLine)));
-//                manager.send(new WriteData(Order.getTurnOn().get(1)));
-//                manager.send(new WriteData(Order.getTurnOn().get(2)));
-//                manager.send(new WriteData(Order.getTurnOn().get(3)));
-
 
             }
 
@@ -928,339 +1334,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void initView() {
-
-        qmuiTipDialog = new QMUITipDialog.Builder(MainActivity.this)
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord(getResources().getString(R.string.is_connecting))
-                .create();
-
-        mPrintImageView.setOnClickListener(this);
-        mDeductionTextView.setOnClickListener(this);
-        mCumulativeTextView.setOnClickListener(this);
-        mSamplingCount.setOnClickListener(this);
-        mSamplingTextView.setOnClickListener(this);
-        mChooseSupplierImageView.setOnClickListener(this);
-        mIvChooseMatterLevel.setOnClickListener(this);
-        mPieceweightTextView.setOnClickListener(this);
-        mChoosePrinterImageView.setOnClickListener(this);
-        mTakePictureImageView.setOnClickListener(this);
-        mChooseMatterImageView.setOnClickListener(this);
-        mChooseSpecsImageView.setOnClickListener(this);
-        mSettingImageView.setOnClickListener(this);
-        mTvSaveBill.setOnClickListener(this);
-        mTvHand.setOnClickListener(this);
-        mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
-
-        mTvIsUpload.setText(isUploadCount);
-        mSamplingNumber.setText(mSampling);
-        mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
-
-        if (LitePal.isExist(Cumulative.class) || LitePal.isExist(Deduction.class)) {
-            int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
-            int deductionSize = LitePal.where("hasBill < ?", "0").find(Deduction.class).size();
-            tvCumulativeCount.setText(String.valueOf(cumulativeSize + deductionSize));
-        }
-        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-            List<Cumulative> cumulatives = LitePal.where("hasBill < ?", "0").find(Cumulative.class);
-            String weight = "0";
-            for (int i = 0; i < cumulatives.size(); i++) {
-                BigDecimal b1 = new BigDecimal(weight);
-                BigDecimal b2 = new BigDecimal(cumulatives.get(i).getWeight());
-                weight = String.valueOf(b1.add(b2).doubleValue());
-            }
-            tvCumulativeWeight.setText(weight);
-        }
-
-        spinnerAdapter = new ArrayAdapter<String>(MainActivity.this,
-                R.layout.spinner_style, produceLineList);
-        spinnerAdapter.setDropDownViewResource(R.layout.item_spinner);
-        mChooseProductionLine.setAdapter(spinnerAdapter);
-        mChooseProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                if (position == 0) {
-                    mTvHand.setVisibility(View.GONE);
-                    return;
-                }
-                if (position == 1) {//移动计重
-                    mTvHand.setVisibility(View.VISIBLE);
-                    Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
-                    startActivity(intent);
-                    return;
-                }
-
-                if (SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT).length() == 0) {
-                    myToasty.showInfo("请先配置单重！");
-                    return;
-                }
-
-                mTvHand.setVisibility(View.GONE);
-
-                ProduceLine produceLine = produceLines.get(position - 2);
-
-                //主秤
-                String masterString = produceLine.getMaster();
-                Master master = new Gson().fromJson(masterString, Master.class);
-                String address = master.getDeviceAddr();
-                if (address == null) {
-                    myToasty.showInfo("当前未配置收料秤，请前往网页端配置！");
-                    return;
-                }
-                address = address.trim();
-                Logger.d("------------>" + address);
-
-                try {
-                    BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-
-                    if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
-                        //connectAndGetBluetoothScale(bluetoothDevice);
-                        if (!blueMainScaleConnectionState) {
-                            connect(bluetoothDevice);
-                        }
-
-                    } else {
-                        BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
-                            @Override
-                            public void paired(BluetoothDevice device) {
-                                connect(device);
-                                //connectAndGetBluetoothScale(device);
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    myToasty.showInfo(e.getMessage());
-                }
-
-                //继电器
-                String powerString = produceLine.getPower();
-                Power power = new Gson().fromJson(powerString, Power.class);
-                if (power.getDeviceAddr() == null) {
-                    myToasty.showInfo("当前未配置继电器，请前往网页端配置！");
-                    return;
-                }
-
-                inLine = power.getInLine() - 1;
-                outLine = power.getOutLine() - 1;
-
-                Logger.d("inLine:" + inLine);
-                Logger.d("outLine:" + outLine);
-
-                switch (power.getDeviceType()) {
-                    case 1://蓝牙继电器
-                        CONNECT_TYPE = 2;
-                        String address1 = power.getDeviceAddr().trim();
-                        try {
-                            BluetoothDevice bluetoothDevice1 =
-                                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                            connectBluetoothRelay(bluetoothDevice1);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            myToasty.showInfo(e.getMessage());
-                        }
-                        break;
-
-                    case 2://Wifi继电器
-                        CONNECT_TYPE = 1;
-                        //分割 ：
-                        String[] strarr = power.getDeviceAddr().split(":");
-                        String ip = strarr[0].trim();
-                        int port = Integer.valueOf(strarr[1]);
-                        Device device = new Device();
-                        device.setWifiIp(ip);
-                        device.setWifiPort(port);
-                        connectWifi(device);
-                        break;
-
-                    default:
-                        break;
-                }
-
-                //采样秤
-                String sapmleString = produceLine.getSapmle();
-                Sapmle sapmle = new Gson().fromJson(sapmleString, Sapmle.class);
-                //是否配置了采样的秤
-                isSetSapmle = (sapmle.getDeviceAddr() != null);
-                if (isSetSapmle) {
-                    sampleMacAddress = sapmle.getDeviceAddr().trim();
-                }
-
-                //显示屏 蓝牙Ble设备
-                String showOutString = produceLine.getShowOut();
-                ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
-                if (!(showOut.getDeviceAddr() == null)) {
-                    String addressBle = showOut.getDeviceAddr().trim();//"D8:E0:4B:FD:31:F6"
-                    try {
-                        BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
-                        connectBle(bleDevice);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        myToasty.showInfo(e.getMessage());
-                    }
-                } else {
-                    myToasty.showInfo("当前未配置显示屏！");
-                }
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-
-
-        wifiAdapter = new RelayAdapter(R.layout.item_wifi_relay, mWifiList);
-        switchAdapter = new SwitchAdapter(R.layout.item_switch, mWifiList);
-        switchAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-
-                switch (CONNECT_TYPE) {
-                    /**
-                     * Wifi继电器
-                     */
-                    case 1:
-                        if (manager != null && manager.isConnect()) {
-                            if (isClickable) {
-                                switch (view.getId()) {
-                                    case R.id.iv_switch_left:
-                                        manager.send(new WriteData((Order.getTurnOn().get(position))));
-                                        break;
-
-                                    case R.id.iv_switch_right:
-                                        manager.send(new WriteData(Order.getTurnOff().get(position)));
-                                        break;
-                                }
-                            } else {
-                                myToasty.showInfo("请先打开手动开关！");
-                            }
-                        } else {
-                            myToasty.showInfo("继电器未连接，请先连接继电器！");
-                        }
-                        break;
-
-                    case 2:
-                        /**
-                         * 蓝牙继电器
-                         */
-                        if (bluetoothRelay != null && bluetoothRelay.isConnect()) {
-
-                            if (isClickable) {
-
-                                switch (view.getId()) {
-                                    case R.id.iv_switch_left:
-                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(position)).subscribe(stateOB);
-
-                                        break;
-
-                                    case R.id.iv_switch_right:
-                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(position)).subscribe(stateOB);
-
-                                        break;
-
-                                    default:
-                                        break;
-                                }
-                            } else {
-                                myToasty.showInfo("请先打开手动开关！");
-                            }
-
-                        } else {
-                            myToasty.showInfo("继电器未连接，请先连接继电器！");
-                        }
-
-                        break;
-
-                    default:
-                        break;
-                }
-
-
-            }
-        });
-
-        mWifiRelayRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this,
-                LinearLayoutManager.HORIZONTAL, false));
-        //mWifiRelayRecyclerView.setAdapter(wifiAdapter);
-        mWifiRelayRecyclerView.setAdapter(switchAdapter);
-
-
-        //打开Wifi
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (!wifiManager.isWifiEnabled()) {
-            myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
-            Intent it = new Intent();
-            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
-            it.setComponent(cn);
-            startActivity(it);
-            return;
-        }
-
-    }
-
-    private void initData() {
-        //生产线
-        produceLineList = new ArrayList<>();
-        produceLineList.add(getResources().getString(R.string.choose_produce_line));
-        produceLineList.add("移动称重");
-
-        produceLines = LitePal.findAll(ProduceLine.class);
-        for (int i = 0; i < produceLines.size(); i++) {
-            produceLineList.add(produceLines.get(i).getName());
-        }
-
-        compositeDisposable = new CompositeDisposable();
-
-        myToasty = new MyToasty(this);
-        if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
-            mSampling = "(" + LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class).getCount() + ")";
-        }
-
-        if (LitePal.isExist(Bill.class)) {
-            total = LitePal.findAll(Bill.class).size();
-            //大于等于0，已上传
-            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
-            isUploadCount = isUpload + "/" + total;
-        }
-
-
-        Bluetooth mBluetooth = new Bluetooth();
-        //蓝牙继电器
-        mList_b = new ArrayList<>();
-        //Wifi继电器
-        mWifiList = new ArrayList<>();
-
-
-        //初始化wifi继电器实体类
-        List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
-        List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
-
-        for (int i = 0; i < leftIcon.size(); i++) {
-            RelayBean relayBean = new RelayBean();
-            relayBean.setLeftIamgeView(leftIcon.get(i));
-            relayBean.setRightImageView(rightIcon.get(i));
-            mWifiList.add(relayBean);
-
-        }
-
-        //打开蓝牙
-        if (!mBluetooth.isSupportBlue()) {
-            myToasty.showError("当前设备不支持蓝牙！");
-            return;
-        } else if (!mBluetooth.isBlueEnable()) {
-            //直接打开
-            mBluetooth.openBlueAsyn();
-        }
-        //注册蓝牙广播
-        registerReceiver();
-    }
-
-
     //注册蓝牙配对广播接收器
     private void registerReceiver() {
 
@@ -1272,7 +1345,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onBondFail(BluetoothDevice device) {
-                myToasty.showInfo("配对失败，请重试！");
+                myToasty.showError("配对失败，请重试！");
             }
 
             @Override
@@ -1282,18 +1355,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onBondSuccess(BluetoothDevice device) {
-//                switch (device.getAddress()) {
-//                    case "20:17:03:15:05:65"://电子秤
-//                        //connectAndGetBluetoothScale(device);
-//                        break;
-//
-//                    case "00:0D:1B:00:13:BA":
-//                        connectBluetoothRelay(device);//继电器
-//                        break;
-//
-//                    default:
-//                        break;
-//                }
 
                 myToasty.showInfo("配对成功，请点击重连！");
 
@@ -1307,137 +1368,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    //初始化蓝牙继电器
-    public void initBluetoothRelay() {
-        stateOB = new Observer<String>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                compositeDisposable.add(d);
-            }
-
-            @Override
-            public void onNext(String s) {
-
-                bluetoothRelay.getMyBluetoothManager().getReadOBModbus().subscribe(new Observer<byte[]>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        compositeDisposable.add(d);
-                    }
-
-                    @Override
-                    public void onNext(byte[] bytes) {
-                        Logger.d("----" + BytesUtils.toHexStringForLog(bytes) + "----");
-                        String message = BytesUtils.toHexStringForLog(bytes);
-                        if (message.indexOf("01 05 00 ") == 0) {
-                            //收到状态
-                            String index = message.substring("01 05 00 ".length(), "01 05 00 ".length() + 2);
-                            String state = message.substring("01 05 00 ".length() + 3, "01 05 00 ".length() + 5);
-                            Logger.d("---" + index + "---" + state + "---");
-                            switch (index) {
-                                case "00":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(0).setState("1");
-                                    } else {
-                                        mWifiList.get(0).setState("0");
-                                    }
-                                    break;
-                                case "01":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(1).setState("1");
-                                    } else {
-                                        mWifiList.get(1).setState("0");
-                                    }
-                                    break;
-                                case "02":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(2).setState("1");
-                                    } else {
-                                        mWifiList.get(2).setState("0");
-                                    }
-                                    break;
-                                case "03":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(3).setState("1");
-                                    } else {
-                                        mWifiList.get(3).setState("0");
-                                    }
-                                    break;
-                                case "04":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(4).setState("1");
-                                    } else {
-                                        mWifiList.get(4).setState("0");
-                                    }
-                                    break;
-                                case "05":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(5).setState("1");
-                                    } else {
-                                        mWifiList.get(5).setState("0");
-                                    }
-                                    break;
-                                case "06":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(6).setState("1");
-                                    } else {
-                                        mWifiList.get(6).setState("0");
-                                    }
-                                    break;
-                                case "07":
-                                    if (!state.equals("00")) {
-                                        mWifiList.get(7).setState("1");
-                                    } else {
-                                        mWifiList.get(7).setState("0");
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                            switchAdapter.notifyDataSetChanged();
-
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        };
-
-        //bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.GET_STATE).subscribe(stateOB);
-
-    }
-
 
     @Override
     public void onClick(View view) {
 
         switch (view.getId()) {
             case R.id.id_iv_choose_matter://选择品类
-                if (supplier != null) {
-                    Intent intent = new Intent(MainActivity.this, ChooseMatterActivity.class);
-                    startActivity(intent);
-                } else {
-                    myToasty.showWarning("请先选择供应商！");
-                }
-
+                Intent intent = new Intent(MainActivity.this, ChooseMatterActivity.class);
+                startActivity(intent);
                 break;
 
             case R.id.id_iv_choose_matter_level://选择品类等级
@@ -1451,20 +1389,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_iv_choose_specs://选择规格
-                if (matter != null) {
-                    Intent intent = ChooseSpecsActivity.newIntent(MainActivity.this, String.valueOf(matter.getId()));
-                    startActivity(intent);
-                } else {
-                    myToasty.showWarning("请先选择品类！");
-                }
+                startActivity(new Intent(MainActivity.this, ChooseSpecsActivity.class));
+                break;
+
+            case R.id.tv_produce_line://选择生产线
+                ProduceLineListFragment produceLineListFragment = new ProduceLineListFragment();
+
+                showDialogFragment(produceLineListFragment, PRODUCE_LINE_LIST);
+
                 break;
 
             case R.id.id_tv_sampling://采样
 
                 if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) { //已连接
                     //已连接
-                    if (supplier != null && matter != null && matterLevel != null) {
-                        samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId,matterLevelId);
+                    if (supplier != null && matterId > 0 && matterLevelId > 0) {
+                        SamplingFragment samplingFragment = SamplingFragment.newInstance(samplingWeight, supplierId, matterId, matterLevelId);
                         showDialogFragment(samplingFragment, SAMPLING);
                     } else {
                         myToasty.showWarning("请先选择供应商，品类，品类等级！");
@@ -1483,8 +1423,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     } else {
                         myToasty.showInfo("未配置采样秤，请手动连接！");
-                        Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 3);
-                        startActivity(intent);
+                        Intent intent2 = ElcScaleActivity.newIntent(MainActivity.this, 3);
+                        startActivity(intent2);
                     }
                 }
 
@@ -1492,22 +1432,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             case R.id.id_tv_sampling_count://采样累计
-                if (samplingDetailsFragment == null) {
-                    samplingDetailsFragment = new SamplingDetailsFragment();
-                }
+
+                SamplingDetailsFragment samplingDetailsFragment = new SamplingDetailsFragment();
+
                 showDialogFragment(samplingDetailsFragment, SAMPLING_DETAILS);
                 break;
 
             case R.id.id_tv_cumulative://累计
-                if (cumulativeFragment == null) {
-                    cumulativeFragment = new CumulativeFragment();
-                }
+
+                CumulativeFragment cumulativeFragment = new CumulativeFragment();
+
                 showDialogFragment(cumulativeFragment, CUMULATIVE);
                 break;
 
             case R.id.id_tv_deduction://扣重
-                deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
+                DeductionFragment deductionFragment = DeductionFragment.newInstance(mWeightTextView.getText().toString());
                 showDialogFragment(deductionFragment, DEDUCTION);
+                break;
+
+            case R.id.id_tv_deductionMix://扣重率
+                final EditText editText1 = new EditText(MainActivity.this);
+                editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
+                inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
+                inputDialog1.setPositiveButton(R.string.enter,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (editText1.getText().toString().trim().length() == 0) {
+                                    myToasty.showInfo("请输入扣重率");
+                                    return;
+                                }
+                                //扣重率
+                                deductionMix = Integer.valueOf(editText1.getText().toString().trim());
+
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
+
                 break;
 
             case R.id.id_iv_choose_printer://选择打印机
@@ -1517,10 +1484,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                showDialogFragment(deviceListFragment, DEVICE_LIST);
                 break;
 
-            case R.id.id_iv_print://打印
-                if (billListFragment == null) {
-                    billListFragment = new BillListFragment();
-                }
+            case R.id.id_iv_print://打印(单据列表)
+
+                BillListFragment billListFragment = new BillListFragment();
+
                 showDialogFragment(billListFragment, BILL_LIST);
                 break;
 
@@ -1549,9 +1516,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_iv_setting://左侧设置界面
-                if (settingFragment == null) {
-                    settingFragment = new SettingFragment();
-                }
+
+                SettingFragment settingFragment = new SettingFragment();
+
                 showDialogFragment(settingFragment, SETTING);
                 break;
 
@@ -1567,78 +1534,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 int samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
 
-                if ( samplingSize <= 0) {
+                if (samplingSize <= 0) {
                     //未采样，则必须选择供应商，品类，品类等级，规格
-                    if (supplier == null || matter == null || matterLevel == null || specs == null) { //未选择，直接返回
+                    if (supplier == null || matterId <= 0 || matterLevelId <= 0 || specs == null) { //未选择，直接返回
                         myToasty.showWarning("请先选择供应商，品类，品类等级，规格！");
                         return;
                     }
 
                     //已选择供应商，品类，品类等级，规格
 
-                    final EditText editText1 = new EditText(MainActivity.this);
-                    editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                    AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
-                    inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
-                    inputDialog1.setPositiveButton(R.string.enter,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (editText1.getText().toString().trim().length() == 0) {
-                                        myToasty.showInfo("请输入扣重率");
-                                        return;
-                                    }
-                                    //扣重率
-                                    int deduction = Integer.valueOf(editText1.getText().toString().trim());
-                                    Intent intent = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
-                                            deduction, tvCumulativeWeight.getText().toString().trim(),supplierId,matterId,
-                                            matterLevelId,specsId);
+                    Intent intent1 = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
+                            deductionMix, tvCumulativeWeight.getText().toString().trim(), supplierId, matterId,
+                            matterLevelId, specsId);
 
-                                    startActivity(intent);
+                    startActivity(intent1);
 
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                }
-                            }).show();
-
-
-                }else {
+                } else {
                     //已采样
-                    final EditText editText1 = new EditText(MainActivity.this);
-                    editText1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                    AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(MainActivity.this);
-                    inputDialog1.setTitle("请输入扣重率（%）").setView(editText1);
-                    inputDialog1.setPositiveButton(R.string.enter,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (editText1.getText().toString().trim().length() == 0) {
-                                        myToasty.showInfo("请输入扣重率");
-                                        return;
-                                    }
-                                    //扣重率
-                                    int deduction = Integer.valueOf(editText1.getText().toString().trim());
-                                    Intent intent = SaveBillDetailsActivity.newInstance(MainActivity.this,
-                                            deduction, tvCumulativeWeight.getText().toString().trim());
-
-                                    startActivity(intent);
-
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                }
-                            }).show();
-
+                    Intent intent2 = SaveBillDetailsActivity.newInstance(MainActivity.this,
+                            deductionMix, tvCumulativeWeight.getText().toString().trim());
+                    startActivity(intent2);
 
                 }
-
 
                 break;
 
@@ -1787,7 +1704,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(LangUtils.getAttachBaseContext(newBase,
-                SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG)));
+                SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_USER_LANG, 0)));
     }
 
     @Override

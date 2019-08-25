@@ -147,11 +147,6 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
         return intent;
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
 
     @Override
     protected int setLayout() {
@@ -167,10 +162,10 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
     protected void initView() {
         mQMUITipDialog = new QMUITipDialog.Builder(SaveBillWithoutSamplingActivity.this)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在保存...")
+                .setTipWord(getResources().getString(R.string.is_saving))
                 .create();
 
-        tvTitle.setText("单据明细");
+        tvTitle.setText(R.string.bill_details);
         tvRight.setOnClickListener(this);
         ivBack.setOnClickListener(this);
         button.setOnClickListener(this);
@@ -239,7 +234,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
             if (mQMUITipDialog.isShowing()) {
                 mQMUITipDialog.dismiss();
             }
-            new MyToasty(SaveBillWithoutSamplingActivity.this).showSuccess("上传成功！");
+            myToasty.showSuccess("上传成功！");
         } else {
 
             if (mQMUITipDialog.isShowing()) {
@@ -270,14 +265,14 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
                 //横屏时禁止输入法全屏
                 editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                 AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillWithoutSamplingActivity.this);
-                inputDialog1.setTitle("请输入单据名称").setView(editText1);
+                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
                 inputDialog1.setPositiveButton(R.string.enter,
                         new DialogInterface.OnClickListener() {
                             @SuppressLint("CheckResult")
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if (editText1.getText().toString().trim().length() == 0) {
-                                    new MyToasty(SaveBillWithoutSamplingActivity.this).showInfo("请输入单据名称");
+                                    new MyToasty(SaveBillWithoutSamplingActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
                                     return;
                                 }
 
@@ -323,7 +318,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
                                 EventBus.getDefault().post(deviceEvent);
 
                                 if (!NetUtils.checkNetWork()) {
-                                    new MyToasty(SaveBillWithoutSamplingActivity.this).showSuccess("保存成功");
+                                    myToasty.showSuccess("保存成功!");
                                     finish();
                                     return;
                                 }
@@ -343,7 +338,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
             case R.id.btn_price://确认单价
 
                 if (tempPrice.length() == 0) {
-                    new MyToasty(SaveBillWithoutSamplingActivity.this).showWarning("请输入单价！");
+                    new MyToasty(SaveBillWithoutSamplingActivity.this).showWarning(getResources().getString(R.string.input_price));
                     return;
                 }
                 double price = DoubleCountUtils.keep(Double.valueOf(tempPrice));//单价
@@ -413,7 +408,6 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
                 request.setBillMaster(billMasterBean);
 
 
-
                 break;
 
             case R.id.iv_back:
@@ -468,7 +462,7 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
             tvPrice.setText(String.valueOf(lastPrice.getPrice()));
             tempPrice = String.valueOf(lastPrice.getPrice());
         }else {
-            new MyToasty(SaveBillWithoutSamplingActivity.this).showInfo("当前未配置单价，请手动输入！");
+            myToasty.showWarning("当前未配置单价，请手动输入！");
         }
 
 

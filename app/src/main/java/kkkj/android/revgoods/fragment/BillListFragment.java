@@ -2,6 +2,8 @@ package kkkj.android.revgoods.fragment;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Environment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,7 +15,9 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
+import org.litepal.util.SharedUtil;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +38,7 @@ import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Path;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
+import kkkj.android.revgoods.bean.Student;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.bill.BillMaster;
 import kkkj.android.revgoods.bean.bill.DelWeights;
@@ -43,10 +48,13 @@ import kkkj.android.revgoods.bean.bill.Scales;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.mvpInterface.MvpModel;
+import kkkj.android.revgoods.ui.ShowBillDetailsActivity;
 import kkkj.android.revgoods.ui.saveBill.BillModel;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.ExcelUtils;
 import kkkj.android.revgoods.utils.NetUtils;
+import kkkj.android.revgoods.utils.ShareFile;
 
 /**
  * 单据列表
@@ -59,11 +67,63 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
     private List<Bill> mBills;
     private QMUITipDialog mQMUITipDialog;
 
+    private ArrayList<ArrayList<String>> recordList;
+    private List<Student> students;
+    private static String[] title = { "编号","姓名","性别","年龄","班级","数学","英语","语文" };
+    private File file;
+    private String fileName;
+
     @Override
     public void initData() {
         mBills = new ArrayList<>();
         mBills = LitePal.findAll(Bill.class, true);
 
+        //模拟数据集合
+        students = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            students.add(new Student("小红"+i,"女","12","1"+i,"一班","85","77","98"));
+            students.add(new Student("小明"+i,"男","14","2"+i,"二班","65","57","100"));
+        }
+
+
+
+    }
+
+
+    /**
+     * 导出excel
+     */
+    public void exportExcel() {
+        file = new File(Environment.getExternalStorageDirectory().getPath() + "/Record");
+        if (!file.exists()) {
+           file.mkdir();
+        }
+
+        ExcelUtils.initExcel(Environment.getExternalStorageDirectory().getPath() + "/Record" + "/test.xls", title);
+        fileName = Environment.getExternalStorageDirectory().getPath() + "/Record/test.xls";
+        ExcelUtils.writeObjListToExcel(getRecordData(), fileName, getActivity());
+    }
+
+    /**
+     * 将数据集合 转化成ArrayList<ArrayList<String>>
+     * @return
+     */
+    private  ArrayList<ArrayList<String>> getRecordData() {
+        recordList = new ArrayList<>();
+        for (int i = 0; i <students.size(); i++) {
+            Student student = students.get(i);
+            ArrayList<String> beanList = new ArrayList<String>();
+            beanList.add(student.id);
+            beanList.add(student.name);
+            beanList.add(student.sex);
+            beanList.add(student.age);
+            beanList.add(student.classNo);
+            beanList.add(student.math);
+            beanList.add(student.english);
+            beanList.add(student.chinese);
+            recordList.add(beanList);
+        }
+        return recordList;
     }
 
     @Override
@@ -72,7 +132,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
         mQMUITipDialog = new QMUITipDialog.Builder(getActivity())
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在上传...")
+                .setTipWord(getResources().getString(R.string.is_uploading))
                 .create();
 
         mRecyclerView = view.findViewById(R.id.id_device_recyclerView);
@@ -87,8 +147,8 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         billAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
-
+                Intent intent = ShowBillDetailsActivity.newInstance(getActivity(),mBills.get(position).getId());
+                startActivity(intent);
             }
         });
 
@@ -102,7 +162,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                         builder.setTitle("删除采购单")
                                 .setMessage("确定要删除吗？")
-                                .setPositiveButton("删除", new DialogInterface.OnClickListener() {
+                                .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -118,7 +178,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                         Logger.d("删除");
                                     }
                                 })
-                                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         Logger.d("取消");
@@ -132,7 +192,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                         Bill bill = mBills.get(position);
                         BillModel.Request request = getBillRequest(bill);
                         if (!NetUtils.checkNetWork()) {
-                            new MyToasty(getActivity()).showWarning("当前网络连接不可用，请联网后重试！");
+                            myToasty.showWarning("当前网络连接不可用，请联网后重试！");
                             return;
                         }
 
@@ -150,12 +210,12 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                     @Override
                                     public void onNext(BillModel.Response response) {
                                         if (response.isData()) {
-                                            new MyToasty(getActivity()).showSuccess("上传成功");
+                                            myToasty.showSuccess("上传成功!");
                                             bill.setIsUpload(0);
                                             bill.save();
                                             adapter.notifyDataSetChanged();
                                         }else {
-                                            new MyToasty(getActivity()).showError("上传失败：" + response.getMsg());
+                                            myToasty.showError("上传失败：" + response.getMsg());
                                         }
                                     }
 
@@ -164,7 +224,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                         if (mQMUITipDialog.isShowing()) {
                                             mQMUITipDialog.dismiss();
                                         }
-                                        new MyToasty(getActivity()).showError("上传失败：" + e.getMessage());
+                                        myToasty.showError("上传失败：" + e.getMessage());
                                     }
 
                                     @Override
@@ -174,6 +234,14 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
                                         }
                                     }
                                 });
+
+                        break;
+
+                    case R.id.tv_share://分享文件
+//                        exportExcel();
+//                        String path = Environment.getExternalStorageDirectory().getPath() + "/Record/test.xls";
+//                        File file = new File(path);
+//                        ShareFile.shareFile(getActivity(),file);
 
                         break;
 
@@ -218,29 +286,6 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         int matterId = bill.getMatterId();
         Supplier supplier = LitePal.find(Supplier.class,supplierId);
         Matter matter = LitePal.find(Matter.class,matterId);
-
-        Logger.d("deductionList:" + deductionList.size() );
-        Logger.d("samplingDetailsList:" + samplingDetailsList.size() );
-        Logger.d("cumulativeList:" + cumulativeList.size() );
-
-//        if (samplingDetailsList.size() > 1) {
-//            //重新计算占比
-//            //采样总重量
-//            double total = 0d;
-//            for (int i = 0; i < samplingDetailsList.size(); i++) {
-//                BigDecimal b1 = new BigDecimal(Double.toString(total));
-//                BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
-//                total = b1.add(b2).doubleValue();
-//            }
-//
-//            //计算占比
-//            for (int i = 0; i < samplingDetailsList.size(); i++) {
-//                double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-//                samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
-//            }
-//            LitePal.saveAll(samplingDetailsList);
-//        }
-
 
         //计秤总重量
         double mWeight = bill.getWeight();

@@ -66,7 +66,7 @@
             android:background="@color/qmui_config_color_white"
             android:layout_margin="1dp"
             android:gravity="center"
-            android:text="单价" />
+            android:text="@string/price" />
 
     </LinearLayout>
 
@@ -140,7 +140,7 @@
             android:imeOptions="flagNoExtractUi"
             android:inputType="number|numberDecimal"
             android:background="@color/qmui_config_color_white"
-            android:hint="请输入单价"
+            android:hint="@string/input_price"
             />
 
         <View

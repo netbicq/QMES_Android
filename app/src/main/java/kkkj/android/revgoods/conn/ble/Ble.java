@@ -38,6 +38,14 @@ public class Ble {
 
     private boolean isConnected = false;
 
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean connected) {
+        isConnected = connected;
+    }
+
     public Ble(BluetoothDevice device, Context context) {
         mDevice = device;
         this.context = context;
@@ -220,6 +228,7 @@ public class Ble {
 
     public void destory() {
         if (mBluetoothGatt != null) {
+            mBluetoothGatt.disconnect();
             mBluetoothGatt.close();
         }
     }

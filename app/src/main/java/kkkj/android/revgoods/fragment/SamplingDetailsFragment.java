@@ -35,6 +35,7 @@ import kkkj.android.revgoods.adapter.SamplingDetailsAdapter;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.customer.SlideRecyclerView;
 import kkkj.android.revgoods.event.DeviceEvent;
+import kkkj.android.revgoods.utils.DoubleCountUtils;
 
 /**
  * 采样明细
@@ -65,6 +66,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         //计算占比
         for (int i = 0;i<samplingDetailsList.size();i++) {
             double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
+            specsProportion = DoubleCountUtils.keep(specsProportion);
             samplingDetailsList.get(i).setSpecsProportion(specsProportion);
         }
         LitePal.saveAll(samplingDetailsList);
@@ -108,6 +110,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
                 //计算占比
                 for (int i = 0;i<samplingDetailsList.size();i++) {
                     double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
+                    specsProportion = DoubleCountUtils.keep(specsProportion);
                     samplingDetailsList.get(i).setSpecsProportion(specsProportion);
                 }
                 LitePal.saveAll(samplingDetailsList);

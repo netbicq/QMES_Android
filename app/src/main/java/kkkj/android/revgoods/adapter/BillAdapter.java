@@ -33,5 +33,6 @@ public class BillAdapter extends BaseQuickAdapter<Bill, BaseViewHolder> {
 
         helper.addOnClickListener(R.id.tv_delete);
         helper.addOnClickListener(R.id.tv_upload);
+        helper.addOnClickListener(R.id.tv_share);
     }
 }
