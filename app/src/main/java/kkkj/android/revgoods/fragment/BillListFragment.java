@@ -343,9 +343,8 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
         if (ValuationType == 1) {
 
-            List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
-                    .find(SamplingBySpecs.class);
-            SamplingBySpecs samplingBySpecs = bySpecsList.get(0);
+            SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class,bill.getSamplingBySpecsId());
+
             int id = samplingBySpecs.getSpecsId();
             Specs specsFinal = LitePal.find(Specs.class,id);
 
