@@ -93,6 +93,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private MatterLevel matterLevel;
     private String tempPrice = "";
 
+
     //单重
     private double singalWeight;
 
@@ -106,6 +107,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private PicOrMp4Adapter picOrMp4Adapter;
 
     private QMUITipDialog qmuiTipDialog;
+
+
 
     //返回的路径集合
     private List<Path> pathList = new ArrayList<>();
@@ -138,7 +141,6 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         supplier = LitePal.find(Supplier.class, supplierId);
         matter = LitePal.find(Matter.class, matterId);
         matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
-
     }
 
     @Override

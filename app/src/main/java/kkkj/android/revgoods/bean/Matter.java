@@ -22,10 +22,10 @@ public class Matter extends LitePalSupport {
 
     /**
      * 计价方式
-     * type = 0;根据规格计算
-     * type = 1;根据规格占比计算
+     * ValuationType = 1;根据规格计算
+     * ValuationType = 2;根据规格占比计算
      */
-    private int type = -1;
+    private int ValuationType = 0;
 
     public String getKeyID() {
         return KeyID;
@@ -35,12 +35,12 @@ public class Matter extends LitePalSupport {
         KeyID = keyID;
     }
 
-    public int getType() {
-        return type;
+    public int getValuationType() {
+        return ValuationType;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setValuationType(int valuationType) {
+        this.ValuationType = valuationType;
     }
 
     public int getId() {
@@ -65,7 +65,7 @@ public class Matter extends LitePalSupport {
                 "id=" + id +
                 ", Name='" + Name + '\'' +
                 ", KeyID='" + KeyID + '\'' +
-                ", type=" + type +
+                ", ValuationType=" + ValuationType +
                 '}';
     }
 }

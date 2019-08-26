@@ -35,7 +35,6 @@ import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
-import kkkj.android.revgoods.utils.NetUtils;
 
 /**
  * 保存单据
@@ -230,7 +229,7 @@ public class SaveBillFragment extends BaseDialogFragment implements View.OnClick
                         Matter matter = LitePal.find(Matter.class, matterId);
                         Specs specs = LitePal.find(Specs.class, specsId);
 
-                        int type = matter.getType();
+                        int type = matter.getValuationType();
                         switch (type) {
 
                             case 0://根据最大规格计算

@@ -1,10 +1,12 @@
 package kkkj.android.revgoods.ui.login.model;
 import android.annotation.SuppressLint;
+import android.widget.GridLayout;
 
 import com.orhanobut.logger.Logger;
 
 import org.litepal.LitePal;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
@@ -104,13 +106,32 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                     public void accept(ChooseSupplierModel.Response response) throws Exception {
                         if (response.getState() == RESPONSE_OK) {
                             if (response.getData().size() > 0) {
-
+                                //服务器返回的所有KeyId集合
+                                List<String> keyIdList = new ArrayList<>();
                                 List<Supplier> supplierList = response.getData();
+
                                 for (int i = 0; i < supplierList.size(); i++) {
                                     String keyId = supplierList.get(i).getKeyID();
+                                    keyIdList.add(keyId);
                                     supplierList.get(i).saveOrUpdate("KeyID = ?", keyId);
                                     Logger.d(supplierList.get(i).toString());
                                 }
+
+                                List<Supplier> supplierListOld = LitePal.findAll(Supplier.class);
+                                for (int j=0;j<supplierListOld.size();j++) {
+                                    //本地数据库KeyId
+                                    String keyIdOld = supplierListOld.get(j).getKeyID();
+                                    /**
+                                     * 如果本地keyId不包含在服务器返回的keyId集合里面，说明服务器端已经删除了该keyId
+                                     * 那本地也将该keyId删除
+                                     */
+                                    if (!keyIdList.contains(keyIdOld)) {
+                                        List<Supplier> list = LitePal.where("KeyID = ?",keyIdOld).find(Supplier.class);
+                                        int id = list.get(0).getId();
+                                        LitePal.delete(Supplier.class,id);
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -128,11 +149,23 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
 
+                        List<String> keyIdList = new ArrayList<>();
                         List<Matter> list = response.getData();
                         for (int i = 0; i < list.size(); i++) {
                             String keyId = list.get(i).getKeyID();
+                            keyIdList.add(keyId);
                             list.get(i).saveOrUpdate("KeyID = ?", keyId);
                             Logger.d(list.get(i).toString());
+                        }
+
+                        List<Matter> matterListOld = LitePal.findAll(Matter.class);
+                        for (int j=0;j<matterListOld.size();j++) {
+                            String keyIdOld = matterListOld.get(j).getKeyID();
+                            if (!keyIdList.contains(keyIdOld)) {
+                                List<Matter> matterList = LitePal.where("KeyID = ?",keyIdOld).find(Matter.class);
+                                int id = matterList.get(0).getId();
+                                LitePal.delete(Matter.class,id);
+                            }
                         }
                     }
                 }
@@ -144,11 +177,23 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
 
+                        List<String> keyIdList = new ArrayList<>();
                         List<Specs> specsList = response.getData();
                         for (int i = 0; i < specsList.size(); i++) {
                             String keyId = specsList.get(i).getKeyID();
+                            keyIdList.add(keyId);
                             specsList.get(i).saveOrUpdate("KeyID = ?", keyId);
                             Logger.d(specsList.get(i).toString());
+                        }
+
+                        List<Specs> specsListOld = LitePal.findAll(Specs.class);
+                        for (int j=0;j<specsListOld.size();j++) {
+                            String keyIdOld = specsListOld.get(j).getKeyID();
+                            if (!keyIdList.contains(keyIdOld)) {
+                                List<Specs> list = LitePal.where("KeyID = ?",keyIdOld).find(Specs.class);
+                                int id = list.get(0).getId();
+                                LitePal.delete(Specs.class,id);
+                            }
                         }
 
                     }
@@ -161,11 +206,23 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
 
+                        List<String> keyIdList = new ArrayList<>();
                         List<DeductionCategory> deductionCategoryList = response.getData();
                         for (int i = 0; i < deductionCategoryList.size(); i++) {
                             String keyId = deductionCategoryList.get(i).getKeyID();
+                            keyIdList.add(keyId);
                             boolean is = deductionCategoryList.get(i).saveOrUpdate("KeyID = ?", keyId);
                             Logger.d(deductionCategoryList.get(i).toString() + is);
+                        }
+
+                        List<DeductionCategory> deductionCategoryListOld = LitePal.findAll(DeductionCategory.class);
+                        for (int j=0;j<deductionCategoryListOld.size();j++) {
+                            String keyIdOld = deductionCategoryListOld.get(j).getKeyID();
+                            if (!keyIdList.contains(keyIdOld)) {
+                                List<DeductionCategory> list = LitePal.where("KeyID = ?",keyIdOld).find(DeductionCategory.class);
+                                int id = list.get(0).getId();
+                                LitePal.delete(DeductionCategory.class,id);
+                            }
                         }
                     }
                 }
@@ -176,11 +233,23 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
             public ObservableSource<ProduceLineModel.Response> apply(MatterLevelModel.Response response) throws Exception {
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
+                        List<String> keyIdList = new ArrayList<>();
                         List<MatterLevel> matterLevelList = response.getData();
                         for (int i = 0; i < matterLevelList.size(); i++) {
                             String keyId = matterLevelList.get(i).getKeyID();
+                            keyIdList.add(keyId);
                             boolean is = matterLevelList.get(i).saveOrUpdate("KeyID = ?", keyId);
                             Logger.d(matterLevelList.get(i).toString() + is);
+                        }
+
+                        List<MatterLevel> matterLevelListOld = LitePal.findAll(MatterLevel.class);
+                        for (int j=0;j<matterLevelListOld.size();j++) {
+                            String keyIdOld = matterLevelListOld.get(j).getKeyID();
+                            if (!keyIdList.contains(keyIdOld)) {
+                                List<MatterLevel> list = LitePal.where("KeyID = ?",keyIdOld).find(MatterLevel.class);
+                                int id = list.get(0).getId();
+                                LitePal.delete(MatterLevel.class,id);
+                            }
                         }
                     }
                 }
@@ -219,11 +288,23 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
 
+                        List<String> keyIdList = new ArrayList<>();
                         List<Price> priceList = response.getData();
                         for (int i = 0; i < priceList.size(); i++) {
                             String keyId = priceList.get(i).getKeyID();
+                            keyIdList.add(keyId);
                             priceList.get(i).saveOrUpdate("KeyID = ?", keyId);
                             Logger.d(priceList.get(i).toString());
+                        }
+
+                        List<Price> priceListOld = LitePal.findAll(Price.class);
+                        for (int j=0;j<priceListOld.size();j++) {
+                            String keyIdOld = priceListOld.get(j).getKeyID();
+                            if (!keyIdList.contains(keyIdOld)) {
+                                List<Price> list = LitePal.where("KeyID = ?",keyIdOld).find(Price.class);
+                                int id = list.get(0).getId();
+                                LitePal.delete(Price.class,id);
+                            }
                         }
                     }
                 }

@@ -4,6 +4,7 @@ package kkkj.android.revgoods.http.api;
 import io.reactivex.Observable;
 import kkkj.android.revgoods.http.ApiConfig;
 import kkkj.android.revgoods.ui.addDeductionCategory.AddDeductionCategoryModel;
+import kkkj.android.revgoods.ui.addDeductionCategory.DeleteDeductionCategoryModel;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterModel;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsModel;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierModel;
@@ -50,6 +51,10 @@ public interface APIApp {
     //api/dict/addnew 添加词典（扣重类别）
     @GET("api/dict/createDelWeightType/{dictName}")
     Observable<AddDeductionCategoryModel.Response> addDict(@Path("dictName") String dictName);
+
+    //api/dict/deldict/{id}删除扣重类别
+    @GET("api/dict/deldict/{id}")
+    Observable<DeleteDeductionCategoryModel.Response> deleteDict(@Path("id") String keyId );
 
     //api/purchase/addPurchaseBillByAPP 上传采购单（单据）
     @POST("api/purchase/addPurchaseBillByAPP")

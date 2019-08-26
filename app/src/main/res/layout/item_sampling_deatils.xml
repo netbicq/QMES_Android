@@ -56,7 +56,7 @@
             tools:text="规格"/>
 
         <TextView
-            android:id="@+id/id_tv_price"
+            android:id="@+id/id_tv_proportion"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -64,10 +64,10 @@
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:gravity="center"
-            tools:text="单价"/>
+            tools:text="占比"/>
 
         <TextView
-            android:id="@+id/id_tv_proportion"
+            android:id="@+id/id_tv_price"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -76,7 +76,8 @@
             android:layout_marginBottom="1dp"
             android:layout_marginRight="1dp"
             android:gravity="center"
-            tools:text="占比"/>
+            tools:text="单价"/>
+
 
     </LinearLayout>
 

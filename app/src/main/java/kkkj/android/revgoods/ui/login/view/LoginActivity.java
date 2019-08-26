@@ -124,7 +124,7 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
             {
                 ed_pwd.setText(password);
                 //延时3秒后自动登录
-                Observable.timer(3, TimeUnit.SECONDS)
+                Observable.timer(0, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Consumer<Long>() {

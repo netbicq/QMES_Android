@@ -6,9 +6,9 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="50dp"
         android:padding="6dp">
 
         <TextView
@@ -51,6 +51,21 @@
             android:layout_marginTop="30dp"
             android:padding="10dp"
             android:text="@string/change_language"
+            android:background="@drawable/text_black_background"
+            android:textColor="@color/qmui_config_color_50_white"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/tv_change_user"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:gravity="center"
+            android:layout_marginTop="30dp"
+            android:padding="10dp"
+            android:text="切换账号"
             android:background="@drawable/text_black_background"
             android:textColor="@color/qmui_config_color_50_white"
             android:textSize="20sp" />

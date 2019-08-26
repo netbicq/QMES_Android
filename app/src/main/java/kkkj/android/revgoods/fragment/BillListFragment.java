@@ -36,6 +36,7 @@ import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Path;
+import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Student;
@@ -286,6 +287,12 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         int matterId = bill.getMatterId();
         Supplier supplier = LitePal.find(Supplier.class,supplierId);
         Matter matter = LitePal.find(Matter.class,matterId);
+        /**
+         * 计价方式
+         * ValuationType = 1;根据规格计算
+         * ValuationType = 2;根据规格占比计算
+         */
+        int ValuationType = matter.getValuationType();
 
         //计秤总重量
         double mWeight = bill.getWeight();
@@ -334,24 +341,45 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
          */
         List<PurPrices> purPricesList = new ArrayList<>();//计价明细
 
+        if (ValuationType == 1) {
 
-        for (int i = 0; i < samplingDetailsList.size(); i++) {
+            List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
+                    .find(SamplingBySpecs.class);
+            SamplingBySpecs samplingBySpecs = bySpecsList.get(0);
+            int id = samplingBySpecs.getSpecsId();
+            Specs specsFinal = LitePal.find(Specs.class,id);
+
             PurPrices purPrices = new PurPrices();
-            double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
-            double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-            double price = samplingDetailsList.get(i).getPrice();//单价
+            purPrices.setNormsID(specsFinal.getKeyID());//规格ID
 
-            money = DoubleCountUtils.keep(weight * price) + money;//总金额
-
-            Specs specs1 = LitePal.find(Specs.class,samplingDetailsList.get(i).getSpecsId());
-            purPrices.setNormsID(specs1.getKeyID());//规格ID
-
-            purPrices.setAmount(weight);//当前占比的重量
-            purPrices.setPrice(price);//单价
-            purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
-            purPrices.setRatio(ratio);//规格占比
+            purPrices.setAmount(realWeight);//当前占比的重量
+            purPrices.setPrice(samplingBySpecs.getPrice());//单价
+            purPrices.setMenoy(DoubleCountUtils.keep(realWeight * samplingBySpecs.getPrice()));//金额
+            purPrices.setRatio(100);//规格占比
             purPricesList.add(purPrices);
+
+        } else {
+
+            for (int i = 0; i < samplingDetailsList.size(); i++) {
+                PurPrices purPrices = new PurPrices();
+                double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
+                double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
+                double price = samplingDetailsList.get(i).getPrice();//单价
+
+                money = DoubleCountUtils.keep(weight * price) + money;//总金额
+
+                Specs specs1 = LitePal.find(Specs.class,samplingDetailsList.get(i).getSpecsId());
+                purPrices.setNormsID(specs1.getKeyID());//规格ID
+
+                purPrices.setAmount(weight);//当前占比的重量
+                purPrices.setPrice(price);//单价
+                purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
+                purPrices.setRatio(ratio);//规格占比
+                purPricesList.add(purPrices);
+            }
+
         }
+
         request.setPurPrices(purPricesList);//计价明细
 
         /**
@@ -368,6 +396,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
          */
         BillMaster billMasterBean = new BillMaster();
 
+        billMasterBean.setCode(bill.getUUID());//Code
         billMasterBean.setPurchaseDate(bill.getTime());//日期
         billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
         billMasterBean.setNormID(specs.getKeyID());//规格ID

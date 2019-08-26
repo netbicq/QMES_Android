@@ -610,7 +610,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isUploadCount = isUpload + "/" + total;
             mTvIsUpload.setText(isUploadCount);
         }
-
+        //生产线
         if (deviceEvent.getProduceLine() != null) {
 
             if (SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT).length() == 0) {
@@ -623,6 +623,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Logger.d(produceLine.toString());
 
             if (produceLine.getName().equals("移动称重")) {
+
+                //主称
+                if (BleManager.getInstance() != null && bluetoothManager != null) {
+                    BleManager.getInstance().destory();
+                }
+                //wifi继电器
+                if (manager != null) {
+                    manager.send(new WriteData(Order.TURN_OFF_ALL));
+                    manager.unRegisterReceiver(listener);
+                }
+                //蓝牙继电器
+                if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
+                    bluetoothRelay.getMyBluetoothManager().disConnect();
+                }
+
+                mWifiList.clear();
+                //初始化wifi继电器实体类
+                List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
+                List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
+
+                for (int i = 0; i < leftIcon.size(); i++) {
+                    RelayBean relayBean = new RelayBean();
+                    relayBean.setLeftIamgeView(leftIcon.get(i));
+                    relayBean.setRightImageView(rightIcon.get(i));
+                    mWifiList.add(relayBean);
+                }
+                switchAdapter.notifyDataSetChanged();
+
                 mTvHand.setVisibility(View.VISIBLE);
                 Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
                 startActivity(intent);
@@ -741,6 +770,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (device.getType() >= 0) {
             switch (device.getType()) {
                 case 0://蓝牙电子秤
+
                     String address = device.getBluetoothMac();
                     BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
@@ -1814,16 +1844,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //wifi继电器
         if (manager != null) {
             manager.send(new WriteData(Order.TURN_OFF_ALL));
             manager.unRegisterReceiver(listener);
         }
-
+        //蓝牙继电器
         if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
             bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
             bluetoothRelay.getMyBluetoothManager().disConnect();
         }
-
+        //采样电子秤
         if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) {
             bluetoothScale.getMyBluetoothManager().disConnect();
         }
@@ -1835,7 +1866,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (compositeDisposable != null && compositeDisposable.size() > 0) {
             compositeDisposable.dispose();
         }
-
+        //主称
         if (BleManager.getInstance() != null && bluetoothManager != null) {
             BleManager.getInstance().destory();
         }

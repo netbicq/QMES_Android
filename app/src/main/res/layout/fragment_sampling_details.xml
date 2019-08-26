@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tolls="http://schemas.android.com/tools"
     android:background="@color/qmui_config_color_white"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -12,94 +13,228 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
-    <LinearLayout
-        android:id="@+id/id_ll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginLeft="8dp"
-        android:orientation="horizontal"
-        android:background="@color/qmui_config_color_pure_black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bar_container">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:gravity="center"
-            android:text="@string/count"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:gravity="center"
-            android:text="@string/quantity"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:gravity="center"
-            android:text="@string/weight"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:gravity="center"
-            android:text="@string/name"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
-            android:gravity="center"
-            android:text="@string/price"/>
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_margin="1dp"
-            android:gravity="center"
-            android:text="@string/percentage"/>
-
-    </LinearLayout>
-
-    <kkkj.android.revgoods.customer.SlideRecyclerView
-        android:id="@+id/id_sampling_recyclerView"
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_ll" />
+        app:layout_constraintTop_toBottomOf="@id/bar_container"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/id_ll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="8dp"
+                android:orientation="horizontal"
+                android:background="@color/qmui_config_color_pure_black">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="center"
+                    android:text="@string/count"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="center"
+                    android:text="@string/quantity"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="center"
+                    android:text="@string/weight"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="center"
+                    android:text="@string/name"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:gravity="center"
+                    android:text="@string/percentage"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_margin="1dp"
+                    android:gravity="center"
+                    android:text="@string/price"/>
+
+
+            </LinearLayout>
+
+            <kkkj.android.revgoods.customer.SlideRecyclerView
+                android:id="@+id/id_sampling_recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp" />
+
+            <LinearLayout
+                android:id="@+id/id_ll_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="总计" />
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <TextView
+                    android:id="@+id/tv_count"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tolls:text="数量" />
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <TextView
+                    android:id="@+id/tv_weight"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tolls:text="重量" />
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <Spinner
+                    android:id="@+id/id_sp_specs"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center" />
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="1" />
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <EditText
+                    android:id="@+id/tv_price"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:imeOptions="flagNoExtractUi"
+                    android:inputType="number|numberDecimal"
+                    android:background="@color/qmui_config_color_white"
+                    android:hint="@string/input_price"
+                    />
+
+
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:background="@color/qmui_config_color_pure_black"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:background="@drawable/bg_style"
+                android:text="@string/save"
+                android:textColor="@color/qmui_config_color_white" />
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
 
 </android.support.constraint.ConstraintLayout>

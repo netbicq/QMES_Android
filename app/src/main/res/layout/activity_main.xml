@@ -204,11 +204,11 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="3dp"
         android:text="(0)"
+        android:textSize="24sp"
         android:textColor="@color/yellow"
         app:layout_constraintBottom_toBottomOf="@+id/id_tv_sampling_count"
         app:layout_constraintStart_toEndOf="@+id/id_tv_sampling_count"
-        app:layout_constraintTop_toTopOf="@+id/id_tv_sampling_count"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="@+id/id_tv_sampling_count" />
 
     <TextView
         android:id="@+id/textView24"
@@ -279,8 +279,12 @@
     <TextView
         android:id="@+id/id_tv_sampling_count"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="35dp"
         android:layout_marginBottom="24dp"
+        android:paddingHorizontal="8dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:textSize="12sp"
         android:text="@string/sampling_cumulative"
         android:textColor="@color/qmui_config_color_white"
         app:layout_constraintBottom_toTopOf="@+id/id_tv_sampling"

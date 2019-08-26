@@ -78,6 +78,10 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
         wlp.width = (2 * width) / 3;
         wlp.height = (3 * height) / 4;
+
+//        wlp.width = width;
+//        wlp.height = height;
+
         // wlp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         window.setAttributes(wlp);
 

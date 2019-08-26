@@ -47,4 +47,20 @@ public class DeductionCategoryPresenter extends DeductionCategoryContract.Presen
 
     }
 
+    @Override
+    public void deleteDeductionCategory(DeleteDeductionCategoryModel.Request request) {
+        if (!isViewAttached()){
+            //如果没有View引用就不加载数据
+            return;
+        }
+
+        DeleteDeductionCategoryModel model = new DeleteDeductionCategoryModel();
+        model.getResponse(request, new MvpCallback<DeleteDeductionCategoryModel.Response>(getView()) {
+            @Override
+            public void onSuccess(DeleteDeductionCategoryModel.Response data) {
+                getView().deleteDeductionCategorySuc(data.isData());
+            }
+        });
+    }
+
 }

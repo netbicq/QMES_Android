@@ -11,7 +11,8 @@ import org.litepal.crud.LitePalSupport;
  */
 public class BillMaster {
     /**
-     * "PurchaseDate": "2019-08-09 16:23:12",
+     *     "Code": "sample string 1",
+     *     "PurchaseDate": "2019-08-09 16:23:12",
      *     "SupplierID": "82ff0743-41ce-443a-81d9-a4f89127ab80",
      *     "NormID": "731ba94f-ca87-4242-a3dd-5b085e94c980",
      *     "CategoryID": "d371f9b1-8b83-4da2-84c7-949c30ce705f",
@@ -22,7 +23,7 @@ public class BillMaster {
      *     "Memo": "sample string 9",
      *     "DelWeightRate": 10.0
      */
-
+    private String Code;//UUID
     private String PurchaseDate;//日期
     private String SupplierID;
     private String NormID; //规格Id
@@ -33,6 +34,14 @@ public class BillMaster {
     private double Money;//金额
     private String Memo = "null";//备注
     private double DelWeightRate;//扣重率
+
+    public String getCode() {
+        return Code;
+    }
+
+    public void setCode(String code) {
+        Code = code;
+    }
 
     public double getDelWeightRate() {
         return DelWeightRate;

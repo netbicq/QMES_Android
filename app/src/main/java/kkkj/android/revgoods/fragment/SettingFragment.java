@@ -31,6 +31,7 @@ import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.addDeductionCategory.DeductionCategoryActivity;
+import kkkj.android.revgoods.ui.login.view.LoginActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
@@ -39,6 +40,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
     private TextView mSettingDeductionCategoryTextView;
     private TextView mChangeLanguageTv;
     private TextView mTvSetTime;
+    private TextView mTvChangeUser;
 
     @Nullable
     @Override
@@ -61,6 +63,8 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
         mChangeLanguageTv = view.findViewById(R.id.id_tv_change_language);
         mSettingDeductionCategoryTextView = view.findViewById(R.id.id_tv_deduction_category);
         mTvSetTime = view.findViewById(R.id.tv_set_time);
+        mTvChangeUser = view.findViewById(R.id.tv_change_user);
+        mTvChangeUser.setOnClickListener(this);
         mSettingDeductionCategoryTextView.setOnClickListener(this);
         mChangeLanguageTv.setOnClickListener(this);
         mTvSetTime.setOnClickListener(this);
@@ -154,6 +158,11 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
                             public void onClick(DialogInterface dialogInterface, int i) {
                             }
                         }).show();
+                break;
+
+            case R.id.tv_change_user:
+                SharedPreferenceUtil.setBoolean(SharedPreferenceUtil.SP_AUTO_LOGIN,false);
+                startActivity(new Intent(getActivity(), LoginActivity.class));
                 break;
 
             default:

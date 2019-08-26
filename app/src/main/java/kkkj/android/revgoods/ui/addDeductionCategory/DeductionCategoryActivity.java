@@ -1,5 +1,7 @@
 package kkkj.android.revgoods.ui.addDeductionCategory;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,7 +12,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.litepal.LitePal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +26,9 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeductionCategoryAdapter;
+import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.DeductionCategory;
+import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.NetUtils;
 
@@ -43,6 +52,7 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
 
     private DeductionCategory deductionCategory;
 
+    private int index = -1;
 
     @Override
     protected DeductionCategoryPresenter getPresenter() {
@@ -54,6 +64,37 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
         deductionCategoryList = new ArrayList<>();
         mPresenter.getDeductionCategory();
         adapter = new DeductionCategoryAdapter(R.layout.item_card_view, deductionCategoryList);
+        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(DeductionCategoryActivity.this);
+                builder.setTitle("确定要删除吗？")
+                        .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                if (!NetUtils.checkNetWork()) {
+                                    myToasty.showWarning("当前网络连接不可用，请联网后重试！");
+                                    return;
+                                }
+
+                                DeductionCategory deductionCategory = deductionCategoryList.get(position);
+                                index = position;
+                                String keyId = deductionCategory.getKeyID();
+                                DeleteDeductionCategoryModel.Request request = new DeleteDeductionCategoryModel.Request();
+                                request.setId(keyId);
+                                mPresenter.deleteDeductionCategory(request);
+
+                                Logger.d("删除");
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Logger.d("取消");
+                            }
+                        }).show();
+            }
+        });
     }
 
     @Override
@@ -136,5 +177,21 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
         }
 
 
+    }
+
+    @Override
+    public void deleteDeductionCategorySuc(boolean data) {
+        if (data) {
+            DeductionCategory deductionCategory = deductionCategoryList.get(index);
+            int id = deductionCategory.getId();
+            LitePal.delete(DeductionCategory.class,id);
+
+            deductionCategoryList.remove(deductionCategory);
+            adapter.notifyDataSetChanged();
+
+            myToasty.showSuccess("删除成功！");
+        }else {
+            myToasty.showError("删除失败！");
+        }
     }
 }

@@ -30,7 +30,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,6 +50,7 @@ import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Path;
+import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
@@ -100,6 +104,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     private BillDetailsAdapter adapter;
     private List<BillDetails> billDetailsList;
 
+    private SamplingBySpecs samplingBySpecs;
+
     private List<Cumulative> cumulativeList = new ArrayList<>();
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
     private List<Deduction> deductionList = new ArrayList<>();
@@ -131,6 +137,15 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
     //当前时间
     private String stringData;
+    //占比最大的采样
+    private SamplingDetails maxSamplingDetails;
+
+    /**
+     * 计价方式
+     * ValuationType = 1;根据规格计算
+     * ValuationType = 2;根据规格占比计算
+     */
+    private int ValuationType = -1;
 
 
     public static Intent newInstance(Context context, int deductionMix, String weight) {
@@ -262,66 +277,108 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             //保存单据
             case R.id.button:
 
-                final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
-                //横屏时禁止输入法全屏
-                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillDetailsActivity.this);
-                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
-                inputDialog1.setPositiveButton(R.string.enter,
-                        new DialogInterface.OnClickListener() {
-                            @SuppressLint("CheckResult")
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (editText1.getText().toString().trim().length() == 0) {
-                                    new MyToasty(SaveBillDetailsActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
-                                    return;
-                                }
+                //单据名称
+                String name = UUID.randomUUID().toString();
 
-                                //单据名称
-                                String name = editText1.getText().toString().trim();
-
-                                bill = new Bill();
-                                bill.setName(name);
-                                bill.setDeductionMix(deductionMix);
-                                bill.setSupplierId(supplierId);
-                                bill.setMatterId(matterId);
-                                bill.setTime(stringData);
-                                bill.setWeight(Double.valueOf(weight));
+                bill = new Bill();
+                bill.setUUID(name);
+                bill.setName(name);
+                bill.setDeductionMix(deductionMix);
+                bill.setSupplierId(supplierId);
+                bill.setMatterId(matterId);
+                bill.setTime(stringData);
+                bill.setSamplingBySpecsId(samplingBySpecs.getId());
+                bill.setWeight(Double.valueOf(weight));
 
 
-                                ContentValues values = new ContentValues();
-                                values.put("hasBill", 0);
-                                LitePal.updateAll(Cumulative.class, values);
-                                LitePal.updateAll(Deduction.class, values);
-                                LitePal.updateAll(SamplingDetails.class, values);
+                ContentValues values = new ContentValues();
+                values.put("hasBill", 0);
+                LitePal.updateAll(Cumulative.class, values);
+                LitePal.updateAll(Deduction.class, values);
+                LitePal.updateAll(SamplingDetails.class, values);
+                LitePal.updateAll(SamplingBySpecs.class,values);
 
-                                bill.setCumulativeList(cumulativeList);
-                                bill.setDeductionList(deductionList);
-                                bill.setSamplingDetailsList(samplingDetailsList);
-                                bill.save();
+                bill.setCumulativeList(cumulativeList);
+                bill.setDeductionList(deductionList);
+                bill.setSamplingDetailsList(samplingDetailsList);
+                bill.save();
 
-                                DeviceEvent deviceEvent = new DeviceEvent();
-                                deviceEvent.setReset(true);
-                                EventBus.getDefault().post(deviceEvent);
+                DeviceEvent deviceEvent = new DeviceEvent();
+                deviceEvent.setReset(true);
+                EventBus.getDefault().post(deviceEvent);
 
 
-                                if (!NetUtils.checkNetWork()) {
-                                    myToasty.showSuccess("保存成功!");
-                                    finish();
-                                    return;
-                                }
+                if (!NetUtils.checkNetWork()) {
+                    myToasty.showSuccess("保存成功!");
+                    finish();
+                    return;
+                }
 
-                                mQMUITipDialog.show();
+                /**
+                 * PurchaseDate : 2019-08-08 15:07:06
+                 * SupplierID : cd529f25-5fae-40a2-ac49-1df6627fe769
+                 * NormID : f1a26ea8-d60f-4874-a8b2-abc5d8387b4d
+                 * CategoryID : 4bdfa721-cc93-4588-b55e-270865614f6c
+                 * CategoryLv : 312387db-e6f9-4ae5-8715-a888c53184de
+                 * Price : 6.0
+                 * Amount : 7.0
+                 * Money : 8.0
+                 * Memo : sample string 9
+                 * "DelWeightRate": 10.0 //扣重率
+                 */
+                //占比最大的规格
+                Specs specs = LitePal.find(Specs.class, maxSamplingDetails.getSpecsId());
 
-                                mPresenter.addBill(request);
+                BillMaster billMasterBean = new BillMaster();
+                //获取当前时间 HH:mm:ss
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                Date date = new Date(System.currentTimeMillis());
+                stringData = simpleDateFormat.format(date);
+                billMasterBean.setCode(name);
+                billMasterBean.setPurchaseDate(stringData);//日期
+                billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
+                billMasterBean.setNormID(specs.getKeyID());//规格ID
+                billMasterBean.setCategoryID(matter.getKeyID());//品类ID
 
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                            }
-                        }).show();
+                MatterLevel matterLevel = LitePal.find(MatterLevel.class, maxSamplingDetails.getMatterLevelId());
+                billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
+
+                billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
+                billMasterBean.setAmount(realWeight);//总重量
+                billMasterBean.setDelWeightRate(deductionMix);
+                billMasterBean.setMoney(money);//总金额
+
+
+                request.setBillMaster(billMasterBean);
+
+                mQMUITipDialog.show();
+
+                mPresenter.addBill(request);
+
+
+
+//                final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
+//                //横屏时禁止输入法全屏
+//                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+//                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillDetailsActivity.this);
+//                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
+//                inputDialog1.setPositiveButton(R.string.enter,
+//                        new DialogInterface.OnClickListener() {
+//                            @SuppressLint("CheckResult")
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                if (editText1.getText().toString().trim().length() == 0) {
+//                                    new MyToasty(SaveBillDetailsActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
+//                                    return;
+//                                }
+//
+//                            }
+//                        })
+//                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//                            }
+//                        }).show();
 
                 break;
             case R.id.iv_back:
@@ -376,7 +433,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         //实际重量  :除去扣重，以及扣重率之后的
         realWeight = DoubleCountUtils.keep(mWeight * (100 - deductionMix) * 0.01);
 
-        SamplingDetails maxSamplingDetails;
+
         if (samplingDetailsList.size() == 1) {
             maxSamplingDetails = samplingDetailsList.get(0);
         } else {
@@ -400,9 +457,12 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         matterId = maxSamplingDetails.getMatterId();
         supplier = LitePal.find(Supplier.class, supplierId);
         matter = LitePal.find(Matter.class, matterId);
-
-        //占比最大的规格
-        Specs specs = LitePal.find(Specs.class, maxSamplingDetails.getSpecsId());
+         /**
+         * 计价方式
+         * ValuationType = 1;根据规格计算
+         * ValuationType = 2;根据规格占比计算
+         */
+        ValuationType = matter.getValuationType();
 
         /**
          * NormsID : 4703a9fb-01f1-49c6-8989-9f10fa76b408 规格ID
@@ -413,59 +473,48 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
          */
         List<PurPrices> purPricesList = new ArrayList<>();//计价明细
 
+        if (ValuationType == 1) {
 
-        for (int i = 0; i < samplingDetailsList.size(); i++) {
+            List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
+                    .find(SamplingBySpecs.class);
+            samplingBySpecs = bySpecsList.get(0);
+            int id = samplingBySpecs.getSpecsId();
+            Specs specs = LitePal.find(Specs.class,id);
+
             PurPrices purPrices = new PurPrices();
-            double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
-            double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-            double price = samplingDetailsList.get(i).getPrice();//单价
+            purPrices.setNormsID(specs.getKeyID());//规格ID
 
-            money = DoubleCountUtils.keep(weight * price) + money;//总金额
-            money = DoubleCountUtils.keep(money);
-
-            Specs specs1 = LitePal.find(Specs.class, samplingDetailsList.get(i).getSpecsId());
-            purPrices.setNormsID(specs1.getKeyID());//规格ID
-
-            purPrices.setAmount(weight);//当前占比的重量
-            purPrices.setPrice(price);//单价
-            purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
-            purPrices.setRatio(ratio);//规格占比
+            purPrices.setAmount(realWeight);//当前占比的重量
+            purPrices.setPrice(samplingBySpecs.getPrice());//单价
+            purPrices.setMenoy(DoubleCountUtils.keep(realWeight * samplingBySpecs.getPrice()));//金额
+            purPrices.setRatio(100);//规格占比
             purPricesList.add(purPrices);
+
+        } else {
+
+            for (int i = 0; i < samplingDetailsList.size(); i++) {
+                PurPrices purPrices = new PurPrices();
+                double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
+                double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
+                double price = samplingDetailsList.get(i).getPrice();//单价
+
+                money = DoubleCountUtils.keep(weight * price) + money;//总金额
+                money = DoubleCountUtils.keep(money);
+
+                Specs specs1 = LitePal.find(Specs.class, samplingDetailsList.get(i).getSpecsId());
+                purPrices.setNormsID(specs1.getKeyID());//规格ID
+
+                purPrices.setAmount(weight);//当前占比的重量
+                purPrices.setPrice(price);//单价
+                purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
+                purPrices.setRatio(ratio);//规格占比
+                purPricesList.add(purPrices);
+            }
+
         }
+
         request.setPurPrices(purPricesList);//计价明细
 
-        /**
-         * PurchaseDate : 2019-08-08 15:07:06
-         * SupplierID : cd529f25-5fae-40a2-ac49-1df6627fe769
-         * NormID : f1a26ea8-d60f-4874-a8b2-abc5d8387b4d
-         * CategoryID : 4bdfa721-cc93-4588-b55e-270865614f6c
-         * CategoryLv : 312387db-e6f9-4ae5-8715-a888c53184de
-         * Price : 6.0
-         * Amount : 7.0
-         * Money : 8.0
-         * Memo : sample string 9
-         * "DelWeightRate": 10.0 //扣重率
-         */
-        BillMaster billMasterBean = new BillMaster();
-        //获取当前时间 HH:mm:ss
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-        Date date = new Date(System.currentTimeMillis());
-        stringData = simpleDateFormat.format(date);
-        billMasterBean.setPurchaseDate(stringData);//日期
-        billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
-        billMasterBean.setNormID(specs.getKeyID());//规格ID
-        billMasterBean.setCategoryID(matter.getKeyID());//品类ID
-
-        MatterLevel matterLevel = LitePal.find(MatterLevel.class, maxSamplingDetails.getMatterLevelId());
-        billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
-
-        billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
-        billMasterBean.setAmount(realWeight);//总重量
-        billMasterBean.setDelWeightRate(deductionMix);
-        billMasterBean.setMoney(money);//总金额
-
-
-        request.setBillMaster(billMasterBean);
 
         /**
          * Weight : 1.0

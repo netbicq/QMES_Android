@@ -10,6 +10,11 @@ import java.util.List;
  */
 public class Bill extends LitePalSupport {
 
+    /**
+     * UUID
+     */
+    private String UUID;
+
     private int id;
     /**
      * 计称总重量
@@ -46,6 +51,12 @@ public class Bill extends LitePalSupport {
     private int matterId;
 
     /**
+     * 计价方式
+     */
+
+    private int samplingBySpecsId;
+
+    /**
      * 累计明细
      */
     private List<Cumulative> cumulativeList = new ArrayList<>();
@@ -59,6 +70,23 @@ public class Bill extends LitePalSupport {
      * 扣重明细
      */
     private List<Deduction> deductionList = new ArrayList<>();
+
+
+    public int getSamplingBySpecsId() {
+        return samplingBySpecsId;
+    }
+
+    public void setSamplingBySpecsId(int samplingBySpecsId) {
+        this.samplingBySpecsId = samplingBySpecsId;
+    }
+
+    public String getUUID() {
+        return UUID;
+    }
+
+    public void setUUID(String UUID) {
+        this.UUID = UUID;
+    }
 
     public double getWeight() {
         return weight;

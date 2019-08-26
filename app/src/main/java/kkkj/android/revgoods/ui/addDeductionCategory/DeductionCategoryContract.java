@@ -17,11 +17,13 @@ public class DeductionCategoryContract {
     public interface View extends MvpView {
         void getDeductionCategorySuc(List<DeductionCategory> data);
         void addDeductionCategorySuc(DeductionCategory data);
+        void deleteDeductionCategorySuc(boolean data);
     }
 
     public static abstract class Presenter extends MvpPresenter<DeductionCategoryContract.View> {
 
         public abstract void getDeductionCategory();
         public abstract void addDeductionCategory(AddDeductionCategoryModel.Request request);
+        public abstract void deleteDeductionCategory(DeleteDeductionCategoryModel.Request request);
     }
 }

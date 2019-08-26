@@ -11,7 +11,7 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 public class SamplingDetails extends LitePalSupport {
     private int id;
     /**
-     * 是否已保存为单据 默认-1；为保存
+     * 是否已保存为单据 默认-1；未保存
      */
     private int hasBill = -1;
 
