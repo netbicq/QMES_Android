@@ -215,6 +215,7 @@
             </LinearLayout>
 
             <View
+                android:id="@+id/id_view"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:background="@color/qmui_config_color_pure_black"
@@ -229,7 +230,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:background="@drawable/bg_style"
-                android:text="@string/save"
+                android:text="确认"
                 android:textColor="@color/qmui_config_color_white" />
 
         </LinearLayout>

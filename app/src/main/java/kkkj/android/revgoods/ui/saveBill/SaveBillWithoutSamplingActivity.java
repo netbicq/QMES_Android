@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import butterknife.BindView;
 import kkkj.android.revgoods.R;
@@ -261,77 +262,119 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
         switch (view.getId()) {
             case R.id.button://保存上传单据
 
-                final EditText editText1 = new EditText(SaveBillWithoutSamplingActivity.this);
-                //横屏时禁止输入法全屏
-                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillWithoutSamplingActivity.this);
-                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
-                inputDialog1.setPositiveButton(R.string.enter,
-                        new DialogInterface.OnClickListener() {
-                            @SuppressLint("CheckResult")
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (editText1.getText().toString().trim().length() == 0) {
-                                    new MyToasty(SaveBillWithoutSamplingActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
-                                    return;
-                                }
+                //单据名称
+                String name = UUID.randomUUID().toString();
 
-                                //单据名称
-                                String name = editText1.getText().toString().trim();
+                bill = new Bill();
+                bill.setName(name);
+                bill.setUUID(name);
+                bill.setDeductionMix(deductionMix);
+                bill.setSupplierId(supplierId);
+                bill.setMatterId(matterId);
+                bill.setTime(stringData);
+                bill.setWeight(Double.valueOf(weight));
 
-                                bill = new Bill();
-                                bill.setName(name);
-                                bill.setDeductionMix(deductionMix);
-                                bill.setSupplierId(supplierId);
-                                bill.setMatterId(matterId);
-                                bill.setTime(stringData);
-                                bill.setWeight(Double.valueOf(weight));
 
-                                List<SamplingDetails> samplingDetailsList = new ArrayList<>();
-                                SamplingDetails samplingDetails = new SamplingDetails();
-                                samplingDetails.setMatterId(matterId);
-                                samplingDetails.setMatterLevelId(matterLevelId);
-                                samplingDetails.setSpecsId(specsId);
-                                samplingDetails.setSupplierId(supplierId);
-                                samplingDetails.setSpecsProportion(1.0);
-                                samplingDetails.setPrice(Double.valueOf(tempPrice));
-                                samplingDetails.setNumber("0");
-                                samplingDetails.setWeight("0");
-                                samplingDetails.save();
+                List<SamplingDetails> samplingDetailsList = new ArrayList<>();
+                SamplingDetails samplingDetails = new SamplingDetails();
+                samplingDetails.setMatterId(matterId);
+                samplingDetails.setMatterLevelId(matterLevelId);
+                samplingDetails.setSpecsId(specsId);
+                samplingDetails.setSupplierId(supplierId);
+                samplingDetails.setSpecsProportion(1.0);
+                samplingDetails.setPrice(Double.valueOf(tempPrice));
+                samplingDetails.setNumber("0");
+                samplingDetails.setWeight("0");
+                samplingDetails.save();
 
-                                samplingDetailsList.add(samplingDetails);
+                samplingDetailsList.add(samplingDetails);
 
-                                ContentValues values = new ContentValues();
-                                values.put("hasBill", 0);
-                                LitePal.updateAll(Cumulative.class, values);
-                                LitePal.updateAll(Deduction.class, values);
-                                LitePal.updateAll(SamplingDetails.class, values);
+                ContentValues values = new ContentValues();
+                values.put("hasBill", 0);
+                LitePal.updateAll(Cumulative.class, values);
+                LitePal.updateAll(Deduction.class, values);
+                LitePal.updateAll(SamplingDetails.class, values);
 
-                                bill.setCumulativeList(cumulativeList);
-                                bill.setDeductionList(deductionList);
-                                bill.setSamplingDetailsList(samplingDetailsList);
+                bill.setCumulativeList(cumulativeList);
+                bill.setDeductionList(deductionList);
+                bill.setSamplingDetailsList(samplingDetailsList);
 
-                                bill.save();
+                bill.save();
 
-                                DeviceEvent deviceEvent = new DeviceEvent();
-                                deviceEvent.setReset(true);
-                                EventBus.getDefault().post(deviceEvent);
+                DeviceEvent deviceEvent = new DeviceEvent();
+                deviceEvent.setReset(true);
+                EventBus.getDefault().post(deviceEvent);
 
-                                if (!NetUtils.checkNetWork()) {
-                                    myToasty.showSuccess("保存成功!");
-                                    finish();
-                                    return;
-                                }
-                                mQMUITipDialog.show();
-                                mPresenter.addBill(request);
+                if (!NetUtils.checkNetWork()) {
+                    myToasty.showSuccess("保存成功!");
+                    finish();
+                    return;
+                }
 
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                            }
-                        }).show();
+                /**
+                 * PurchaseDate : 2019-08-08 15:07:06
+                 * SupplierID : cd529f25-5fae-40a2-ac49-1df6627fe769
+                 * NormID : f1a26ea8-d60f-4874-a8b2-abc5d8387b4d
+                 * CategoryID : 4bdfa721-cc93-4588-b55e-270865614f6c
+                 * CategoryLv : 312387db-e6f9-4ae5-8715-a888c53184de
+                 * Price : 6.0
+                 * Amount : 7.0
+                 * Money : 8.0
+                 * Memo : sample string 9
+                 * "DelWeightRate": 10.0 //扣重率
+                 */
+                BillMaster billMasterBean = new BillMaster();
+                //获取当前时间 HH:mm:ss
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                Date date = new Date(System.currentTimeMillis());
+                stringData = simpleDateFormat.format(date);
+                billMasterBean.setCode(name);//Code
+                billMasterBean.setPurchaseDate(stringData);//日期
+                billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
+                billMasterBean.setNormID(specs.getKeyID());//规格ID
+                billMasterBean.setCategoryID(matter.getKeyID());//品类ID
+
+                billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
+
+                billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
+                billMasterBean.setAmount(realWeight);//总重量
+                billMasterBean.setDelWeightRate(deductionMix);
+                billMasterBean.setMoney(money);//总金额
+
+
+                request.setBillMaster(billMasterBean);
+
+
+                mQMUITipDialog.show();
+                mPresenter.addBill(request);
+
+//                final EditText editText1 = new EditText(SaveBillWithoutSamplingActivity.this);
+//                //横屏时禁止输入法全屏
+//                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+//                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillWithoutSamplingActivity.this);
+//                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
+//                inputDialog1.setPositiveButton(R.string.enter,
+//                        new DialogInterface.OnClickListener() {
+//                            @SuppressLint("CheckResult")
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                if (editText1.getText().toString().trim().length() == 0) {
+//                                    new MyToasty(SaveBillWithoutSamplingActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
+//                                    return;
+//                                }
+//
+//                                //单据名称
+//                                String name = editText1.getText().toString().trim();
+//
+//
+//
+//                            }
+//                        })
+//                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//                            }
+//                        }).show();
 
                 break;
 
@@ -374,38 +417,6 @@ public class SaveBillWithoutSamplingActivity extends BaseActivity<BillPresenter>
 
                 tvTotalPrice.setText(String.valueOf(money));
                 tvFinalPrice.setText(String.valueOf(money));
-
-                /**
-                 * PurchaseDate : 2019-08-08 15:07:06
-                 * SupplierID : cd529f25-5fae-40a2-ac49-1df6627fe769
-                 * NormID : f1a26ea8-d60f-4874-a8b2-abc5d8387b4d
-                 * CategoryID : 4bdfa721-cc93-4588-b55e-270865614f6c
-                 * CategoryLv : 312387db-e6f9-4ae5-8715-a888c53184de
-                 * Price : 6.0
-                 * Amount : 7.0
-                 * Money : 8.0
-                 * Memo : sample string 9
-                 * "DelWeightRate": 10.0 //扣重率
-                 */
-                BillMaster billMasterBean = new BillMaster();
-                //获取当前时间 HH:mm:ss
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                Date date = new Date(System.currentTimeMillis());
-                stringData = simpleDateFormat.format(date);
-                billMasterBean.setPurchaseDate(stringData);//日期
-                billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
-                billMasterBean.setNormID(specs.getKeyID());//规格ID
-                billMasterBean.setCategoryID(matter.getKeyID());//品类ID
-
-                billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
-
-                billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
-                billMasterBean.setAmount(realWeight);//总重量
-                billMasterBean.setDelWeightRate(deductionMix);
-                billMasterBean.setMoney(money);//总金额
-
-
-                request.setBillMaster(billMasterBean);
 
 
                 break;

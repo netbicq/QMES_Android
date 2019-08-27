@@ -54,7 +54,7 @@ public class Bill extends LitePalSupport {
      * 计价方式
      */
 
-    private int samplingBySpecsId;
+    private int samplingBySpecsId = -1;
 
     /**
      * 累计明细

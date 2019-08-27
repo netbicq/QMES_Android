@@ -38,12 +38,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/RevGTheme">
+        <activity android:name=".ui.WebViewActivity"
+            android:configChanges="locale"
+            android:screenOrientation="landscape"
+            android:theme="@style/QMUI.Compat.NoActionBar"/>
         <activity
             android:name=".ui.ShowBillDetailsActivity"
             android:configChanges="locale"
             android:screenOrientation="landscape"
-            android:theme="@style/QMUI.Compat.NoActionBar">
-        </activity>
+            android:theme="@style/QMUI.Compat.NoActionBar"></activity>
         <activity
             android:name=".ui.saveBill.SaveBillWithoutSamplingActivity"
             android:configChanges="locale"

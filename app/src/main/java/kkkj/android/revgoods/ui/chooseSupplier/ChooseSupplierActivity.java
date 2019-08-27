@@ -2,6 +2,7 @@ package kkkj.android.revgoods.ui.chooseSupplier;
 
 import android.Manifest;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,6 +28,7 @@ import com.uuzuche.lib_zxing.activity.CodeUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import kkkj.android.revgoods.R;
@@ -55,6 +58,7 @@ import kkkj.android.revgoods.bean.bill.Scales;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.ui.saveBill.BillModel;
+import kkkj.android.revgoods.utils.BitMap2File;
 import kkkj.android.revgoods.utils.NetUtils;
 
 /**
@@ -167,7 +171,6 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
             }
         });
 
-
     }
 
     @Override
@@ -222,6 +225,17 @@ public class ChooseSupplierActivity extends BaseActivity<ChooseSupplierPresenter
                     return;
                 }
                 if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_SUCCESS) {
+
+                    String keyId = bundle.getString(CodeUtils.RESULT_STRING);
+                    Logger.d(keyId);
+
+                    List<Supplier> supplierList = LitePal.where("KeyID = ?", keyId).find(Supplier.class);
+                    Supplier supplier = supplierList.get(0);
+                    int id = supplier.getId();
+                    DeviceEvent deviceEvent = new DeviceEvent();
+                    deviceEvent.setSupplierId(id);
+                    EventBus.getDefault().post(deviceEvent);
+                    finish();
                     /**
                      result = bundle.getString(CodeUtils.RESULT_STRING);
                      Logger.d(result);

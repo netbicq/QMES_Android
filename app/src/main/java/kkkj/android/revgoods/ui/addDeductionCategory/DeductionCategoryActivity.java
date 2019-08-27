@@ -10,13 +10,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
-import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
 import java.util.ArrayList;
@@ -26,9 +24,7 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.DeductionCategoryAdapter;
-import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.DeductionCategory;
-import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.NetUtils;
 
@@ -64,9 +60,9 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
         deductionCategoryList = new ArrayList<>();
         mPresenter.getDeductionCategory();
         adapter = new DeductionCategoryAdapter(R.layout.item_card_view, deductionCategoryList);
-        adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+        adapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
             @Override
-            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(DeductionCategoryActivity.this);
                 builder.setTitle("确定要删除吗？")
                         .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
@@ -93,6 +89,8 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
                                 Logger.d("取消");
                             }
                         }).show();
+
+                return true;
             }
         });
     }

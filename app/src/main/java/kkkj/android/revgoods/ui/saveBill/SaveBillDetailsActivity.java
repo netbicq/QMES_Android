@@ -1,21 +1,15 @@
 package kkkj.android.revgoods.ui.saveBill;
 
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
@@ -23,24 +17,17 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillDetailsAdapter;
 import kkkj.android.revgoods.bean.Bill;
@@ -59,15 +46,9 @@ import kkkj.android.revgoods.bean.bill.DelWeights;
 import kkkj.android.revgoods.bean.bill.PurPrices;
 import kkkj.android.revgoods.bean.bill.PurSamples;
 import kkkj.android.revgoods.bean.bill.Scales;
-import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
-import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
-import kkkj.android.revgoods.http.RetrofitServiceManager;
-import kkkj.android.revgoods.http.api.APIAttachfile;
-import kkkj.android.revgoods.http.api.UploadCallbacks;
 import kkkj.android.revgoods.ui.BaseActivity;
-import kkkj.android.revgoods.ui.chooseSupplier.UpLoadFileModel;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
 import kkkj.android.revgoods.utils.NetUtils;
 
@@ -201,19 +182,35 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         request = showBill();
 
         billDetailsList = new ArrayList<>();
-        for (int i = 0; i < samplingDetailsList.size(); i++) {
-            SamplingDetails samplingDetails = samplingDetailsList.get(i);
-            Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
+        if (ValuationType == 2) {
+            for (int i = 0; i < samplingDetailsList.size(); i++) {
+                SamplingDetails samplingDetails = samplingDetailsList.get(i);
+                Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
 
+                BillDetails billDetails = new BillDetails();
+                billDetails.setSpecs(specs.getValue());
+                billDetails.setPrice(samplingDetails.getPrice() + "");
+                billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
+
+                double weight = samplingDetails.getSpecsProportion() * realWeight;
+                billDetails.setWeight(DoubleCountUtils.keep(weight));
+
+                billDetails.setTotalPrice(DoubleCountUtils.keep(weight * samplingDetails.getPrice()));
+
+                billDetailsList.add(billDetails);
+            }
+        } else {
+            List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
+                    .find(SamplingBySpecs.class);
+            samplingBySpecs = bySpecsList.get(0);
+
+            Specs specs = LitePal.find(Specs.class, samplingBySpecs.getSpecsId());
             BillDetails billDetails = new BillDetails();
             billDetails.setSpecs(specs.getValue());
-            billDetails.setPrice(samplingDetails.getPrice() + "");
-            billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
-
-            double weight = samplingDetails.getSpecsProportion() * realWeight;
-            billDetails.setWeight(DoubleCountUtils.keep(weight));
-
-            billDetails.setTotalPrice(DoubleCountUtils.keep(weight * samplingDetails.getPrice()));
+            billDetails.setPrice(samplingBySpecs.getPrice() + "");
+            billDetails.setProportion("1");
+            billDetails.setWeight(realWeight);
+            billDetails.setTotalPrice(DoubleCountUtils.keep(samplingBySpecs.getPrice() * realWeight));
 
             billDetailsList.add(billDetails);
         }
@@ -290,6 +287,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 bill.setSamplingBySpecsId(samplingBySpecs.getId());
                 bill.setWeight(Double.valueOf(weight));
 
+//                Bitmap bitmap = CodeUtils.createBarcode(name,100,40,true);
+//                Logger.d(bitmap);
 
                 ContentValues values = new ContentValues();
                 values.put("hasBill", 0);
@@ -474,7 +473,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         List<PurPrices> purPricesList = new ArrayList<>();//计价明细
 
         if (ValuationType == 1) {
-
+            //根据规格
             List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
                     .find(SamplingBySpecs.class);
             samplingBySpecs = bySpecsList.get(0);
@@ -486,12 +485,16 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
             purPrices.setAmount(realWeight);//当前占比的重量
             purPrices.setPrice(samplingBySpecs.getPrice());//单价
-            purPrices.setMenoy(DoubleCountUtils.keep(realWeight * samplingBySpecs.getPrice()));//金额
+
+            money = DoubleCountUtils.keep(realWeight * samplingBySpecs.getPrice());//总金额
+
+            purPrices.setMenoy(money);//金额
             purPrices.setRatio(100);//规格占比
             purPricesList.add(purPrices);
 
         } else {
-
+            //根据规格占比
+           // List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
             for (int i = 0; i < samplingDetailsList.size(); i++) {
                 PurPrices purPrices = new PurPrices();
                 double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
@@ -589,6 +592,31 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
         return request;
 
+    }
+
+    //合并规格相同的采样
+    private List<SamplingDetails> getSamplingDetails(List<SamplingDetails> samplingDetailsList){
+
+        int size = samplingDetailsList.size();
+
+        for (int i=0;i<size;i++) {
+
+            SamplingDetails samplingDetails = samplingDetailsList.get(i);
+            double proportion = samplingDetails.getSpecsProportion();
+
+            for (int j = i+1;j<size;j++) {
+                SamplingDetails samplingDetailsNext = samplingDetailsList.get(j);
+                if (samplingDetails.getSpecsId() == samplingDetailsNext.getSpecsId()) {
+                    proportion = DoubleCountUtils.keep(proportion + samplingDetailsNext.getSpecsProportion());
+                    samplingDetailsList.remove(samplingDetailsNext);
+                    size = size - 1;
+                }
+            }
+            samplingDetails.setSpecsProportion(proportion);
+
+        }
+
+        return samplingDetailsList;
     }
 
 

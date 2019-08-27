@@ -73,6 +73,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     private Spinner spSpecs;
     private EditText tvPrice;
     private Button btnSave;
+    private View mView;
 
     private String tempPrice = "";
 
@@ -87,7 +88,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
      * ValuationType = 1;根据规格计算
      * ValuationType = 2;根据规格占比计算
      */
-    private int ValuationType = 0;
+    private int ValuationType;
 
     //单价平均值
     private double price;
@@ -100,6 +101,11 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     private Specs tempSpecs;
 
     private int position = 0;
+
+    @Override
+    public int setLayout() {
+        return R.layout.fragment_sampling_details;
+    }
 
     @Override
     public void initData() {
@@ -136,17 +142,19 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         specsList = new ArrayList<>();
         specsNameList = new ArrayList<>();
         tempSpecs = new Specs();
-        double specstemp = DoubleCountUtils.keep(weight / count);
-        tempSpecs.setValue(String.valueOf(specstemp));
-        Logger.d(weight);
-        Logger.d(count);
-        specsList.add(tempSpecs);
-        specsList.addAll(LitePal.findAll(Specs.class));
-        Logger.d(specsList.get(0).getValue());
-        for (int i = 0; i < specsList.size(); i++) {
-            specsNameList.add(specsList.get(i).getValue());
+
+        if (count != 0) {
+
+            double specstemp = DoubleCountUtils.keep(weight / count);
+            tempSpecs.setValue(String.valueOf(specstemp));
+
+            specsList.add(tempSpecs);
+            specsList.addAll(LitePal.findAll(Specs.class));
+            specsNameList.add(String.valueOf(specstemp));
+            for (int i = 1; i < specsList.size(); i++) {
+                specsNameList.add(specsList.get(i).getValue());
+            }
         }
-        Logger.d(specsNameList.get(0));
         specsAdapter = new ArrayAdapter<String>(getActivity().getApplication(),
                 android.R.layout.simple_spinner_item, specsNameList);
         specsAdapter.setDropDownViewResource(R.layout.item_spinner);
@@ -239,6 +247,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         tvPrice = view.findViewById(R.id.tv_price);
         btnSave = view.findViewById(R.id.button);
         btnSave.setOnClickListener(this);
+        mView = view.findViewById(R.id.id_view);
 
         spSpecs.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -318,6 +327,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         if (samplingSize == 0 || ValuationType != 1) {
             linearLayout.setVisibility(View.GONE);
             btnSave.setVisibility(View.GONE);
+            mView.setVisibility(View.GONE);
         }
 
         mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
@@ -330,10 +340,6 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
 
     }
 
-    @Override
-    public int setLayout() {
-        return R.layout.fragment_sampling_details;
-    }
 
 
     @Override
@@ -362,6 +368,8 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
                     myToasty.showWarning("单价不能为零！");
                     return;
                 }
+
+                LitePal.deleteAll(SamplingBySpecs.class,"hasBill < ?", "0");
 
                 SamplingBySpecs samplingBySpecs = new SamplingBySpecs();
                 samplingBySpecs.setCount(count);

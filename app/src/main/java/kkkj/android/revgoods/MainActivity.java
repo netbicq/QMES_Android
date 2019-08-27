@@ -78,6 +78,7 @@ import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Power;
 import kkkj.android.revgoods.bean.ProduceLine;
+import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Sapmle;
 import kkkj.android.revgoods.bean.ShowOut;
@@ -1735,7 +1736,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     myToasty.showWarning("当前还未称重！");
                     return;
                 }
-                int samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
+                List<SamplingDetails> list = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class);
+                int samplingSize = list.size();
 
                 if (samplingSize <= 0) {
                     //未采样，则必须选择供应商，品类，品类等级，规格
@@ -1754,10 +1756,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 } else {
                     //已采样
+                    int id = list.get(0).getMatterId();
+                    Matter matter = LitePal.find(Matter.class, id);
+                    int type = matter.getValuationType();
+                    /**
+                     * 计价方式
+                     * ValuationType = 1;根据规格计算
+                     * ValuationType = 2;根据规格占比计算
+                     */
+                    if (type == 1) {
+                        //根据规格计算
+                        //判断采样明细里面是否确认了规格和单价
+                        List<SamplingBySpecs> samplingBySpecsList = LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class);
+                        if (samplingBySpecsList.size() <= 0) {
+                            //未确认
+                            myToasty.showWarning("请先点击采样明细，确认规格和单价！");
+                            return;
+                        }
+                    }
+
                     Intent intent2 = SaveBillDetailsActivity.newInstance(MainActivity.this,
                             deductionMix, tvCumulativeWeight.getText().toString().trim());
                     startActivity(intent2);
-
                 }
 
                 break;

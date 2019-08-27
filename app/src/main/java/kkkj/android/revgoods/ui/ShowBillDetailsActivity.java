@@ -30,6 +30,7 @@ import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Path;
+import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
@@ -159,26 +160,52 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         //实际重量  :除去扣重，以及扣重率之后的
         double realWeight = DoubleCountUtils.keep(mWeight * (100 - bill.getDeductionMix()) * 0.01);
 
-        for (int i = 0; i < samplingDetailsList.size(); i++) {
-            SamplingDetails samplingDetails = samplingDetailsList.get(i);
+        Matter matter = LitePal.find(Matter.class,bill.getMatterId());
+        /**
+         * 计价方式
+         * ValuationType = 1;根据规格计算
+         * ValuationType = 2;根据规格占比计算
+         */
+        int ValuationType = matter.getValuationType();
 
-            double ratio = samplingDetails.getSpecsProportion() * 100;//规格占比
-            double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-            double price = samplingDetails.getPrice();//单价
+        if (ValuationType == 2 || bill.getSamplingBySpecsId() == -1) {
+            for (int i = 0; i < samplingDetailsList.size(); i++) {
+                SamplingDetails samplingDetails = samplingDetailsList.get(i);
 
-            money = DoubleCountUtils.keep(weight * price) + money;//总金额
-            money = DoubleCountUtils.keep(money);
+                double ratio = samplingDetails.getSpecsProportion() * 100;//规格占比
+                double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
+                double price = samplingDetails.getPrice();//单价
 
-            Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
+                money = DoubleCountUtils.keep(weight * price) + money;//总金额
+                money = DoubleCountUtils.keep(money);
 
+                Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
+
+                BillDetails billDetails = new BillDetails();
+                billDetails.setSpecs(specs.getValue());
+                billDetails.setPrice(samplingDetails.getPrice() + "");
+                billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
+
+                billDetails.setWeight(DoubleCountUtils.keep(weight));
+
+                billDetails.setTotalPrice(DoubleCountUtils.keep(weight * samplingDetails.getPrice()));
+
+                billDetailsList.add(billDetails);
+            }
+        } else {
+
+            SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class,bill.getSamplingBySpecsId());
+
+            Specs specs = LitePal.find(Specs.class, samplingBySpecs.getSpecsId());
             BillDetails billDetails = new BillDetails();
             billDetails.setSpecs(specs.getValue());
-            billDetails.setPrice(samplingDetails.getPrice() + "");
-            billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
+            billDetails.setPrice(samplingBySpecs.getPrice() + "");
+            billDetails.setProportion("1");
+            billDetails.setWeight(realWeight);
 
-            billDetails.setWeight(DoubleCountUtils.keep(weight));
+            money = DoubleCountUtils.keep(samplingBySpecs.getPrice() * realWeight);//总金额
 
-            billDetails.setTotalPrice(DoubleCountUtils.keep(weight * samplingDetails.getPrice()));
+            billDetails.setTotalPrice(money);
 
             billDetailsList.add(billDetails);
         }
