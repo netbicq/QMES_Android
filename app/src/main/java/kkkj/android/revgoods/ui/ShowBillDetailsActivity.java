@@ -47,7 +47,6 @@ import kkkj.android.revgoods.utils.DoubleCountUtils;
 
 public class ShowBillDetailsActivity extends BaseActivity implements View.OnClickListener {
 
-
     @BindView(R.id.iv_back)
     ImageView ivBack;
     @BindView(R.id.tv_title)
@@ -169,8 +168,11 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         int ValuationType = matter.getValuationType();
 
         if (ValuationType == 2 || bill.getSamplingBySpecsId() == -1) {
-            for (int i = 0; i < samplingDetailsList.size(); i++) {
-                SamplingDetails samplingDetails = samplingDetailsList.get(i);
+
+            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
+
+            for (int i = 0; i < list.size(); i++) {
+                SamplingDetails samplingDetails = list.get(i);
 
                 double ratio = samplingDetails.getSpecsProportion() * 100;//规格占比
                 double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
@@ -222,6 +224,31 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
 
     }
 
+
+    //合并规格相同的采样
+    private List<SamplingDetails> getSamplingDetails(List<SamplingDetails> samplingDetailsList){
+
+        int size = samplingDetailsList.size();
+
+        for (int i=0;i<size;i++) {
+
+            SamplingDetails samplingDetails = samplingDetailsList.get(i);
+            double proportion = samplingDetails.getSpecsProportion();
+
+            for (int j = i+1;j<size;j++) {
+                SamplingDetails samplingDetailsNext = samplingDetailsList.get(j);
+                if (samplingDetails.getSpecsId() == samplingDetailsNext.getSpecsId()) {
+                    proportion = DoubleCountUtils.keep4(proportion + samplingDetailsNext.getSpecsProportion());
+                    samplingDetailsList.remove(samplingDetailsNext);
+                    size = size - 1;
+                }
+            }
+            samplingDetails.setSpecsProportion(proportion);
+
+        }
+
+        return samplingDetailsList;
+    }
 
 
 }

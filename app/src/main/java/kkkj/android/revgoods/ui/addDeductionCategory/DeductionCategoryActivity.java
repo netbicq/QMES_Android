@@ -171,15 +171,16 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
     public void addDeductionCategorySuc(DeductionCategory data) {
         if (data != null) {
             myToasty.showSuccess("添加成功！");
+            deductionCategory.setKeyID(data.getKeyID());
             data.save();
         }
-
 
     }
 
     @Override
-    public void deleteDeductionCategorySuc(boolean data) {
-        if (data) {
+    public void deleteDeductionCategorySuc(DeleteDeductionCategoryModel.Response data) {
+
+        if (data.getState() == 200 && data.isData()) {
             DeductionCategory deductionCategory = deductionCategoryList.get(index);
             int id = deductionCategory.getId();
             LitePal.delete(DeductionCategory.class,id);
@@ -189,7 +190,12 @@ public class DeductionCategoryActivity extends BaseActivity<DeductionCategoryPre
 
             myToasty.showSuccess("删除成功！");
         }else {
-            myToasty.showError("删除失败！");
+            myToasty.showError("删除失败：state:" + data.getState() + data.getMsg());
         }
+    }
+
+    @Override
+    public void deleteDeductionCategoryFail(String msg) {
+        myToasty.showError("删除失败：" + msg);
     }
 }

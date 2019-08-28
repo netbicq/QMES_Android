@@ -34,11 +34,7 @@ public class DeleteDeductionCategoryModel extends MvpModel<DeleteDeductionCatego
 
                         @Override
                         public void onNext(Response response) {
-                            if (response.getState() == RESPONSE_OK) {
-                                callback.onSuccess(response);
-                            }else {
-                                callback.onFailure(response.getMsg());
-                            }
+                            callback.onSuccess(response);
                         }
 
                         @Override

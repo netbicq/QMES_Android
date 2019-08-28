@@ -59,6 +59,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -867,8 +869,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 //                            }
 //
-//                            source.onComplete();
-//
 //
 //                            String str = String.valueOf(maxWeight);
 //
@@ -921,6 +921,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         double compareWeight = Double.parseDouble(SharedPreferenceUtil
                 .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
+        List<String> strWeightList = new ArrayList<>();
+
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
             @Override
             public void connectSuccess(Connect connect) {
@@ -930,6 +932,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
 
                 final boolean[] isWrite = {false};
+                final boolean[] isTurn = {false};
                 bluetoothManager.read(new TransferProgressListener() {
                     @Override
                     public void transfering(int progress) {
@@ -956,7 +959,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 mWeightTextView.setText(str);
 
                                 byte[] weightByte = CRC16Util.stringToByte(str);
-                                Logger.d("weightByte" + CRC16Util.toHexStringForLog(weightByte));
+
                                 if (ble != null) {
                                     bleScreenConnectionState = ble.isConnected();
                                     if (!isSend[0] && bleScreenConnectionState) {
@@ -964,13 +967,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         myToasty.showSuccess("显示屏连接成功！");
 
                                         //小数位数，固定2位
-                                        byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
-                                        ble.send(point);
+//                                        byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
+//                                        ble.send(point);
                                         isSend[0] = true;
 
                                     }
-                                    ble.send(weightByte);
+//                                    ble.send(weightByte);//ModBus方式
+
+                                    /**   $001,2.91#   显示2.91
+                                     *    ASCII码  b1,b3,首尾固定格式
+                                     *    b2  数据
+                                     */
+
+                                    byte[] b1 = {0x24,0x30,0x30,0x31,0x2C};
+                                    byte[] b3 = {0x23};
+                                    byte[] b2 = str.getBytes();
+                                    b2 = CRC16Util.addBytes(b1,b2);
+                                    b3 = CRC16Util.addBytes(b2,b3);
+
+                                    ble.send(b3);
                                 }
+
+
+
 
                                 double weight = Double.parseDouble(str);
 
@@ -979,110 +998,102 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     //Wifi继电器
                                     case 1:
 
-//                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-//
-//                                            source.onNext(weight);
-//
-//                                            manager.send(new WriteData(Order.getTurnOff().get(inLine)));
-//
-//                                            //100毫秒之后打开2号开关
-//                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-//                                                    .subscribe(new Consumer<Long>() {
-//                                                        @Override
-//                                                        public void accept(Long aLong) throws Exception {
-//                                                            manager.send(new WriteData(Order.getTurnOn().get(outLine)));
-//                                                        }
-//                                                    });
-//
-//
-//                                            //intervalTime秒之后开关置反
-//                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
-//                                                    .subscribe(new Consumer<Long>() {
-//                                                        @Override
-//                                                        public void accept(Long aLong) throws Exception {
-//                                                            manager.send(new WriteData(Order.getTurnOn().get(inLine)));
-//
-//
-//                                                            //间隔100毫秒之后关掉2号开关
-//                                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-//                                                                    .subscribe(new Consumer<Long>() {
-//                                                                        @Override
-//                                                                        public void accept(Long aLong) throws Exception {
-//                                                                            manager.send(new WriteData(Order.getTurnOff().get(outLine)));
-//
-//                                                                        }
-//                                                                    });
-//                                                        }
-//                                                    });
-//
-//
-//                                        }
+                                        if (weight > compareWeight && manager != null && manager.isConnect()) {
 
-                                        if (weight > compareWeight && manager != null && manager.isConnect() && !isWrite[0]) {
-
-                                            manager.send(new WriteData(Order.getTurnOff().get(inLine)));
-                                            isWrite[0] = true;
-                                            //100毫秒之后打开2号开关
-                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                    .subscribe(new Consumer<Long>() {
-                                                        @Override
-                                                        public void accept(Long aLong) throws Exception {
-                                                            manager.send(new WriteData(Order.getTurnOn().get(outLine)));
-                                                        }
-                                                    });
-
-                                            Cumulative cumulative = new Cumulative();
-                                            cumulative.setCategory("净重");
-                                            cumulative.setWeight(str);
-
-                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                Cumulative cumulativeLast =
-                                                        LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                cumulative.setCount(cumulativeLast.getCount() + 1);
-                                            } else {
-                                                cumulative.setCount(1);
+                                            if (!isTurn[0]) {
+                                                isTurn[0] = true;
+                                                manager.send(new WriteData(Order.getTurnOff().get(inLine)));
+                                                //100毫秒之后打开2号开关
+                                                Observable.timer(100, TimeUnit.MILLISECONDS)
+                                                        .subscribe(new Consumer<Long>() {
+                                                            @Override
+                                                            public void accept(Long aLong) throws Exception {
+                                                                manager.send(new WriteData(Order.getTurnOn().get(outLine)));
+                                                            }
+                                                        });
                                             }
 
-                                            cumulative.save();
+                                            strWeightList.add(str);
+                                            int size = strWeightList.size();
 
-                                            myToasty.showSuccess("OK");
+                                            if (size > 10) { //连续10个数相等，则说明电子秤读数稳定
 
-                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                            double cWeight =
-                                                    Double.parseDouble(tvCumulativeWeight.getText().toString());
+                                                String s10 = strWeightList.get(size - 1);
+                                                String s9 = strWeightList.get(size - 2);
+                                                String s8 = strWeightList.get(size - 3);
+                                                String s7 = strWeightList.get(size - 4);
+                                                String s6 = strWeightList.get(size - 5);
+                                                String s5 = strWeightList.get(size - 6);
+                                                String s4 = strWeightList.get(size - 7);
+                                                String s3 = strWeightList.get(size - 8);
+                                                String s2 = strWeightList.get(size - 9);
+                                                String s1 = strWeightList.get(size - 10);
 
-                                            /**
-                                             * 相加：b1.add(b2).doubleValue();
-                                             * 相减：b1.subtract(b2).doubleValue();
-                                             * 相乘：b1.multiply(b2).doubleValue();
-                                             */
-                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                            BigDecimal b2 = new BigDecimal(str);
-                                            cWeight = b1.add(b2).doubleValue();
-                                            count = count + 1;
+                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
+                                                    && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
 
-                                            tvCumulativeCount.setText(String.valueOf(count));
-                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                                    if (!isWrite[0]) {
 
+                                                        isWrite[0] = true;
 
-                                            //intervalTime秒之后开关置反
-                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
-                                                    .subscribe(new Consumer<Long>() {
-                                                        @Override
-                                                        public void accept(Long aLong) throws Exception {
-                                                            manager.send(new WriteData(Order.getTurnOn().get(inLine)));
-                                                            isWrite[0] = false;
+                                                        Cumulative cumulative = new Cumulative();
+                                                        cumulative.setCategory("净重");
+                                                        cumulative.setWeight(s10);
 
-                                                            //间隔100毫秒之后关掉2号开关
-                                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                                    .subscribe(new Consumer<Long>() {
-                                                                        @Override
-                                                                        public void accept(Long aLong) throws Exception {
-                                                                            manager.send(new WriteData(Order.getTurnOff().get(outLine)));
-                                                                        }
-                                                                    });
+                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                                            Cumulative cumulativeLast =
+                                                                    LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
+                                                        } else {
+                                                            cumulative.setCount(1);
                                                         }
-                                                    });
+
+                                                        cumulative.save();
+
+                                                        myToasty.showSuccess("OK");
+
+                                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                                        double cWeight =
+                                                                Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                                        /**
+                                                         * 相加：b1.add(b2).doubleValue();
+                                                         * 相减：b1.subtract(b2).doubleValue();
+                                                         * 相乘：b1.multiply(b2).doubleValue();
+                                                         */
+                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                                        BigDecimal b2 = new BigDecimal(s5);
+                                                        cWeight = b1.add(b2).doubleValue();
+                                                        count = count + 1;
+
+                                                        tvCumulativeCount.setText(String.valueOf(count));
+                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
+
+                                                        //intervalTime秒之后开关置反
+                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
+                                                                .subscribe(new Consumer<Long>() {
+                                                                    @Override
+                                                                    public void accept(Long aLong) throws Exception {
+                                                                        manager.send(new WriteData(Order.getTurnOn().get(inLine)));
+                                                                        isWrite[0] = false;
+                                                                        isTurn[0] = false;
+                                                                        strWeightList.clear();
+                                                                        //间隔100毫秒之后关掉2号开关
+                                                                        Observable.timer(100, TimeUnit.MILLISECONDS)
+                                                                                .subscribe(new Consumer<Long>() {
+                                                                                    @Override
+                                                                                    public void accept(Long aLong) throws Exception {
+                                                                                        manager.send(new WriteData(Order.getTurnOff().get(outLine)));
+                                                                                    }
+                                                                                });
+                                                                    }
+                                                                });
+
+                                                    }
+
+                                                }
+
+                                            }
 
                                         }
 
@@ -1090,112 +1101,105 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     //蓝牙继电器
                                     case 2:
 
-//                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect()) {
 //
-//                                            source.onNext(weight);
-//
-//                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
-//
-//                                            //100毫秒之后打开2号开关
-//                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-//                                                    .subscribe(new Consumer<Long>() {
-//                                                        @Override
-//                                                        public void accept(Long aLong) throws Exception {
-//                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
-//                                                        }
-//                                                    });
-//
-//
-//                                            //intervalTime秒之后开关置反
-//                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
-//                                                    .subscribe(new Consumer<Long>() {
-//                                                        @Override
-//                                                        public void accept(Long aLong) throws Exception {
-//                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
-//
-//                                                            //间隔100毫秒之后关掉2号开关
-//                                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-//                                                                    .subscribe(new Consumer<Long>() {
-//                                                                        @Override
-//                                                                        public void accept(Long aLong) throws Exception {
-//
-//                                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-//
-//                                                                        }
-//                                                                    });
-//
-//                                                        }
-//                                                    });
-//
-//
-//                                        }
+                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect() ) {
 
-
-                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect() && !isWrite[0]) {
-
-                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
-                                            isWrite[0] = true;
-                                            //100毫秒之后打开2号开关
-                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                    .subscribe(new Consumer<Long>() {
-                                                        @Override
-                                                        public void accept(Long aLong) throws Exception {
-                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
-                                                        }
-                                                    });
-
-                                            Cumulative cumulative = new Cumulative();
-                                            cumulative.setCategory("净重");
-                                            cumulative.setWeight(str);
-
-                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                Cumulative cumulativeLast =
-                                                        LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                cumulative.setCount(cumulativeLast.getCount() + 1);
-                                            } else {
-                                                cumulative.setCount(1);
+                                            if (!isTurn[0]) {
+                                                isTurn[0] = true;
+                                                bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
+                                                //100毫秒之后打开2号开关
+                                                Observable.timer(100, TimeUnit.MILLISECONDS)
+                                                        .subscribe(new Consumer<Long>() {
+                                                            @Override
+                                                            public void accept(Long aLong) throws Exception {
+                                                                bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
+                                                            }
+                                                        });
                                             }
 
-                                            cumulative.save();
 
-                                            myToasty.showSuccess("OK");
+                                            strWeightList.add(str);
+                                            int size = strWeightList.size();
 
-                                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                            double cWeight =
-                                                    Double.parseDouble(tvCumulativeWeight.getText().toString());
+                                            if (size > 10) {
+                                                String s10 = strWeightList.get(size - 1);
+                                                String s9 = strWeightList.get(size - 2);
+                                                String s8 = strWeightList.get(size - 3);
+                                                String s7 = strWeightList.get(size - 4);
+                                                String s6 = strWeightList.get(size - 5);
+                                                String s5 = strWeightList.get(size - 6);
+                                                String s4 = strWeightList.get(size - 7);
+                                                String s3 = strWeightList.get(size - 8);
+                                                String s2 = strWeightList.get(size - 9);
+                                                String s1 = strWeightList.get(size - 10);
 
-                                            /**
-                                             * 相加：b1.add(b2).doubleValue();
-                                             * 相减：b1.subtract(b2).doubleValue();
-                                             * 相乘：b1.multiply(b2).doubleValue();
-                                             */
-                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                            BigDecimal b2 = new BigDecimal(str);
-                                            cWeight = b1.add(b2).doubleValue();
-                                            count = count + 1;
+                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
+                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
 
-                                            tvCumulativeCount.setText(String.valueOf(count));
-                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                                    if (!isWrite[0]) {
 
+                                                        isWrite[0] = true;
 
-                                            //intervalTime秒之后开关置反
-                                            Observable.timer(intervalTime, TimeUnit.SECONDS)
-                                                    .subscribe(new Consumer<Long>() {
-                                                        @Override
-                                                        public void accept(Long aLong) throws Exception {
-                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
-                                                            isWrite[0] = false;
+                                                        Cumulative cumulative = new Cumulative();
+                                                        cumulative.setCategory("净重");
+                                                        cumulative.setWeight(s10);
 
-                                                            //间隔100毫秒之后关掉2号开关
-                                                            Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                                    .subscribe(new Consumer<Long>() {
-                                                                        @Override
-                                                                        public void accept(Long aLong) throws Exception {
-                                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-                                                                        }
-                                                                    });
+                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                                            Cumulative cumulativeLast =
+                                                                    LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
+                                                        } else {
+                                                            cumulative.setCount(1);
                                                         }
-                                                    });
+
+                                                        cumulative.save();
+
+                                                        myToasty.showSuccess("OK");
+
+                                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                                        double cWeight =
+                                                                Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                                        /**
+                                                         * 相加：b1.add(b2).doubleValue();
+                                                         * 相减：b1.subtract(b2).doubleValue();
+                                                         * 相乘：b1.multiply(b2).doubleValue();
+                                                         */
+                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                                        BigDecimal b2 = new BigDecimal(s5);
+                                                        cWeight = b1.add(b2).doubleValue();
+                                                        count = count + 1;
+
+                                                        tvCumulativeCount.setText(String.valueOf(count));
+                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
+
+
+                                                        //intervalTime秒之后开关置反
+                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
+                                                                .subscribe(new Consumer<Long>() {
+                                                                    @Override
+                                                                    public void accept(Long aLong) throws Exception {
+                                                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
+                                                                        isWrite[0] = false;
+                                                                        isTurn[0] = false;
+                                                                        strWeightList.clear();
+
+                                                                        //间隔100毫秒之后关掉2号开关
+                                                                        Observable.timer(100, TimeUnit.MILLISECONDS)
+                                                                                .subscribe(new Consumer<Long>() {
+                                                                                    @Override
+                                                                                    public void accept(Long aLong) throws Exception {
+                                                                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
+                                                                                    }
+                                                                                });
+                                                                    }
+                                                                });
+
+                                                    }
+
+                                                }
+
+                                            }
 
                                         }
 

@@ -17,7 +17,8 @@ public class DeductionCategoryContract {
     public interface View extends MvpView {
         void getDeductionCategorySuc(List<DeductionCategory> data);
         void addDeductionCategorySuc(DeductionCategory data);
-        void deleteDeductionCategorySuc(boolean data);
+        void deleteDeductionCategorySuc(DeleteDeductionCategoryModel.Response data);
+        void deleteDeductionCategoryFail(String msg);
     }
 
     public static abstract class Presenter extends MvpPresenter<DeductionCategoryContract.View> {

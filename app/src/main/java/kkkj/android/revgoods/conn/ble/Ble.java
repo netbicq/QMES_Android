@@ -226,6 +226,21 @@ public class Ble {
 
     }
 
+    public void sendAscii(String msg) {
+
+        if (mBluetoothGatt != null && isServiceConnected) {
+            BluetoothGattService gattService = mBluetoothGatt.getService(UUID_SERVICE);
+            BluetoothGattCharacteristic characteristic = gattService.getCharacteristic(UUID_WRITE);
+//            byte[] bytes = new byte[2];
+//            bytes[0] = 04;
+//            bytes[1] = 01;
+            characteristic.setValue(msg);
+            characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+            mBluetoothGatt.writeCharacteristic(characteristic);
+        }
+
+    }
+
     public void destory() {
         if (mBluetoothGatt != null) {
             mBluetoothGatt.disconnect();

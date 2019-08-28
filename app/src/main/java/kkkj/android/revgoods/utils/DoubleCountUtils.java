@@ -71,5 +71,17 @@ public class DoubleCountUtils {
 
     }
 
+    /**
+     * 保留4位小数
+     * @param d
+     * @return
+     */
+    public static double keep4(double d) {
+
+        BigDecimal bigDecimal = new BigDecimal(d);
+        return bigDecimal.setScale(4,BigDecimal.ROUND_HALF_UP).doubleValue();
+
+    }
+
 
 }

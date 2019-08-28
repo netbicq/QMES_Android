@@ -359,15 +359,17 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
         } else {
 
-            for (int i = 0; i < samplingDetailsList.size(); i++) {
+            //根据规格占比
+            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
+            for (int i = 0; i < list.size(); i++) {
                 PurPrices purPrices = new PurPrices();
-                double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
+                double ratio = list.get(i).getSpecsProportion() * 100;//规格占比
                 double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-                double price = samplingDetailsList.get(i).getPrice();//单价
+                double price = list.get(i).getPrice();//单价
 
                 money = DoubleCountUtils.keep(weight * price) + money;//总金额
 
-                Specs specs1 = LitePal.find(Specs.class,samplingDetailsList.get(i).getSpecsId());
+                Specs specs1 = LitePal.find(Specs.class,list.get(i).getSpecsId());
                 purPrices.setNormsID(specs1.getKeyID());//规格ID
 
                 purPrices.setAmount(weight);//当前占比的重量
@@ -482,6 +484,32 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
 
         return request;
 
+    }
+
+
+    //合并规格相同的采样
+    private List<SamplingDetails> getSamplingDetails(List<SamplingDetails> samplingDetailsList){
+
+        int size = samplingDetailsList.size();
+
+        for (int i=0;i<size;i++) {
+
+            SamplingDetails samplingDetails = samplingDetailsList.get(i);
+            double proportion = samplingDetails.getSpecsProportion();
+
+            for (int j = i+1;j<size;j++) {
+                SamplingDetails samplingDetailsNext = samplingDetailsList.get(j);
+                if (samplingDetails.getSpecsId() == samplingDetailsNext.getSpecsId()) {
+                    proportion = DoubleCountUtils.keep4(proportion + samplingDetailsNext.getSpecsProportion());
+                    samplingDetailsList.remove(samplingDetailsNext);
+                    size = size - 1;
+                }
+            }
+            samplingDetails.setSpecsProportion(proportion);
+
+        }
+
+        return samplingDetailsList;
     }
 
 }

@@ -187,7 +187,7 @@
                     android:layout_weight="1"
                     android:background="@color/qmui_config_color_white"
                     android:gravity="center"
-                    android:text="1" />
+                    android:text="1.0" />
 
                 <View
                     android:background="@color/qmui_config_color_pure_black"

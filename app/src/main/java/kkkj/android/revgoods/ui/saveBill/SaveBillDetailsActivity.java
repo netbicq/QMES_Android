@@ -86,6 +86,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     private List<BillDetails> billDetailsList;
 
     private SamplingBySpecs samplingBySpecs;
+    private int samplingBySpecsId = -1;
 
     private List<Cumulative> cumulativeList = new ArrayList<>();
     private List<SamplingDetails> samplingDetailsList = new ArrayList<>();
@@ -183,8 +184,11 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
         billDetailsList = new ArrayList<>();
         if (ValuationType == 2) {
-            for (int i = 0; i < samplingDetailsList.size(); i++) {
-                SamplingDetails samplingDetails = samplingDetailsList.get(i);
+            //根据规格占比
+            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
+
+            for (int i = 0; i < list.size(); i++) {
+                SamplingDetails samplingDetails = list.get(i);
                 Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
 
                 BillDetails billDetails = new BillDetails();
@@ -284,7 +288,9 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 bill.setSupplierId(supplierId);
                 bill.setMatterId(matterId);
                 bill.setTime(stringData);
-                bill.setSamplingBySpecsId(samplingBySpecs.getId());
+                bill.setSamplingBySpecsId(samplingBySpecsId);
+
+
                 bill.setWeight(Double.valueOf(weight));
 
 //                Bitmap bitmap = CodeUtils.createBarcode(name,100,40,true);
@@ -412,7 +418,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         //计算占比
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-            samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep(specsProportion));
+            samplingDetailsList.get(i).setSpecsProportion(DoubleCountUtils.keep4(specsProportion));
         }
         LitePal.saveAll(samplingDetailsList);
 
@@ -477,8 +483,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
                     .find(SamplingBySpecs.class);
             samplingBySpecs = bySpecsList.get(0);
-            int id = samplingBySpecs.getSpecsId();
-            Specs specs = LitePal.find(Specs.class,id);
+            samplingBySpecsId = samplingBySpecs.getSpecsId();
+            Specs specs = LitePal.find(Specs.class,samplingBySpecsId);
 
             PurPrices purPrices = new PurPrices();
             purPrices.setNormsID(specs.getKeyID());//规格ID
@@ -493,18 +499,19 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             purPricesList.add(purPrices);
 
         } else {
+
             //根据规格占比
-           // List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
-            for (int i = 0; i < samplingDetailsList.size(); i++) {
+            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
+            for (int i = 0; i < list.size(); i++) {
                 PurPrices purPrices = new PurPrices();
-                double ratio = samplingDetailsList.get(i).getSpecsProportion() * 100;//规格占比
+                double ratio = list.get(i).getSpecsProportion() * 100;//规格占比
                 double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-                double price = samplingDetailsList.get(i).getPrice();//单价
+                double price = list.get(i).getPrice();//单价
 
                 money = DoubleCountUtils.keep(weight * price) + money;//总金额
                 money = DoubleCountUtils.keep(money);
 
-                Specs specs1 = LitePal.find(Specs.class, samplingDetailsList.get(i).getSpecsId());
+                Specs specs1 = LitePal.find(Specs.class, list.get(i).getSpecsId());
                 purPrices.setNormsID(specs1.getKeyID());//规格ID
 
                 purPrices.setAmount(weight);//当前占比的重量
@@ -607,7 +614,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             for (int j = i+1;j<size;j++) {
                 SamplingDetails samplingDetailsNext = samplingDetailsList.get(j);
                 if (samplingDetails.getSpecsId() == samplingDetailsNext.getSpecsId()) {
-                    proportion = DoubleCountUtils.keep(proportion + samplingDetailsNext.getSpecsProportion());
+                    proportion = DoubleCountUtils.keep4(proportion + samplingDetailsNext.getSpecsProportion());
                     samplingDetailsList.remove(samplingDetailsNext);
                     size = size - 1;
                 }

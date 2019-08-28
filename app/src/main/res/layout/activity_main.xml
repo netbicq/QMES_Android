@@ -231,7 +231,7 @@
         android:background="@drawable/text_background"
         android:gravity="center"
         android:padding="@dimen/dp_10"
-        android:text="@string/cumulative"
+        android:text="计重累计"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"

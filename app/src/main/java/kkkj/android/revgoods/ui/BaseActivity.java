@@ -7,16 +7,24 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.orhanobut.logger.Logger;
 
 import butterknife.ButterKnife;
 import kkkj.android.revgoods.app.BaseApplication;
 import kkkj.android.revgoods.customer.MyToasty;
+import kkkj.android.revgoods.mvpInterface.MvpCallback;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
 import kkkj.android.revgoods.mvpInterface.MvpView;
+import kkkj.android.revgoods.ui.login.model.SignInModel;
+import kkkj.android.revgoods.ui.login.view.LoginActivity;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
+
+import static kkkj.android.revgoods.utils.NetUtils.checkNetWork;
 
 public  abstract class BaseActivity <T extends MvpPresenter> extends AppCompatActivity implements MvpView {
 
@@ -124,7 +132,44 @@ public  abstract class BaseActivity <T extends MvpPresenter> extends AppCompatAc
 
     @Override
     public void goLogin() {
+        if(mContext==null)
+            return;
+        Logger.d("重新登录");
+        SignInModel.Request request = new SignInModel.Request();
+        String AccountCode = SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_USER_ACCOUNTCODE);
+        String Login = SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_USER_NAME);
+        String Pwd = SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_USER_PWD);
 
+        request.setLogin(Login);
+        request.setPwd(Pwd);
+        request.setAccountCode(AccountCode);
+
+        if (!TextUtils.isEmpty(request.getPwd())) {
+            if (!checkNetWork()) {
+                showErr("请检查网络");
+                return;
+            }
+            //显示正在加载进度条
+            myToasty.showInfo("正在为您重新登录");
+            // 调用Model请求数据
+            SignInModel loginModel = new SignInModel();
+            loginModel.getResponse(request, new MvpCallback<SignInModel.Response>(this) {
+                @Override
+                public void onSuccess(SignInModel.Response data) {
+                    showToast("登录成功,请重新发起请求");
+                    BaseApplication.getInstance().setUserProfile(data.getData().getUserProfile());
+                    if(data.getData().getUserInfo()!=null)
+                    {
+                        if(!TextUtils.isEmpty(data.getData().getAccountID()))
+                        {
+                            BaseApplication.getInstance().setCommonParts(data.getData().getUserInfo().getToken(),data.getData().getAccountID());
+                        }
+                    }
+                }
+            });
+        } else {
+            startActivity(new Intent(mContext, LoginActivity.class));
+        }
     }
 
     @Override
@@ -136,4 +181,6 @@ public  abstract class BaseActivity <T extends MvpPresenter> extends AppCompatAc
     public void onComplete() {
 
     }
+
+
 }

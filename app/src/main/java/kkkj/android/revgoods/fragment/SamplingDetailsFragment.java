@@ -162,7 +162,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         //计算占比
         for (int i = 0; i < samplingDetailsList.size(); i++) {
             double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / totalWeight;
-            specsProportion = DoubleCountUtils.keep(specsProportion);
+            specsProportion = DoubleCountUtils.keep4(specsProportion);
             samplingDetailsList.get(i).setSpecsProportion(specsProportion);
         }
         LitePal.saveAll(samplingDetailsList);
@@ -219,7 +219,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
                 //计算占比
                 for (int i = 0; i < samplingDetailsList.size(); i++) {
                     double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-                    specsProportion = DoubleCountUtils.keep(specsProportion);
+                    specsProportion = DoubleCountUtils.keep4(specsProportion);
                     samplingDetailsList.get(i).setSpecsProportion(specsProportion);
                 }
                 LitePal.saveAll(samplingDetailsList);
