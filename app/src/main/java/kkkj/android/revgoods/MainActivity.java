@@ -708,46 +708,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Power power = new Gson().fromJson(powerString, Power.class);
                 if (power.getDeviceAddr() == null) {
                     myToasty.showInfo("当前未配置继电器，请前往网页端配置！");
-                    return;
+//                    return;
+                } else {
+
+                    inLine = power.getInLine() - 1;
+                    outLine = power.getOutLine() - 1;
+
+                    switch (power.getDeviceType()) {
+                        case 1://蓝牙继电器
+                            CONNECT_TYPE = 2;
+                            String address1 = power.getDeviceAddr().trim();
+                            try {
+                                BluetoothDevice bluetoothDevice1 =
+                                        BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                                connectBluetoothRelay(bluetoothDevice1);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                myToasty.showInfo(e.getMessage());
+                            }
+                            break;
+
+                        case 2://Wifi继电器
+                            CONNECT_TYPE = 1;
+                            //分割 ：
+                            String[] strarr = power.getDeviceAddr().split(":");
+                            if (strarr.length < 2) {
+                                myToasty.showWarning("Wifi继电器参数格式配置异常，请前往网页端检查！");
+                                return;
+                            }
+                            String ip = strarr[0].trim();
+                            int port = Integer.valueOf(strarr[1]);
+                            Device device1 = new Device();
+                            device1.setWifiIp(ip);
+                            device1.setWifiPort(port);
+                            connectWifi(device1);
+                            break;
+
+                        default:
+                            break;
+                    }
+
                 }
 
-                inLine = power.getInLine() - 1;
-                outLine = power.getOutLine() - 1;
-
-                switch (power.getDeviceType()) {
-                    case 1://蓝牙继电器
-                        CONNECT_TYPE = 2;
-                        String address1 = power.getDeviceAddr().trim();
-                        try {
-                            BluetoothDevice bluetoothDevice1 =
-                                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                            connectBluetoothRelay(bluetoothDevice1);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            myToasty.showInfo(e.getMessage());
-                        }
-                        break;
-
-                    case 2://Wifi继电器
-                        CONNECT_TYPE = 1;
-                        //分割 ：
-                        String[] strarr = power.getDeviceAddr().split(":");
-                        if (strarr.length < 2) {
-                            myToasty.showWarning("Wifi继电器参数格式配置异常，请前往网页端检查！");
-                            return;
-                        }
-                        String ip = strarr[0].trim();
-                        int port = Integer.valueOf(strarr[1]);
-                        Device device1 = new Device();
-                        device1.setWifiIp(ip);
-                        device1.setWifiPort(port);
-                        connectWifi(device1);
-                        break;
-
-                    default:
-                        break;
-                }
 
                 //采样秤
                 String sapmleString = produceLine.getSapmle();
@@ -856,6 +859,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
         List<String> strWeightList = new ArrayList<>();
+        List<String> strLowWeightList = new ArrayList<>();
 
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
             @Override
@@ -909,16 +913,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                                    ble.send(weightByte);//ModBus方式
 
                                     /**   $001,2.91#   显示2.91
-                                     *    ASCII码  b1,b3,首尾固定格式
+                                     *    $001,01&     显示YES
+                                     *    ASCII码  b1,b3,b4首尾固定格式
                                      *    b2  数据
                                      */
 
                                     byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
                                     byte[] b3 = {0x23};
+                                    byte[] b4 = {0x30,0x31,0x26};
                                     byte[] b2 = str.getBytes();
                                     b2 = CRC16Util.addBytes(b1, b2);
                                     b3 = CRC16Util.addBytes(b2, b3);
-
+                                    b4 = CRC16Util.addBytes(b1,b4);
                                     ble.send(b3);
                                 }
 
@@ -1038,19 +1044,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     //蓝牙继电器
                                     case 2:
 
-                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                                        if (weight > compareWeight) {
 
-                                            if (!isTurn[0]) {
+                                            if (!isTurn[0] && bluetoothRelay.getMyBluetoothManager().isConnect()) {
                                                 isTurn[0] = true;
                                                 bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
-                                                //100毫秒之后打开2号开关
-                                                Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                        .subscribe(new Consumer<Long>() {
-                                                            @Override
-                                                            public void accept(Long aLong) throws Exception {
-                                                                bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
-                                                            }
-                                                        });
+
                                             }
 
 
@@ -1109,26 +1108,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         tvCumulativeCount.setText(String.valueOf(count));
                                                         tvCumulativeWeight.setText(String.valueOf(cWeight));
 
-                                                        //intervalTime秒之后开关置反
-                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
-                                                                .subscribe(new Consumer<Long>() {
-                                                                    @Override
-                                                                    public void accept(Long aLong) throws Exception {
-                                                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
-                                                                        isWrite[0] = false;
-                                                                        isTurn[0] = false;
-                                                                        strWeightList.clear();
+                                                        //计重之后打开2号开关，出料口
+                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
+                                                        }
 
-                                                                        //间隔100毫秒之后关掉2号开关
-                                                                        Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                                                .subscribe(new Consumer<Long>() {
-                                                                                    @Override
-                                                                                    public void accept(Long aLong) throws Exception {
-                                                                                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-                                                                                    }
-                                                                                });
-                                                                    }
-                                                                });
+
+                                                        //intervalTime秒之后开关置反
+//                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
+//                                                                .subscribe(new Consumer<Long>() {
+//                                                                    @Override
+//                                                                    public void accept(Long aLong) throws Exception {
+//                                                                    }
+//                                                                });
 
                                                     }
 
@@ -1137,10 +1129,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             }
 
                                         } else {
-                                            //
-                                            if (strWeightList.size() > 0) {
-                                                strWeightList.clear();
+
+                                            if (isWrite[0]) {
+
+                                                if (strWeightList.size() > 0) {
+                                                    strWeightList.clear();
+                                                }
+
+                                                strLowWeightList.add(str);
+                                                int size = strLowWeightList.size();
+                                                if (size > 10) {
+
+                                                    String s10 = strLowWeightList.get(size - 1);
+                                                    String s9 = strLowWeightList.get(size - 2);
+                                                    String s8 = strLowWeightList.get(size - 3);
+                                                    String s7 = strLowWeightList.get(size - 4);
+                                                    String s6 = strLowWeightList.get(size - 5);
+                                                    String s5 = strLowWeightList.get(size - 6);
+                                                    String s4 = strLowWeightList.get(size - 7);
+                                                    String s3 = strLowWeightList.get(size - 8);
+                                                    String s2 = strLowWeightList.get(size - 9);
+                                                    String s1 = strLowWeightList.get(size - 10);
+
+                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
+                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
+                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
+                                                        //此时关闭出料口
+                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
+                                                        }
+
+                                                        //间隔1秒之后打开入料口开关，传送带
+                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
+                                                                .subscribe(new Consumer<Long>() {
+                                                                    @Override
+                                                                    public void accept(Long aLong) throws Exception {
+
+                                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
+                                                                        }
+                                                                        isWrite[0] = false;
+                                                                        isTurn[0] = false;
+                                                                        strLowWeightList.clear();
+                                                                    }
+                                                                });
+
+
+                                                    }
+
+                                                }
+
                                             }
+
                                         }
 
                                         break;

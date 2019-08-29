@@ -168,6 +168,11 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     }
 
     @Override
+    protected int setLayout() {
+        return R.layout.fragment_save_bill_details;
+    }
+
+    @Override
     protected void initView() {
 
         mQMUITipDialog = new QMUITipDialog.Builder(SaveBillDetailsActivity.this)
@@ -192,7 +197,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         mTvTotalWeight.setText(String.valueOf(realWeight));
         mTvTotalPrice.setText(String.valueOf(money));
 
-        etPrice.setText("0");
+
         etPrice.setInputType(InputType.TYPE_CLASS_NUMBER |InputType.TYPE_NUMBER_FLAG_SIGNED| InputType.TYPE_NUMBER_FLAG_DECIMAL);
         etPrice.addTextChangedListener(new TextWatcher() {
             @Override
@@ -282,11 +287,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         recyclerView.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-    }
-
-    @Override
-    protected int setLayout() {
-        return R.layout.fragment_save_bill_details;
     }
 
 
