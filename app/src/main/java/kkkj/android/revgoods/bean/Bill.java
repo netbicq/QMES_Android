@@ -5,6 +5,10 @@ import org.litepal.crud.LitePalSupport;
 import java.util.ArrayList;
 import java.util.List;
 
+import kkkj.android.revgoods.bean.bill.BillMaster;
+import kkkj.android.revgoods.bean.bill.DelWeights;
+import kkkj.android.revgoods.bean.bill.PurPrices;
+
 /**
  * 单据
  */
@@ -71,6 +75,17 @@ public class Bill extends LitePalSupport {
      */
     private List<Deduction> deductionList = new ArrayList<>();
 
+
+    private List<BillDetails> billDetailsList = new ArrayList<>();
+
+
+    public List<BillDetails> getBillDetailsList() {
+        return billDetailsList;
+    }
+
+    public void setBillDetailsList(List<BillDetails> billDetailsList) {
+        this.billDetailsList = billDetailsList;
+    }
 
     public int getSamplingBySpecsId() {
         return samplingBySpecsId;

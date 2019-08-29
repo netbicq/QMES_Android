@@ -6,8 +6,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -81,6 +85,14 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     TextView mTvTotalPrice;
     @BindView(R.id.tv_right)
     TextView tvRight;
+    @BindView(R.id.tv_init_price)
+    TextView tvInitPrice;
+    @BindView(R.id.et_price)
+    EditText etPrice;
+    @BindView(R.id.tv_final_price)
+    TextView tvFinalPrice;
+    @BindView(R.id.btn_price)
+    Button btnPrice;
 
     private BillDetailsAdapter adapter;
     private List<BillDetails> billDetailsList;
@@ -122,6 +134,12 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     //占比最大的采样
     private SamplingDetails maxSamplingDetails;
 
+    //调整单价
+    private String tempPrice = "0";
+
+    //是否确认了单价
+    private boolean isMakeSurePrice = false;
+
     /**
      * 计价方式
      * ValuationType = 1;根据规格计算
@@ -161,6 +179,9 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         tvRight.setOnClickListener(this);
         ivBack.setOnClickListener(this);
         mBtnSaveBill.setOnClickListener(this);
+
+        btnPrice.setOnClickListener(this);
+
         tvDeductionMix.setText("计重明细（当前扣重率：" + deductionMix + "%）");//扣重率
         mTvDeductionCount.setText(deductionList.size() + "");//扣重次数
         tvDeductionWeight.setText(String.valueOf(deductionWeight));//扣重总重量
@@ -170,6 +191,25 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
         mTvTotalWeight.setText(String.valueOf(realWeight));
         mTvTotalPrice.setText(String.valueOf(money));
+
+        etPrice.setText("0");
+        etPrice.setInputType(InputType.TYPE_CLASS_NUMBER |InputType.TYPE_NUMBER_FLAG_SIGNED| InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        etPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                tempPrice = charSequence.toString().trim();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
 
     }
 
@@ -185,6 +225,10 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         billDetailsList = new ArrayList<>();
         if (ValuationType == 2) {
             //根据规格占比
+
+            tvInitPrice.setText("   /   ");
+            tvFinalPrice.setText("   /   ");
+
             List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
 
             for (int i = 0; i < list.size(); i++) {
@@ -193,7 +237,10 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
                 BillDetails billDetails = new BillDetails();
                 billDetails.setSpecs(specs.getValue());
+                billDetails.setSpecsKeyId(specs.getKeyID());
                 billDetails.setPrice(samplingDetails.getPrice() + "");
+                billDetails.setAdjustPrice("0");
+                billDetails.setFinalPrice(samplingDetails.getPrice() + "");
                 billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
 
                 double weight = samplingDetails.getSpecsProportion() * realWeight;
@@ -204,14 +251,24 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 billDetailsList.add(billDetails);
             }
         } else {
+            //根据规格计价
+
             List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
                     .find(SamplingBySpecs.class);
             samplingBySpecs = bySpecsList.get(0);
 
             Specs specs = LitePal.find(Specs.class, samplingBySpecs.getSpecsId());
+            //初始单价
+            String price = String.valueOf(samplingBySpecs.getPrice());
+            tvInitPrice.setText(price);
+            //最终单价
+            tvFinalPrice.setText(price);
+
             BillDetails billDetails = new BillDetails();
             billDetails.setSpecs(specs.getValue());
-            billDetails.setPrice(samplingBySpecs.getPrice() + "");
+            billDetails.setPrice(price);
+            billDetails.setAdjustPrice("0");
+            billDetails.setFinalPrice(price);
             billDetails.setProportion("1");
             billDetails.setWeight(realWeight);
             billDetails.setTotalPrice(DoubleCountUtils.keep(samplingBySpecs.getPrice() * realWeight));
@@ -275,11 +332,134 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
                 break;
 
+            //确认单价
+            case R.id.btn_price:
+                money = 0d;
+                //调整单价
+                double adjustPrice = DoubleCountUtils.keep(Double.valueOf(tempPrice));
+
+                /**
+                 * NormsID : 4703a9fb-01f1-49c6-8989-9f10fa76b408 规格ID
+                 * Amount : 2.0
+                 * Price : 3.0
+                 * Menoy : 4.0 金额
+                 * Ratio : 5.0
+                 */
+                List<PurPrices> purPricesList = new ArrayList<>();//计价明细
+
+                if (ValuationType == 1) {
+                    //根据规格
+                    BillDetails billDetails = billDetailsList.get(0);
+                    //最终单价
+                    double finalPrice = 0d;
+                    //对应重量
+                    double weight = 0d;
+                    //最终价格
+                    double totalPrice = 0d;
+
+                    finalPrice = Double.valueOf(billDetails.getPrice()) + adjustPrice;
+                    weight = billDetails.getWeight();
+                    totalPrice = DoubleCountUtils.keep(weight * finalPrice);
+                    billDetails.setAdjustPrice(String.valueOf(adjustPrice));
+                    billDetails.setFinalPrice(String.valueOf(finalPrice));
+                    billDetails.setTotalPrice(totalPrice);
+                    billDetails.save();
+
+                    tvFinalPrice.setText(String.valueOf(finalPrice));
+
+
+                    List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
+                            .find(SamplingBySpecs.class);
+                    samplingBySpecs = bySpecsList.get(0);
+
+                    samplingBySpecs.setAdjustPrice(adjustPrice);
+                    samplingBySpecs.setFinalPrice(finalPrice);
+
+                    samplingBySpecsId = samplingBySpecs.getSpecsId();
+                    Specs specs = LitePal.find(Specs.class, samplingBySpecsId);
+
+                    PurPrices purPrices = new PurPrices();
+                    purPrices.setNormsID(specs.getKeyID());//规格ID
+
+                    purPrices.setAmount(realWeight);//当前占比的重量
+                    purPrices.setInitialPrice(Double.valueOf(billDetails.getPrice()));//初始单价
+                    purPrices.setRevisionPrice(adjustPrice);//调整单价
+                    purPrices.setPrice(finalPrice);//最终单价
+
+                    money = totalPrice;//总金额
+
+                    purPrices.setMenoy(money);//金额
+
+                    mTvTotalPrice.setText(String.valueOf(money));
+
+                    purPrices.setRatio(100);//规格占比
+                    purPricesList.add(purPrices);
+
+                } else {
+
+                    //根据规格占比
+
+                    for (int i = 0; i < billDetailsList.size(); i++) {
+
+                        //最终单价
+                        double finalPrice = 0d;
+                        //对应重量
+                        double weight = 0d;
+                        //最终价格
+                        double totalPrice = 0d;
+
+                        BillDetails billDetails = billDetailsList.get(i);
+
+
+                        PurPrices purPrices = new PurPrices();
+                        double ratio = Double.valueOf(billDetailsList.get(i).getProportion()) * 100;//规格占比
+                        weight = billDetails.getWeight();//当前占比的重量
+                        finalPrice = Double.valueOf(billDetails.getPrice()) + adjustPrice;//最终单价
+                        totalPrice = DoubleCountUtils.keep(weight * finalPrice);
+                        billDetails.setAdjustPrice(String.valueOf(adjustPrice));
+                        billDetails.setFinalPrice(String.valueOf(finalPrice));
+                        billDetails.setTotalPrice(totalPrice);
+
+                        billDetails.save();
+
+                        money = totalPrice + money;//总金额
+                        money = DoubleCountUtils.keep(money);
+
+                        purPrices.setNormsID(billDetails.getSpecsKeyId());//规格ID
+
+                        purPrices.setAmount(weight);//当前占比的重量
+                        purPrices.setInitialPrice(Double.valueOf(billDetails.getPrice()));//初始单价
+                        purPrices.setRevisionPrice(adjustPrice);//调整单价
+                        purPrices.setPrice(finalPrice);//最终单价
+                        purPrices.setMenoy(totalPrice);//金额
+                        purPrices.setRatio(ratio);//规格占比
+                        purPricesList.add(purPrices);
+                    }
+
+                    mTvTotalPrice.setText(String.valueOf(money));
+
+                }
+                adapter.notifyDataSetChanged();
+                isMakeSurePrice = true;
+                request.setPurPrices(purPricesList);//计价明细
+
+
+                break;
+
             //保存单据
             case R.id.button:
 
+                if (!isMakeSurePrice) {
+                    myToasty.showWarning("请先确认金额！");
+                    return;
+                }
                 //单据名称
                 String name = UUID.randomUUID().toString();
+
+                //获取当前时间 HH:mm:ss
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                Date date = new Date(System.currentTimeMillis());
+                stringData = simpleDateFormat.format(date);
 
                 bill = new Bill();
                 bill.setUUID(name);
@@ -289,6 +469,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 bill.setMatterId(matterId);
                 bill.setTime(stringData);
                 bill.setSamplingBySpecsId(samplingBySpecsId);
+                bill.setBillDetailsList(billDetailsList);
 
 
                 bill.setWeight(Double.valueOf(weight));
@@ -301,7 +482,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 LitePal.updateAll(Cumulative.class, values);
                 LitePal.updateAll(Deduction.class, values);
                 LitePal.updateAll(SamplingDetails.class, values);
-                LitePal.updateAll(SamplingBySpecs.class,values);
+                LitePal.updateAll(SamplingBySpecs.class, values);
 
                 bill.setCumulativeList(cumulativeList);
                 bill.setDeductionList(deductionList);
@@ -335,10 +516,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 Specs specs = LitePal.find(Specs.class, maxSamplingDetails.getSpecsId());
 
                 BillMaster billMasterBean = new BillMaster();
-                //获取当前时间 HH:mm:ss
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                Date date = new Date(System.currentTimeMillis());
-                stringData = simpleDateFormat.format(date);
+
                 billMasterBean.setCode(name);
                 billMasterBean.setPurchaseDate(stringData);//日期
                 billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
@@ -359,7 +537,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 mQMUITipDialog.show();
 
                 mPresenter.addBill(request);
-
 
 
 //                final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
@@ -462,68 +639,14 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         matterId = maxSamplingDetails.getMatterId();
         supplier = LitePal.find(Supplier.class, supplierId);
         matter = LitePal.find(Matter.class, matterId);
-         /**
+        /**
          * 计价方式
          * ValuationType = 1;根据规格计算
          * ValuationType = 2;根据规格占比计算
          */
         ValuationType = matter.getValuationType();
 
-        /**
-         * NormsID : 4703a9fb-01f1-49c6-8989-9f10fa76b408 规格ID
-         * Amount : 2.0
-         * Price : 3.0
-         * Menoy : 4.0 金额
-         * Ratio : 5.0
-         */
-        List<PurPrices> purPricesList = new ArrayList<>();//计价明细
 
-        if (ValuationType == 1) {
-            //根据规格
-            List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
-                    .find(SamplingBySpecs.class);
-            samplingBySpecs = bySpecsList.get(0);
-            samplingBySpecsId = samplingBySpecs.getSpecsId();
-            Specs specs = LitePal.find(Specs.class,samplingBySpecsId);
-
-            PurPrices purPrices = new PurPrices();
-            purPrices.setNormsID(specs.getKeyID());//规格ID
-
-            purPrices.setAmount(realWeight);//当前占比的重量
-            purPrices.setPrice(samplingBySpecs.getPrice());//单价
-
-            money = DoubleCountUtils.keep(realWeight * samplingBySpecs.getPrice());//总金额
-
-            purPrices.setMenoy(money);//金额
-            purPrices.setRatio(100);//规格占比
-            purPricesList.add(purPrices);
-
-        } else {
-
-            //根据规格占比
-            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
-            for (int i = 0; i < list.size(); i++) {
-                PurPrices purPrices = new PurPrices();
-                double ratio = list.get(i).getSpecsProportion() * 100;//规格占比
-                double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-                double price = list.get(i).getPrice();//单价
-
-                money = DoubleCountUtils.keep(weight * price) + money;//总金额
-                money = DoubleCountUtils.keep(money);
-
-                Specs specs1 = LitePal.find(Specs.class, list.get(i).getSpecsId());
-                purPrices.setNormsID(specs1.getKeyID());//规格ID
-
-                purPrices.setAmount(weight);//当前占比的重量
-                purPrices.setPrice(price);//单价
-                purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
-                purPrices.setRatio(ratio);//规格占比
-                purPricesList.add(purPrices);
-            }
-
-        }
-
-        request.setPurPrices(purPricesList);//计价明细
 
 
         /**
@@ -602,16 +725,16 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     }
 
     //合并规格相同的采样
-    private List<SamplingDetails> getSamplingDetails(List<SamplingDetails> samplingDetailsList){
+    private List<SamplingDetails> getSamplingDetails(List<SamplingDetails> samplingDetailsList) {
 
         int size = samplingDetailsList.size();
 
-        for (int i=0;i<size;i++) {
+        for (int i = 0; i < size; i++) {
 
             SamplingDetails samplingDetails = samplingDetailsList.get(i);
             double proportion = samplingDetails.getSpecsProportion();
 
-            for (int j = i+1;j<size;j++) {
+            for (int j = i + 1; j < size; j++) {
                 SamplingDetails samplingDetailsNext = samplingDetailsList.get(j);
                 if (samplingDetails.getSpecsId() == samplingDetailsNext.getSpecsId()) {
                     proportion = DoubleCountUtils.keep4(proportion + samplingDetailsNext.getSpecsProportion());

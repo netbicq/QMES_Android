@@ -31,6 +31,7 @@ import io.reactivex.schedulers.Schedulers;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillAdapter;
 import kkkj.android.revgoods.bean.Bill;
+import kkkj.android.revgoods.bean.BillDetails;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
@@ -86,10 +87,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
             students.add(new Student("小明"+i,"男","14","2"+i,"二班","65","57","100"));
         }
 
-
-
     }
-
 
     /**
      * 导出excel
@@ -283,6 +281,8 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         List<Deduction> deductionList = bill.getDeductionList();
         List<SamplingDetails> samplingDetailsList = bill.getSamplingDetailsList();
         List<Cumulative> cumulativeList = bill.getCumulativeList();
+        List<BillDetails> billDetailsList = bill.getBillDetailsList();
+
         int supplierId = bill.getSupplierId();
         int matterId = bill.getMatterId();
         Supplier supplier = LitePal.find(Supplier.class,supplierId);
@@ -332,7 +332,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         //占比最大的规格
         Specs specs = LitePal.find(Specs.class,maxSamplingDetails.getSpecsId());
 
-        /**
+        /**   计价明细
          * NormsID : 4703a9fb-01f1-49c6-8989-9f10fa76b408 规格ID
          * Amount : 2.0
          * Price : 3.0
@@ -342,7 +342,7 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         List<PurPrices> purPricesList = new ArrayList<>();//计价明细
 
         if (ValuationType == 1) {
-
+            //根据规格
             SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class,bill.getSamplingBySpecsId());
 
             int id = samplingBySpecs.getSpecsId();
@@ -352,7 +352,9 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
             purPrices.setNormsID(specsFinal.getKeyID());//规格ID
 
             purPrices.setAmount(realWeight);//当前占比的重量
-            purPrices.setPrice(samplingBySpecs.getPrice());//单价
+            purPrices.setInitialPrice(samplingBySpecs.getPrice());//初始单价
+            purPrices.setRevisionPrice(samplingBySpecs.getAdjustPrice());//调整单价
+            purPrices.setPrice(samplingBySpecs.getFinalPrice());//最终单价
             purPrices.setMenoy(DoubleCountUtils.keep(realWeight * samplingBySpecs.getPrice()));//金额
             purPrices.setRatio(100);//规格占比
             purPricesList.add(purPrices);
@@ -360,21 +362,31 @@ public class BillListFragment extends BaseDialogFragment implements View.OnClick
         } else {
 
             //根据规格占比
-            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
-            for (int i = 0; i < list.size(); i++) {
+
+            for (int i = 0; i < billDetailsList.size(); i++) {
+
+                BillDetails billDetails = billDetailsList.get(i);
+                //最终单价
+                double finalPrice = Double.valueOf(billDetails.getFinalPrice());
+                //对应重量
+                double weight = billDetails.getWeight();//当前占比的重量
+                //最终价格
+                double totalPrice = billDetails.getTotalPrice();
+
+                double ratio = Double.valueOf(billDetails.getProportion()) * 100;//规格占比
+
                 PurPrices purPrices = new PurPrices();
-                double ratio = list.get(i).getSpecsProportion() * 100;//规格占比
-                double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-                double price = list.get(i).getPrice();//单价
 
-                money = DoubleCountUtils.keep(weight * price) + money;//总金额
+                money = totalPrice + money;//总金额
+                money = DoubleCountUtils.keep(money);
 
-                Specs specs1 = LitePal.find(Specs.class,list.get(i).getSpecsId());
-                purPrices.setNormsID(specs1.getKeyID());//规格ID
+                purPrices.setNormsID(billDetails.getSpecsKeyId());//规格ID
 
                 purPrices.setAmount(weight);//当前占比的重量
-                purPrices.setPrice(price);//单价
-                purPrices.setMenoy(DoubleCountUtils.keep(weight * price));//金额
+                purPrices.setInitialPrice(Double.valueOf(billDetails.getPrice()));//初始单价
+                purPrices.setRevisionPrice(Double.valueOf(billDetails.getAdjustPrice()));//调整单价
+                purPrices.setPrice(finalPrice);//最终单价
+                purPrices.setMenoy(totalPrice);//金额
                 purPrices.setRatio(ratio);//规格占比
                 purPricesList.add(purPrices);
             }

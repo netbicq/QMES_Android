@@ -25,6 +25,8 @@ public class BillDetailsAdapter extends BaseQuickAdapter<BillDetails, BaseViewHo
     @Override
     protected void convert(BaseViewHolder helper, BillDetails item) {
         helper.setText(R.id.tv_specs,item.getSpecs());
+        helper.setText(R.id.tv_adjust_price,item.getAdjustPrice());
+        helper.setText(R.id.tv_final_price,item.getFinalPrice());
         helper.setText(R.id.tv_price,item.getPrice());
         helper.setText(R.id.tv_specs_proportion,item.getProportion());
         helper.setText(R.id.tv_weight,item.getWeight()+ "");

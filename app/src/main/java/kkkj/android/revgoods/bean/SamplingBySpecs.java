@@ -35,9 +35,35 @@ public class SamplingBySpecs extends LitePalSupport {
     private int specsId;
 
     /**
-     * 单价
+     * 初始单价
      */
     private double price;
+
+    /**
+     * 调整单价
+     */
+    private double adjustPrice;
+
+    /**
+     *最终单价
+     */
+    private double finalPrice;
+
+    public double getAdjustPrice() {
+        return adjustPrice;
+    }
+
+    public void setAdjustPrice(double adjustPrice) {
+        this.adjustPrice = adjustPrice;
+    }
+
+    public double getFinalPrice() {
+        return finalPrice;
+    }
+
+    public void setFinalPrice(double finalPrice) {
+        this.finalPrice = finalPrice;
+    }
 
     public int getId() {
         return id;

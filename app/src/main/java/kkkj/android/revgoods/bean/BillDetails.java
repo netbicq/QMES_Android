@@ -20,9 +20,24 @@ public class BillDetails extends LitePalSupport {
     private String specs;
 
     /**
-     * 单价
+     * 规格KeyId
+     */
+    private String specsKeyId;
+
+    /**
+     * 初始单价
      */
     private String price;
+
+    /**
+     * 调整单价
+     */
+    private String adjustPrice = "0";
+
+    /**
+     * 最终单价
+     */
+    private String finalPrice ;
 
     /**
      * 占比
@@ -35,9 +50,34 @@ public class BillDetails extends LitePalSupport {
     private double weight;
 
     /**
-     * 价格
+     * 金额
      */
     private double totalPrice;
+
+
+    public String getSpecsKeyId() {
+        return specsKeyId;
+    }
+
+    public void setSpecsKeyId(String specsKeyId) {
+        this.specsKeyId = specsKeyId;
+    }
+
+    public String getAdjustPrice() {
+        return adjustPrice;
+    }
+
+    public void setAdjustPrice(String adjustPrice) {
+        this.adjustPrice = adjustPrice;
+    }
+
+    public String getFinalPrice() {
+        return finalPrice;
+    }
+
+    public void setFinalPrice(String finalPrice) {
+        this.finalPrice = finalPrice;
+    }
 
     public int getId() {
         return id;

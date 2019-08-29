@@ -35,6 +35,7 @@ import android.widget.TextView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.suke.widget.SwitchButton;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -284,6 +285,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 2-蓝牙继电器
      */
     private static int CONNECT_TYPE = -1;
+
+    /**
+     * 采样模式
+     * 1.手动填写重量
+     * 2.连接附近蓝牙电子秤
+     */
+    private static int SAMPLING_MODE = 0;
 
     private QMUITipDialog qmuiTipDialog;
 
@@ -842,80 +850,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //蓝牙电子秤
     private void connect(BluetoothDevice device) {
 
-        //PublicSubject：接收到订阅之后的所有数据。
-//        PublishSubject<Double> source = PublishSubject.create();
-//        source.buffer(3, TimeUnit.SECONDS)
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<List<Double>>() {
-//                    @Override
-//                    public void onSubscribe(Disposable d) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onNext(List<Double> doubles) {
-//                        if (doubles.size() > 0) {
-//
-//                            double maxWeight = 0d;
-//                            Iterator<Double> i = doubles.iterator();
-//                            double candidate = i.next();
-//                            boolean hasFound = false;
-//                            while (!hasFound) {
-//                                Double next = i.next();
-//                                if (next.compareTo(candidate) == 0) {
-//                                    maxWeight = candidate;
-//                                    hasFound = true;
-//                                }
-//
-//                            }
-//
-//
-//                            String str = String.valueOf(maxWeight);
-//
-//                            Cumulative cumulative = new Cumulative();
-//                            cumulative.setCategory("净重");
-//                            cumulative.setWeight(str);
-//
-//                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-//                                Cumulative cumulativeLast =
-//                                        LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-//                                cumulative.setCount(cumulativeLast.getCount() + 1);
-//                            } else {
-//                                cumulative.setCount(1);
-//                            }
-//
-//                            cumulative.save();
-//
-//                            int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-//                            double cWeight =
-//                                    Double.parseDouble(tvCumulativeWeight.getText().toString());
-//
-//                            /**
-//                             * 相加：b1.add(b2).doubleValue();
-//                             * 相减：b1.subtract(b2).doubleValue();
-//                             * 相乘：b1.multiply(b2).doubleValue();
-//                             */
-//                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-//                            BigDecimal b2 = new BigDecimal(str);
-//                            cWeight = b1.add(b2).doubleValue();
-//                            count = count + 1;
-//
-//                            tvCumulativeCount.setText(String.valueOf(count));
-//                            tvCumulativeWeight.setText(String.valueOf(cWeight));
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//
-//                    }
-//                });
-
         qmuiTipDialog.show();
         final boolean[] isSend = {false};
         double compareWeight = Double.parseDouble(SharedPreferenceUtil
@@ -979,16 +913,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                      *    b2  数据
                                      */
 
-                                    byte[] b1 = {0x24,0x30,0x30,0x31,0x2C};
+                                    byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
                                     byte[] b3 = {0x23};
                                     byte[] b2 = str.getBytes();
-                                    b2 = CRC16Util.addBytes(b1,b2);
-                                    b3 = CRC16Util.addBytes(b2,b3);
+                                    b2 = CRC16Util.addBytes(b1, b2);
+                                    b3 = CRC16Util.addBytes(b2, b3);
 
                                     ble.send(b3);
                                 }
-
-
 
 
                                 double weight = Double.parseDouble(str);
@@ -1030,7 +962,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                 String s1 = strWeightList.get(size - 10);
 
                                                 if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-                                                    && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
+                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
 
                                                     if (!isWrite[0]) {
 
@@ -1095,14 +1027,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                             }
 
+                                        } else {
+                                            //
+                                            if (strWeightList.size() > 0) {
+                                                strWeightList.clear();
+                                            }
                                         }
 
                                         break;
                                     //蓝牙继电器
                                     case 2:
 
-//
-                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect() ) {
+                                        if (weight > compareWeight && bluetoothRelay.getMyBluetoothManager().isConnect()) {
 
                                             if (!isTurn[0]) {
                                                 isTurn[0] = true;
@@ -1173,7 +1109,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         tvCumulativeCount.setText(String.valueOf(count));
                                                         tvCumulativeWeight.setText(String.valueOf(cWeight));
 
-
                                                         //intervalTime秒之后开关置反
                                                         Observable.timer(intervalTime, TimeUnit.SECONDS)
                                                                 .subscribe(new Consumer<Long>() {
@@ -1201,6 +1136,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                             }
 
+                                        } else {
+                                            //
+                                            if (strWeightList.size() > 0) {
+                                                strWeightList.clear();
+                                            }
                                         }
 
                                         break;
@@ -1629,9 +1569,72 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             myToasty.showInfo(e.getMessage());
                         }
                     } else {
-                        myToasty.showInfo("未配置采样秤，请手动连接！");
-                        Intent intent2 = ElcScaleActivity.newIntent(MainActivity.this, 3);
-                        startActivity(intent2);
+//                        myToasty.showInfo("未配置采样秤，请选择要进行的操作！");
+
+                        if (SAMPLING_MODE == 0) {
+                            String[] items = new String[2];
+                            items[0] = "手动填写重量";
+                            items[1] = "扫描连接附近电子秤";
+                            QMUIDialog.MenuDialogBuilder builder = new QMUIDialog.MenuDialogBuilder(MainActivity.this);
+                            builder.addItems(items, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    switch (i) {
+                                        case 0:
+
+                                            if (supplier != null && matterId > 0 && matterLevelId > 0) {
+
+                                                SAMPLING_MODE = 1;
+
+                                                SamplingFragment samplingFragment = SamplingFragment.newInstance("0", supplierId,
+                                                        matterId, matterLevelId);
+                                                showDialogFragment(samplingFragment, SAMPLING);
+                                            } else {
+                                                myToasty.showWarning("请先选择供应商，品类，品类等级！");
+                                            }
+
+                                            break;
+
+                                        case 1:
+
+                                            SAMPLING_MODE = 2;
+
+                                            Intent intent2 = ElcScaleActivity.newIntent(MainActivity.this, 3);
+                                            startActivity(intent2);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    dialogInterface.dismiss();
+                                }
+                            }).show();
+                        } else {
+
+                            switch (SAMPLING_MODE) {
+                                case 1:
+                                    if (supplier != null && matterId > 0 && matterLevelId > 0) {
+
+                                        SAMPLING_MODE = 1;
+
+                                        SamplingFragment samplingFragment = SamplingFragment.newInstance("0", supplierId,
+                                                matterId, matterLevelId);
+                                        showDialogFragment(samplingFragment, SAMPLING);
+                                    } else {
+                                        myToasty.showWarning("请先选择供应商，品类，品类等级！");
+                                    }
+                                    break;
+
+                                case 2:
+                                    Intent intent2 = ElcScaleActivity.newIntent(MainActivity.this, 3);
+                                    startActivity(intent2);
+                                    break;
+                                default:
+                                    break;
+                            }
+
+
+                        }
                     }
                 }
 
@@ -1744,19 +1747,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 int samplingSize = list.size();
 
                 if (samplingSize <= 0) {
-                    //未采样，则必须选择供应商，品类，品类等级，规格
-                    if (supplier == null || matterId <= 0 || matterLevelId <= 0 || specs == null) { //未选择，直接返回
-                        myToasty.showWarning("请先选择供应商，品类，品类等级，规格！");
-                        return;
-                    }
+                    //未采样
+                    myToasty.showWarning("请先采样！");
 
-                    //已选择供应商，品类，品类等级，规格
-
-                    Intent intent1 = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
-                            deductionMix, tvCumulativeWeight.getText().toString().trim(), supplierId, matterId,
-                            matterLevelId, specsId);
-
-                    startActivity(intent1);
+//                    //未采样，则必须选择供应商，品类，品类等级，规格
+//                    if (supplier == null || matterId <= 0 || matterLevelId <= 0 || specs == null) { //未选择，直接返回
+//                        myToasty.showWarning("请先选择供应商，品类，品类等级，规格！");
+//                        return;
+//                    }
+//
+//                    //已选择供应商，品类，品类等级，规格
+//
+//                    Intent intent1 = SaveBillWithoutSamplingActivity.newInstance(MainActivity.this,
+//                            deductionMix, tvCumulativeWeight.getText().toString().trim(), supplierId, matterId,
+//                            matterLevelId, specsId);
+//
+//                    startActivity(intent1);
 
                 } else {
                     //已采样

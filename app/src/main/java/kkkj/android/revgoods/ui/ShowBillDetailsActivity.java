@@ -5,18 +5,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.orhanobut.logger.Logger;
 
 import org.litepal.LitePal;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import butterknife.BindView;
@@ -29,28 +25,33 @@ import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
-import kkkj.android.revgoods.bean.Path;
 import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
-import kkkj.android.revgoods.bean.bill.BillMaster;
-import kkkj.android.revgoods.bean.bill.DelWeights;
-import kkkj.android.revgoods.bean.bill.PurPrices;
-import kkkj.android.revgoods.bean.bill.PurSamples;
-import kkkj.android.revgoods.bean.bill.Scales;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
-import kkkj.android.revgoods.ui.saveBill.BillModel;
-import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
 
 public class ShowBillDetailsActivity extends BaseActivity implements View.OnClickListener {
+
 
     @BindView(R.id.iv_back)
     ImageView ivBack;
     @BindView(R.id.tv_title)
     TextView tvTitle;
+    @BindView(R.id.tv_time)
+    TextView tvTime;
+    @BindView(R.id.tv_supplier)
+    TextView tvSupplier;
+    @BindView(R.id.tv_supplier_number)
+    TextView tvSupplierNumber;
+    @BindView(R.id.tv_matter)
+    TextView tvMatter;
+    @BindView(R.id.tv_matter_level)
+    TextView tvMatterLevel;
+    @BindView(R.id.tv_specs)
+    TextView tvSpecs;
     @BindView(R.id.tv_deduction_mix)
     TextView tvDeductionMix;
     @BindView(R.id.tv_cumulative_count)
@@ -69,8 +70,9 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     TextView mTvTotalWeight;
     @BindView(R.id.tv_total_price)
     TextView mTvTotalPrice;
-    @BindView(R.id.button)
-    Button button;
+    @BindView(R.id.ll_cumulative)
+    LinearLayout llCumulative;
+
 
     private List<BillDetails> billDetailsList;
 
@@ -87,10 +89,15 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     }
 
     @Override
+    protected int setLayout() {
+        return R.layout.activity_show_bill_details;
+    }
+
+    @Override
     protected void initView() {
         tvTitle.setText(R.string.bill_details);
         ivBack.setOnClickListener(this);
-        button.setVisibility(View.GONE);
+
     }
 
     @Override
@@ -98,8 +105,9 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         billDetailsList = new ArrayList<>();
 
         Intent intent = getIntent();
-        int billId = intent.getIntExtra("billId",-1);
-        Bill bill = LitePal.find(Bill.class,billId,true);
+        int billId = intent.getIntExtra("billId", -1);
+        Bill bill = LitePal.find(Bill.class, billId, true);
+        billDetailsList = bill.getBillDetailsList();
 
         getBillRequest(bill);
 
@@ -109,11 +117,6 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         recyclerView.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-    }
-
-    @Override
-    protected int setLayout() {
-        return R.layout.fragment_save_bill_details;
     }
 
     @Override
@@ -142,6 +145,19 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         List<Cumulative> cumulativeList = bill.getCumulativeList();
         List<SamplingDetails> samplingDetailsList = bill.getSamplingDetailsList();
 
+        Supplier supplier = LitePal.find(Supplier.class,bill.getSupplierId());
+        Matter matter = LitePal.find(Matter.class, bill.getMatterId());
+        MatterLevel matterLevel = LitePal.find(MatterLevel.class,samplingDetailsList.get(0).getMatterLevelId());
+
+        String time = bill.getTime();
+
+        tvTime.setText(time);
+        tvSupplier.setText(supplier.getName());
+        tvSupplierNumber.setText(supplier.getKeyID());
+        tvMatter.setText(matter.getName());
+        tvMatterLevel.setText(matterLevel.getName());
+
+
         //计秤总重量
         double mWeight = bill.getWeight();
         tvCumulativeWeight.setText(String.valueOf(mWeight));
@@ -159,7 +175,6 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         //实际重量  :除去扣重，以及扣重率之后的
         double realWeight = DoubleCountUtils.keep(mWeight * (100 - bill.getDeductionMix()) * 0.01);
 
-        Matter matter = LitePal.find(Matter.class,bill.getMatterId());
         /**
          * 计价方式
          * ValuationType = 1;根据规格计算
@@ -169,47 +184,19 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
 
         if (ValuationType == 2 || bill.getSamplingBySpecsId() == -1) {
 
-            List<SamplingDetails> list = getSamplingDetails(samplingDetailsList);//合并规格相同的采样
+            for (int i = 0; i < billDetailsList.size(); i++) {
+                BillDetails billDetails = billDetailsList.get(i);
 
-            for (int i = 0; i < list.size(); i++) {
-                SamplingDetails samplingDetails = list.get(i);
-
-                double ratio = samplingDetails.getSpecsProportion() * 100;//规格占比
-                double weight = DoubleCountUtils.keep(realWeight * ratio * 0.01);//当前占比的重量
-                double price = samplingDetails.getPrice();//单价
-
-                money = DoubleCountUtils.keep(weight * price) + money;//总金额
+                money = billDetails.getTotalPrice() + money;//总金额
                 money = DoubleCountUtils.keep(money);
 
-                Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
-
-                BillDetails billDetails = new BillDetails();
-                billDetails.setSpecs(specs.getValue());
-                billDetails.setPrice(samplingDetails.getPrice() + "");
-                billDetails.setProportion(samplingDetails.getSpecsProportion() + "");
-
-                billDetails.setWeight(DoubleCountUtils.keep(weight));
-
-                billDetails.setTotalPrice(DoubleCountUtils.keep(weight * samplingDetails.getPrice()));
-
-                billDetailsList.add(billDetails);
             }
+            tvSpecs.setVisibility(View.GONE);
         } else {
-
             SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class,bill.getSamplingBySpecsId());
-
-            Specs specs = LitePal.find(Specs.class, samplingBySpecs.getSpecsId());
-            BillDetails billDetails = new BillDetails();
-            billDetails.setSpecs(specs.getValue());
-            billDetails.setPrice(samplingBySpecs.getPrice() + "");
-            billDetails.setProportion("1");
-            billDetails.setWeight(realWeight);
-
-            money = DoubleCountUtils.keep(samplingBySpecs.getPrice() * realWeight);//总金额
-
-            billDetails.setTotalPrice(money);
-
-            billDetailsList.add(billDetails);
+            Specs specs = LitePal.find(Specs.class,samplingBySpecs.getSpecsId());
+            tvSpecs.setText(specs.getValue());
+            llCumulative.setVisibility(View.GONE);
         }
 
         tvDeductionMix.setText("计重明细（当前扣重率：" + bill.getDeductionMix() + "%）");//扣重率
@@ -223,32 +210,5 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         mTvTotalPrice.setText(String.valueOf(money));
 
     }
-
-
-    //合并规格相同的采样
-    private List<SamplingDetails> getSamplingDetails(List<SamplingDetails> samplingDetailsList){
-
-        int size = samplingDetailsList.size();
-
-        for (int i=0;i<size;i++) {
-
-            SamplingDetails samplingDetails = samplingDetailsList.get(i);
-            double proportion = samplingDetails.getSpecsProportion();
-
-            for (int j = i+1;j<size;j++) {
-                SamplingDetails samplingDetailsNext = samplingDetailsList.get(j);
-                if (samplingDetails.getSpecsId() == samplingDetailsNext.getSpecsId()) {
-                    proportion = DoubleCountUtils.keep4(proportion + samplingDetailsNext.getSpecsProportion());
-                    samplingDetailsList.remove(samplingDetailsNext);
-                    size = size - 1;
-                }
-            }
-            samplingDetails.setSpecsProportion(proportion);
-
-        }
-
-        return samplingDetailsList;
-    }
-
 
 }

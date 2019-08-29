@@ -27,7 +27,29 @@
             android:layout_marginBottom="1dp"
             android:background="#ffffff"
             android:gravity="center"
-            tools:text="单价" />
+            tools:text="初始单价" />
+
+        <TextView
+            android:id="@+id/tv_adjust_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
+            android:background="#ffffff"
+            android:gravity="center"
+            tools:text="调整单价" />
+
+        <TextView
+            android:id="@+id/tv_final_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
+            android:background="#ffffff"
+            android:gravity="center"
+            tools:text="最终单价" />
 
         <TextView
             android:id="@+id/tv_specs_proportion"
