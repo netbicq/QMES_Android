@@ -16,7 +16,7 @@ public class SamplingDetails extends LitePalSupport {
     private int hasBill = -1;
 
     /**
-     * 采样次数
+     * 采样次数,序号
      */
     private int count;
     /**

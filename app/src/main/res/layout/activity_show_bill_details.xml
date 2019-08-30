@@ -22,11 +22,11 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/bar_container"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/bar_container">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -233,11 +233,11 @@
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    tools:text="100"
                     app:layout_column="1"
                     app:layout_columnWeight="1"
                     app:layout_row="3"
-                    app:layout_rowWeight="1" />
+                    app:layout_rowWeight="1"
+                    tools:text="100" />
 
                 <TextView
                     android:id="@+id/tv_deduction_weight"
@@ -246,11 +246,11 @@
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    tools:text="8"
                     app:layout_column="2"
                     app:layout_columnWeight="1"
                     app:layout_row="2"
-                    app:layout_rowWeight="1" />
+                    app:layout_rowWeight="1"
+                    tools:text="8" />
 
                 <TextView
                     android:layout_marginLeft="1dp"
@@ -269,11 +269,11 @@
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    tools:text="10"
                     app:layout_column="1"
                     app:layout_columnWeight="1"
                     app:layout_row="2"
-                    app:layout_rowWeight="1" />
+                    app:layout_rowWeight="1"
+                    tools:text="10" />
 
                 <TextView
                     android:id="@+id/tv_cumulative_weight"
@@ -282,11 +282,11 @@
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    tools:text="4"
                     app:layout_column="2"
                     app:layout_columnWeight="1"
                     app:layout_row="3"
-                    app:layout_rowWeight="1" />
+                    app:layout_rowWeight="1"
+                    tools:text="4" />
 
                 <TextView
                     android:layout_marginLeft="1dp"
@@ -317,11 +317,11 @@
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    tools:text="（8-4）* 扣重率 = "
                     app:layout_column="2"
                     app:layout_columnWeight="1"
                     app:layout_row="4"
-                    app:layout_rowWeight="1" />
+                    app:layout_rowWeight="1"
+                    tools:text="（8-4）* 扣重率 = " />
 
             </android.support.v7.widget.GridLayout>
 
@@ -339,16 +339,16 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="@color/qmui_config_color_pure_black">
+                android:background="@color/qmui_config_color_pure_black"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="规格" />
@@ -356,10 +356,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="初始单价" />
@@ -367,10 +367,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="调整单价" />
@@ -378,10 +378,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="最终单价" />
@@ -389,10 +389,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="占比" />
@@ -400,10 +400,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="合计净重" />
@@ -411,8 +411,8 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:layout_margin="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="总金额" />
@@ -527,16 +527,16 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="@color/qmui_config_color_pure_black">
+                android:background="@color/qmui_config_color_pure_black"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="序号" />
@@ -544,10 +544,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="1" />
@@ -555,10 +555,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="2" />
@@ -566,10 +566,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="3" />
@@ -577,10 +577,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="4" />
@@ -588,10 +588,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="5" />
@@ -599,8 +599,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
                     android:layout_weight="1"
-                    android:layout_margin="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="6" />
@@ -608,10 +610,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="7" />
@@ -619,10 +621,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="8" />
@@ -630,10 +632,10 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginTop="1dp"
                     android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="9" />
@@ -641,8 +643,8 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:layout_margin="1dp"
+                    android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
                     android:text="10" />
@@ -659,6 +661,342 @@
                     android:layout_height="wrap_content" />
 
             </RelativeLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="4dp"
+                android:background="#ffffff"
+                android:gravity="center"
+                android:text="扣重明细"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/qmui_config_color_pure_black"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="序号" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="扣重类别" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="@string/weight" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recycler_view_deduction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/qmui_config_color_pure_black"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="合计" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="/" />
+
+                <TextView
+                    android:id="@+id/tv_deduction_weight_details"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginRight="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    tools:text="重量" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="4dp"
+                android:background="#ffffff"
+                android:gravity="center"
+                android:text="采样记录"
+                android:textSize="20sp" />
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/textView5_s"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:text="采样日期："
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_time_sampling"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="2019年08月29日15:30"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/textView5_s"
+                    app:layout_constraintTop_toTopOf="@+id/textView5_s" />
+
+                <TextView
+                    android:id="@+id/textView8_s"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:text="供应商名称："
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView5_s" />
+
+                <TextView
+                    android:id="@+id/tv_supplier_sampling"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="重庆库克科技有限公司"
+                    app:layout_constraintStart_toEndOf="@+id/textView8_s"
+                    app:layout_constraintTop_toTopOf="@+id/textView8_s" />
+
+                <android.support.constraint.Guideline
+                    android:id="@+id/guideline_s"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.4" />
+
+                <TextView
+                    android:id="@+id/textView10_s"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="供应商编号："
+                    app:layout_constraintStart_toStartOf="@+id/guideline_s"
+                    app:layout_constraintTop_toTopOf="@+id/textView8_s" />
+
+                <TextView
+                    android:id="@+id/tv_supplier_number_sampling"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="123456789"
+                    app:layout_constraintStart_toEndOf="@+id/textView10_s"
+                    app:layout_constraintTop_toTopOf="@+id/textView10_s" />
+
+            </android.support.constraint.ConstraintLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@color/qmui_config_color_pure_black"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="序号" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="@string/quantity" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="@string/weight" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="@string/name" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="@string/percentage" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="初始单价" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recycler_view_sampling"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@color/qmui_config_color_pure_black"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="合计" />
+
+                <TextView
+                    android:id="@+id/tv_sampling_total_quantity"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    tools:text="数量" />
+
+                <TextView
+                    android:id="@+id/tv_sampling_total_weight"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    tools:text="重量" />
+
+                <TextView
+                    android:id="@+id/tv_specs_sampling"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="/" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="1" />
+
+                <TextView
+                    android:id="@+id/tv_price_sampling"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginRight="1dp"
+                    android:layout_marginBottom="1dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="/" />
+
+            </LinearLayout>
 
 
         </LinearLayout>

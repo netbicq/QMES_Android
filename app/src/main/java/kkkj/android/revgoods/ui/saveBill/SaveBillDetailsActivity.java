@@ -262,6 +262,8 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                     .find(SamplingBySpecs.class);
             samplingBySpecs = bySpecsList.get(0);
 
+            Logger.d("bySpecsListSize" +  bySpecsList.size());
+
             Specs specs = LitePal.find(Specs.class, samplingBySpecs.getSpecsId());
             //初始单价
             String price = String.valueOf(samplingBySpecs.getPrice());
@@ -367,13 +369,11 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
                     tvFinalPrice.setText(String.valueOf(finalPrice));
 
-
-                    List<SamplingBySpecs> bySpecsList = LitePal.where("hasBill < ?", "0")
-                            .find(SamplingBySpecs.class);
-                    samplingBySpecs = bySpecsList.get(0);
-
+                    samplingBySpecs.setPrice(Double.valueOf(billDetails.getPrice()));
                     samplingBySpecs.setAdjustPrice(adjustPrice);
                     samplingBySpecs.setFinalPrice(finalPrice);
+
+                    samplingBySpecs.save();
 
                     samplingBySpecsId = samplingBySpecs.getSpecsId();
                     Specs specs = LitePal.find(Specs.class, samplingBySpecsId);
@@ -409,7 +409,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                         double totalPrice = 0d;
 
                         BillDetails billDetails = billDetailsList.get(i);
-
 
                         PurPrices purPrices = new PurPrices();
                         double ratio = Double.valueOf(billDetailsList.get(i).getProportion()) * 100;//规格占比

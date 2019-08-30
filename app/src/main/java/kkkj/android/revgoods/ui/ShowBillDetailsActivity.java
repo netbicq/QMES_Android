@@ -9,16 +9,22 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.orhanobut.logger.Logger;
+
 import org.litepal.LitePal;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.BillDetailsAdapter;
+import kkkj.android.revgoods.adapter.BillDetailsSamplingAdapter;
+import kkkj.android.revgoods.adapter.DeductionAdapter;
+import kkkj.android.revgoods.adapter.WeightListAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.BillDetails;
 import kkkj.android.revgoods.bean.Cumulative;
@@ -72,9 +78,34 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     TextView mTvTotalPrice;
     @BindView(R.id.ll_cumulative)
     LinearLayout llCumulative;
+    @BindView(R.id.recycler_view_cumulative)
+    RecyclerView recyclerViewCumulative;
+    @BindView(R.id.recycler_view_deduction)
+    RecyclerView recyclerViewDeduction;
+    @BindView(R.id.tv_deduction_weight_details)
+    TextView tvDeductionWeightDetails;
+    @BindView(R.id.tv_time_sampling)
+    TextView tvTimeSampling;
+    @BindView(R.id.tv_supplier_sampling)
+    TextView tvSupplierSampling;
+    @BindView(R.id.tv_supplier_number_sampling)
+    TextView tvSupplierNumberSampling;
+    @BindView(R.id.recycler_view_sampling)
+    RecyclerView recyclerViewSampling;
+    @BindView(R.id.tv_sampling_total_quantity)
+    TextView tvSamplingTotalQuantity;
+    @BindView(R.id.tv_sampling_total_weight)
+    TextView tvSamplingTotalWeight;
+    @BindView(R.id.tv_specs_sampling)
+    TextView tvSpecsSampling;
+    @BindView(R.id.tv_price_sampling)
+    TextView tvPriceSampling;
 
 
     private List<BillDetails> billDetailsList;
+    private List<String[]> weightList;
+    private List<Deduction> deductionList;
+    private List<SamplingDetails> samplingDetailsList;
 
     public static Intent newInstance(Context context, int billId) {
         Intent intent = new Intent(context, ShowBillDetailsActivity.class);
@@ -103,6 +134,9 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     @Override
     protected void initData() {
         billDetailsList = new ArrayList<>();
+        weightList = new ArrayList<>();
+        deductionList = new ArrayList<>();
+        samplingDetailsList = new ArrayList<>();
 
         Intent intent = getIntent();
         int billId = intent.getIntExtra("billId", -1);
@@ -112,10 +146,22 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         getBillRequest(bill);
 
         BillDetailsAdapter adapter = new BillDetailsAdapter(R.layout.item_price_details, billDetailsList);
+        WeightListAdapter weightListAdapter = new WeightListAdapter(R.layout.item_weight_list, weightList);
+        DeductionAdapter deductionAdapter = new DeductionAdapter(R.layout.item_cumulative, deductionList);
+        BillDetailsSamplingAdapter billDetailsSamplingAdapter = new BillDetailsSamplingAdapter(R.layout.item_bill_details_sampling, samplingDetailsList);
 
-        recyclerView = findViewById(R.id.recycler_view);
+//        recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+
+        recyclerViewCumulative.setLayoutManager(new MyLinearLayoutManager(this));
+        recyclerViewCumulative.setAdapter(weightListAdapter);
+
+        recyclerViewDeduction.setLayoutManager(new MyLinearLayoutManager(this));
+        recyclerViewDeduction.setAdapter(deductionAdapter);
+
+        recyclerViewSampling.setLayoutManager(new MyLinearLayoutManager(this));
+        recyclerViewSampling.setAdapter(billDetailsSamplingAdapter);
 
     }
 
@@ -141,19 +187,34 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         //总金额
         double money = 0d;
 
-        List<Deduction> deductionList = bill.getDeductionList();
+        deductionList = bill.getDeductionList();
         List<Cumulative> cumulativeList = bill.getCumulativeList();
-        List<SamplingDetails> samplingDetailsList = bill.getSamplingDetailsList();
+        samplingDetailsList = bill.getSamplingDetailsList();
+        int quantity = 0;//采样的总数量
+        double samplingWeight = 0d;//采样的总重量
+        for (int i = 0; i < samplingDetailsList.size(); i++) {
+            quantity = quantity + Integer.valueOf(samplingDetailsList.get(i).getNumber());
+            samplingWeight = samplingWeight + Double.valueOf(samplingDetailsList.get(i).getWeight());
+            samplingWeight = DoubleCountUtils.keep(samplingWeight);
+        }
 
-        Supplier supplier = LitePal.find(Supplier.class,bill.getSupplierId());
+        tvSamplingTotalQuantity.setText(String.valueOf(quantity));
+        tvSamplingTotalWeight.setText(String.valueOf(samplingWeight));
+
+        weightList = getWeightList(cumulativeList);
+
+        Supplier supplier = LitePal.find(Supplier.class, bill.getSupplierId());
         Matter matter = LitePal.find(Matter.class, bill.getMatterId());
-        MatterLevel matterLevel = LitePal.find(MatterLevel.class,samplingDetailsList.get(0).getMatterLevelId());
+        MatterLevel matterLevel = LitePal.find(MatterLevel.class, samplingDetailsList.get(0).getMatterLevelId());
 
         String time = bill.getTime();
 
         tvTime.setText(time);
+        tvTimeSampling.setText(time);
         tvSupplier.setText(supplier.getName());
+        tvSupplierSampling.setText(supplier.getName());
         tvSupplierNumber.setText(supplier.getKeyID());
+        tvSupplierNumberSampling.setText(supplier.getKeyID());
         tvMatter.setText(matter.getName());
         tvMatterLevel.setText(matterLevel.getName());
 
@@ -193,15 +254,21 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
             }
             tvSpecs.setVisibility(View.GONE);
         } else {
-            SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class,bill.getSamplingBySpecsId());
-            Specs specs = LitePal.find(Specs.class,samplingBySpecs.getSpecsId());
-            tvSpecs.setText(specs.getValue());
+            BillDetails billDetails = billDetailsList.get(0);
+
+            SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class, bill.getSamplingBySpecsId());
+
+            tvSpecsSampling.setText(billDetails.getSpecs());
+            tvPriceSampling.setText(String.valueOf(samplingBySpecs.getPrice()));
+
+            tvSpecs.setText(billDetails.getSpecs());
             llCumulative.setVisibility(View.GONE);
         }
 
         tvDeductionMix.setText("计重明细（当前扣重率：" + bill.getDeductionMix() + "%）");//扣重率
         mTvDeductionCount.setText(deductionList.size() + "");//扣重次数
         tvDeductionWeight.setText(String.valueOf(deductionWeight));//扣重总重量
+        tvDeductionWeightDetails.setText(String.valueOf(deductionWeight));//扣重明细里面扣重总重量
         tvCumulativeCount.setText(cumulativeList.size() + "");//计秤次数
 
         tvRealWeight.setText(String.valueOf(realWeight));//实际重量
@@ -209,6 +276,55 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         mTvTotalWeight.setText(String.valueOf(realWeight));
         mTvTotalPrice.setText(String.valueOf(money));
 
+    }
+
+    private List<String[]> getWeightList(List<Cumulative> cumulativeList) {
+        List<String[]> weightList = new ArrayList<>();
+        int order = 1;//序号
+
+        for (int i = 0; i < cumulativeList.size(); i++) {
+
+            if (cumulativeList.size() - i >= 11) {
+
+                String[] sWeight = {String.valueOf(order), cumulativeList.get(i).getWeight(), cumulativeList.get(i + 1).getWeight(), cumulativeList.get(i + 2).getWeight()
+                        , cumulativeList.get(i + 3).getWeight(), cumulativeList.get(i + 4).getWeight(), cumulativeList.get(i + 5).getWeight(), cumulativeList.get(i + 6).getWeight()
+                        , cumulativeList.get(i + 7).getWeight(), cumulativeList.get(i + 8).getWeight(), cumulativeList.get(i + 9).getWeight()};
+
+                i = i + 9;
+                order++;
+
+                weightList.add(sWeight);
+
+            } else {
+                /**
+                 * 最后一排不满10个数
+                 */
+
+                //最后一排剩下数据的数量
+                int lastCount = cumulativeList.size() - (i - 1);
+
+                String[] lastWeight = new String[lastCount];
+                String[] s = new String[11 - lastCount];//末尾补齐，一共需11个数据
+
+                lastWeight[0] = String.valueOf(order);//序号
+                for (int j = 1; j < lastCount; j++) {
+                    lastWeight[j] = cumulativeList.get(i).getWeight();
+                    i++;
+                }
+
+                for (int k = 0; k < 11 - lastCount; k++) {
+                    s[k] = "";
+                }
+                //合并两个数组
+                String[] sWeight = Arrays.copyOf(lastWeight, lastWeight.length + s.length);
+                System.arraycopy(s, 0, sWeight, lastWeight.length, s.length);
+
+                weightList.add(sWeight);
+
+            }
+        }
+
+        return weightList;
     }
 
 }

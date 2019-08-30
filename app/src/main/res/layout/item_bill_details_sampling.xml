@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/qmui_config_color_pure_black"
+    android:orientation="horizontal">
+
+
+    <TextView
+        android:id="@+id/id_tv_count"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="序号" />
+
+    <TextView
+        android:id="@+id/id_tv_number"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="数量" />
+
+    <TextView
+        android:id="@+id/id_tv_weight"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="重量" />
+
+    <TextView
+        android:id="@+id/id_tv_specs"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="规格" />
+
+    <TextView
+        android:id="@+id/id_tv_proportion"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="占比" />
+
+    <TextView
+        android:id="@+id/id_tv_price"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:background="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="单价" />
+
+
+</LinearLayout>

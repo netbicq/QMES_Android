@@ -127,10 +127,6 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
                         deduction.setKeyID(deductionCategory.getKeyID());
                         deduction.save();
 
-                        DeviceEvent deviceEvent = new DeviceEvent();
-                        deviceEvent.setAdd(true);
-                        EventBus.getDefault().post(deviceEvent);
-
                         dismiss();
 
                     } else {

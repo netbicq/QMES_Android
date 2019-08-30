@@ -25,7 +25,7 @@ public class DeductionCategoryModel extends MvpModel<DeductionCategoryModel.Requ
     public void getResponse(Request request, MvpCallback<Response> callback) {
 
         /**
-         * 在MainActivity中已经向服务器请求了最新数据，并覆写了数据库
+         * 在LoginActivity中已经向服务器请求了最新数据，并覆写了数据库
          * 这里就直接从数据库取数据
          */
 

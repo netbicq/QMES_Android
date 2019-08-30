@@ -381,19 +381,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mTvMatter.setText(matter.getName());
         }
 
-        if (LitePal.isExist(Cumulative.class) || LitePal.isExist(Deduction.class)) {
-            int cumulativeSize = LitePal.where("hasBill < ?", "0").find(Cumulative.class).size();
-            int deductionSize = LitePal.where("hasBill < ?", "0").find(Deduction.class).size();
-            tvCumulativeCount.setText(String.valueOf(cumulativeSize + deductionSize));
-        }
         if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
             List<Cumulative> cumulatives = LitePal.where("hasBill < ?", "0").find(Cumulative.class);
+            int cumulativeSize = cumulatives.size();
             String weight = "0";
             for (int i = 0; i < cumulatives.size(); i++) {
                 BigDecimal b1 = new BigDecimal(weight);
                 BigDecimal b2 = new BigDecimal(cumulatives.get(i).getWeight());
                 weight = String.valueOf(b1.add(b2).doubleValue());
             }
+            tvCumulativeCount.setText(String.valueOf(cumulativeSize));
             tvCumulativeWeight.setText(weight);
         }
 
@@ -936,19 +933,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     //Wifi继电器
                                     case 1:
 
-                                        if (weight > compareWeight && manager != null && manager.isConnect()) {
+                                        if (weight > compareWeight) {
 
-                                            if (!isTurn[0]) {
+                                            if (!isTurn[0] && manager != null && manager.isConnect()) {
                                                 isTurn[0] = true;
                                                 manager.send(new WriteData(Order.getTurnOff().get(inLine)));
-                                                //100毫秒之后打开2号开关
-                                                Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                        .subscribe(new Consumer<Long>() {
-                                                            @Override
-                                                            public void accept(Long aLong) throws Exception {
-                                                                manager.send(new WriteData(Order.getTurnOn().get(outLine)));
-                                                            }
-                                                        });
+
                                             }
 
                                             strWeightList.add(str);
@@ -1007,23 +997,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         tvCumulativeCount.setText(String.valueOf(count));
                                                         tvCumulativeWeight.setText(String.valueOf(cWeight));
 
-                                                        //intervalTime秒之后开关置反
-                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
+                                                        //计重之后打开2号开关，出料口开始倾倒物料
+                                                        if (manager != null && manager.isConnect()) {
+                                                            manager.send(new WriteData(Order.getTurnOn().get(outLine)));
+                                                        }
+
+
+                                                    }
+
+                                                }
+
+                                            }
+
+                                        } else {
+
+                                            if (isWrite[0]) {
+
+                                                if (strWeightList.size() > 0) {
+                                                    strWeightList.clear();
+                                                }
+
+                                                strLowWeightList.add(str);
+                                                int size = strLowWeightList.size();
+                                                if (size > 10) {
+
+                                                    String s10 = strLowWeightList.get(size - 1);
+                                                    String s9 = strLowWeightList.get(size - 2);
+                                                    String s8 = strLowWeightList.get(size - 3);
+                                                    String s7 = strLowWeightList.get(size - 4);
+                                                    String s6 = strLowWeightList.get(size - 5);
+                                                    String s5 = strLowWeightList.get(size - 6);
+                                                    String s4 = strLowWeightList.get(size - 7);
+                                                    String s3 = strLowWeightList.get(size - 8);
+                                                    String s2 = strLowWeightList.get(size - 9);
+                                                    String s1 = strLowWeightList.get(size - 10);
+
+                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
+                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
+                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
+
+                                                        //此时关闭出料口
+                                                        if (manager != null && manager.isConnect()) {
+                                                            manager.send(new WriteData(Order.getTurnOff().get(outLine)));
+                                                        }
+
+                                                        //间隔1秒之后打开入料口开关，传送带
+                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
                                                                 .subscribe(new Consumer<Long>() {
                                                                     @Override
                                                                     public void accept(Long aLong) throws Exception {
-                                                                        manager.send(new WriteData(Order.getTurnOn().get(inLine)));
+
+                                                                        if (manager != null && manager.isConnect()) {
+                                                                            manager.send(new WriteData(Order.getTurnOn().get(inLine)));
+                                                                        }
                                                                         isWrite[0] = false;
                                                                         isTurn[0] = false;
-                                                                        strWeightList.clear();
-                                                                        //间隔100毫秒之后关掉2号开关
-                                                                        Observable.timer(100, TimeUnit.MILLISECONDS)
-                                                                                .subscribe(new Consumer<Long>() {
-                                                                                    @Override
-                                                                                    public void accept(Long aLong) throws Exception {
-                                                                                        manager.send(new WriteData(Order.getTurnOff().get(outLine)));
-                                                                                    }
-                                                                                });
+                                                                        strLowWeightList.clear();
                                                                     }
                                                                 });
 
@@ -1033,11 +1062,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                             }
 
-                                        } else {
-                                            //
-                                            if (strWeightList.size() > 0) {
-                                                strWeightList.clear();
-                                            }
                                         }
 
                                         break;
@@ -1173,7 +1197,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                         strLowWeightList.clear();
                                                                     }
                                                                 });
-
 
                                                     }
 
@@ -1820,7 +1843,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         List<SamplingBySpecs> samplingBySpecsList = LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class);
                         if (samplingBySpecsList.size() <= 0) {
                             //未确认
-                            myToasty.showWarning("请先点击采样明细，确认规格和单价！");
+                            myToasty.showWarning("请先点击采样累计，确认规格和单价！");
                             return;
                         }
                     }
@@ -1946,6 +1969,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         EventBus.getDefault().unregister(this);
+    }
+
+    /**
+     *控制继电器的开关，进料口和出料口
+     */
+
+    private void controlRelay(){
+
+
+
     }
 
     @Override
