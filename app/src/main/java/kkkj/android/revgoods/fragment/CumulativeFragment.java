@@ -33,50 +33,77 @@ import kkkj.android.revgoods.bean.Deduction;
  */
 public class CumulativeFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private RecyclerView mRecyclerView;
-    private LinearLayoutManager mLayoutManager;
     private CumulativeAdapter adapter;
-    private List<Cumulative> cumulativeList;
-    private List<Deduction> deductionList;
 
+    /**
+     * type = 1 : 扣重明细
+     * type = 2 : 计重明细
+     */
+    private int type = 0;
 
-    @Override
-    public void initData() {
-        cumulativeList = new ArrayList<>();
-        deductionList = new ArrayList<>();
-        deductionList = LitePal.where("hasBill < ?","0")
-                                               .find(Deduction.class);
+    public static CumulativeFragment newInstance(int type) {
+        Bundle args = new Bundle();
+        args.putInt("type",type);
 
-        for (int i = 0;i<deductionList.size();i++) {
-            Cumulative cumulative = new Cumulative();
-            cumulative.setCount(i + 1);
-            cumulative.setCategory("扣重·" + deductionList.get(i).getCategory());
-            cumulative.setWeight(String.valueOf(deductionList.get(i).getWeight()));
-            cumulativeList.add(cumulative);
-        }
-
-        cumulativeList.addAll(LitePal.where("hasBill < ?","0")
-                                     .find(Cumulative.class));
-
-        adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
+        CumulativeFragment fragment = new CumulativeFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    public void initView(View view) {
-        tvTitle.setText(R.string.cumulative_details);
-
-        mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
-                DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(adapter);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        type = (Integer) getArguments().getSerializable("type");
     }
 
     @Override
     public int setLayout() {
         return R.layout.fragment_cumulative;
     }
+
+    @Override
+    public void initData() {
+        List<Cumulative> cumulativeList = new ArrayList<>();
+
+        if (type == 1) {
+
+            List<Deduction> deductionList =LitePal.where("hasBill < ?","0")
+                    .find(Deduction.class);
+
+            for (int i = 0;i<deductionList.size();i++) {
+                Cumulative cumulative = new Cumulative();
+                cumulative.setCount(i + 1);
+                cumulative.setCategory(deductionList.get(i).getCategory());
+                cumulative.setWeight(String.valueOf(deductionList.get(i).getWeight()));
+                cumulativeList.add(cumulative);
+            }
+
+        }else if (type == 2) {
+
+            cumulativeList = LitePal.where("hasBill < ?","0")
+                    .find(Cumulative.class);
+
+        }
+
+        adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
+    }
+
+    @Override
+    public void initView(View view) {
+        if (type == 1) {
+            tvTitle.setText("扣重明细");
+        }else if (type == 2) {
+            tvTitle.setText("计重明细");
+        }
+
+
+        RecyclerView mRecyclerView = view.findViewById(R.id.id_sampling_recyclerView);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
+                DividerItemDecoration.VERTICAL));
+        mRecyclerView.setAdapter(adapter);
+    }
+
 
     @Override
     public void onClick(View view) {

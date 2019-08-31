@@ -50,9 +50,6 @@ import org.litepal.LitePal;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -68,13 +65,9 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
-import io.reactivex.subjects.AsyncSubject;
-import io.reactivex.subjects.PublishSubject;
-import io.reactivex.subjects.ReplaySubject;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
 import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
-import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.Master;
 import kkkj.android.revgoods.bean.Matter;
@@ -90,6 +83,7 @@ import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.SwitchIcon;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
+import kkkj.android.revgoods.conn.ControlRelay;
 import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueCallBack;
@@ -123,7 +117,6 @@ import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
-import kkkj.android.revgoods.ui.saveBill.SaveBillWithoutSamplingActivity;
 import kkkj.android.revgoods.utils.CRC16Util;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
@@ -191,6 +184,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView tvProduceLine;
     @BindView(R.id.id_tv_deductionMix)
     TextView mTvDeductionMix;
+    @BindView(R.id.id_tv_deduction_cumulative)
+    TextView mTvDeductionCumulative;
 
     private CompositeDisposable compositeDisposable;
 
@@ -237,6 +232,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int intervalTime;
     //扣重率
     private int deductionMix = 0;
+
+    private Observable<Double> observablePieceWeight;
 
 //    private BillListFragment billListFragment;
 //    private DeviceListFragment deviceListFragment;
@@ -360,6 +357,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTvHand.setOnClickListener(this);
         tvProduceLine.setOnClickListener(this);
         mTvDeductionMix.setOnClickListener(this);
+        mTvDeductionCumulative.setOnClickListener(this);
         mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
 
         mTvIsUpload.setText(isUploadCount);
@@ -841,10 +839,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ble = new Ble(bleDevice, this);
         bleScreenConnectionState = ble.connect();
 
-//        //小数位数，固定2位
-//        byte[] point = {0x01,0x06,0x00,0x04,0x00,0x02,0x49,(byte) 0xCA };
-//        ble.send(point);
-
     }
 
     //蓝牙电子秤
@@ -852,8 +846,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         qmuiTipDialog.show();
         final boolean[] isSend = {false};
-        double compareWeight = Double.parseDouble(SharedPreferenceUtil
-                .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
+        //单重
+        final double[] compareWeight = {Double.parseDouble(SharedPreferenceUtil
+                .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT))};
 
         List<String> strWeightList = new ArrayList<>();
         List<String> strLowWeightList = new ArrayList<>();
@@ -868,6 +863,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 final boolean[] isWrite = {false};
                 final boolean[] isTurn = {false};
+
+                ControlRelay controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, CONNECT_TYPE, stateOB,
+                        bluetoothRelay);
+
                 bluetoothManager.read(new TransferProgressListener() {
                     @Override
                     public void transfering(int progress) {
@@ -877,20 +876,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @SuppressLint("CheckResult")
                     @Override
                     public void transferSuccess(String str) {
-                        //String s = new String(bytes);
-                        //Logger.d("原始数据：" + str);
-                        //String str = new String(s.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8);
+
+                        observablePieceWeight.subscribe(new Consumer<Double>() {
+                            @Override
+                            public void accept(Double aDouble) throws Exception {
+                                compareWeight[0] = aDouble;
+                            }
+                        });
+
                         if (str.length() == 8) {
                             //取反
                             str = new StringBuilder(str).reverse().toString();
-                            //Logger.d("处理之前的数据：" + str);
+
                             if (!str.endsWith("=") && !str.startsWith("=") && str.substring(5, 6).equals(".")) {
                                 //去掉前面的“=”号和零
                                 str = str.replaceFirst("^0*", "");
                                 if (str.startsWith(".")) {
                                     str = "0" + str;
                                 }
-                                //Logger.d("读取到的数据：" + str);
+
                                 mWeightTextView.setText(str);
 
                                 byte[] weightByte = CRC16Util.stringToByte(str);
@@ -917,11 +921,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                     byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
                                     byte[] b3 = {0x23};
-                                    byte[] b4 = {0x30,0x31,0x26};
+                                    byte[] b4 = {0x30, 0x31, 0x26};
                                     byte[] b2 = str.getBytes();
                                     b2 = CRC16Util.addBytes(b1, b2);
                                     b3 = CRC16Util.addBytes(b2, b3);
-                                    b4 = CRC16Util.addBytes(b1,b4);
+                                    b4 = CRC16Util.addBytes(b1, b4);
                                     ble.send(b3);
                                 }
 
@@ -929,289 +933,430 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 double weight = Double.parseDouble(str);
 
 
-                                switch (CONNECT_TYPE) {
-                                    //Wifi继电器
-                                    case 1:
+                                if (weight > compareWeight[0]) {
 
-                                        if (weight > compareWeight) {
+                                    //超过单重之后关闭入料口，传送带
+                                    controlRelay.turnOffInLine();
+//                                            if (!isTurn[0] && manager != null && manager.isConnect()) {
+//                                                isTurn[0] = true;
+//                                                manager.send(new WriteData(Order.getTurnOff().get(inLine)));
+//
+//                                            }
 
-                                            if (!isTurn[0] && manager != null && manager.isConnect()) {
-                                                isTurn[0] = true;
-                                                manager.send(new WriteData(Order.getTurnOff().get(inLine)));
+                                    strWeightList.add(str);
+                                    int size = strWeightList.size();
 
+                                    if (StringUtils.isStable(strWeightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
+
+
+                                        if (!isWrite[0]) {
+
+                                            isWrite[0] = true;
+
+                                            Cumulative cumulative = new Cumulative();
+                                            cumulative.setCategory("净重");
+                                            //取最后一个数
+                                            cumulative.setWeight(strWeightList.get(size - 1));
+
+                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
+                                                Cumulative cumulativeLast =
+                                                        LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
+                                                cumulative.setCount(cumulativeLast.getCount() + 1);
+                                            } else {
+                                                cumulative.setCount(1);
                                             }
 
-                                            strWeightList.add(str);
-                                            int size = strWeightList.size();
+                                            cumulative.save();
 
-                                            if (size > 10) { //连续10个数相等，则说明电子秤读数稳定
+                                            myToasty.showSuccess("OK");
 
-                                                String s10 = strWeightList.get(size - 1);
-                                                String s9 = strWeightList.get(size - 2);
-                                                String s8 = strWeightList.get(size - 3);
-                                                String s7 = strWeightList.get(size - 4);
-                                                String s6 = strWeightList.get(size - 5);
-                                                String s5 = strWeightList.get(size - 6);
-                                                String s4 = strWeightList.get(size - 7);
-                                                String s3 = strWeightList.get(size - 8);
-                                                String s2 = strWeightList.get(size - 9);
-                                                String s1 = strWeightList.get(size - 10);
+                                            int count =
+                                                    Integer.parseInt(tvCumulativeCount.getText().toString());
+                                            double cWeight =
+                                                    Double.parseDouble(tvCumulativeWeight.getText().toString());
 
-                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
+                                            /**
+                                             * 相加：b1.add(b2).doubleValue();
+                                             * 相减：b1.subtract(b2).doubleValue();
+                                             * 相乘：b1.multiply(b2).doubleValue();
+                                             */
+                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+                                            BigDecimal b2 = new BigDecimal(strWeightList.get(size - 1));
+                                            cWeight = b1.add(b2).doubleValue();
+                                            count = count + 1;
 
-                                                    if (!isWrite[0]) {
+                                            tvCumulativeCount.setText(String.valueOf(count));
+                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
 
-                                                        isWrite[0] = true;
-
-                                                        Cumulative cumulative = new Cumulative();
-                                                        cumulative.setCategory("净重");
-                                                        cumulative.setWeight(s10);
-
-                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                            Cumulative cumulativeLast =
-                                                                    LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
-                                                        } else {
-                                                            cumulative.setCount(1);
-                                                        }
-
-                                                        cumulative.save();
-
-                                                        myToasty.showSuccess("OK");
-
-                                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                                        double cWeight =
-                                                                Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                                        /**
-                                                         * 相加：b1.add(b2).doubleValue();
-                                                         * 相减：b1.subtract(b2).doubleValue();
-                                                         * 相乘：b1.multiply(b2).doubleValue();
-                                                         */
-                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                                        BigDecimal b2 = new BigDecimal(s5);
-                                                        cWeight = b1.add(b2).doubleValue();
-                                                        count = count + 1;
-
-                                                        tvCumulativeCount.setText(String.valueOf(count));
-                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
-
-                                                        //计重之后打开2号开关，出料口开始倾倒物料
-                                                        if (manager != null && manager.isConnect()) {
-                                                            manager.send(new WriteData(Order.getTurnOn().get(outLine)));
-                                                        }
-
-
-                                                    }
-
-                                                }
-
-                                            }
-
-                                        } else {
-
-                                            if (isWrite[0]) {
-
-                                                if (strWeightList.size() > 0) {
-                                                    strWeightList.clear();
-                                                }
-
-                                                strLowWeightList.add(str);
-                                                int size = strLowWeightList.size();
-                                                if (size > 10) {
-
-                                                    String s10 = strLowWeightList.get(size - 1);
-                                                    String s9 = strLowWeightList.get(size - 2);
-                                                    String s8 = strLowWeightList.get(size - 3);
-                                                    String s7 = strLowWeightList.get(size - 4);
-                                                    String s6 = strLowWeightList.get(size - 5);
-                                                    String s5 = strLowWeightList.get(size - 6);
-                                                    String s4 = strLowWeightList.get(size - 7);
-                                                    String s3 = strLowWeightList.get(size - 8);
-                                                    String s2 = strLowWeightList.get(size - 9);
-                                                    String s1 = strLowWeightList.get(size - 10);
-
-                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
-                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
-
-                                                        //此时关闭出料口
-                                                        if (manager != null && manager.isConnect()) {
-                                                            manager.send(new WriteData(Order.getTurnOff().get(outLine)));
-                                                        }
-
-                                                        //间隔1秒之后打开入料口开关，传送带
-                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
-                                                                .subscribe(new Consumer<Long>() {
-                                                                    @Override
-                                                                    public void accept(Long aLong) throws Exception {
-
-                                                                        if (manager != null && manager.isConnect()) {
-                                                                            manager.send(new WriteData(Order.getTurnOn().get(inLine)));
-                                                                        }
-                                                                        isWrite[0] = false;
-                                                                        isTurn[0] = false;
-                                                                        strLowWeightList.clear();
-                                                                    }
-                                                                });
-
-                                                    }
-
-                                                }
-
-                                            }
+                                            //计重之后打开2号开关，出料口开始倾倒物料
+                                            controlRelay.turnOnOutLine();
+//                                                if (manager != null && manager.isConnect()) {
+//                                                    manager.send(new WriteData(Order.getTurnOn().get(outLine)));
+//                                                }
 
                                         }
 
-                                        break;
-                                    //蓝牙继电器
-                                    case 2:
 
-                                        if (weight > compareWeight) {
+                                    }
 
-                                            if (!isTurn[0] && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                                                isTurn[0] = true;
-                                                bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
+                                } else {
 
-                                            }
+                                    if (isWrite[0]) {
 
+                                        if (strWeightList.size() > 0) {
+                                            strWeightList.clear();
+                                        }
 
-                                            strWeightList.add(str);
-                                            int size = strWeightList.size();
+                                        strLowWeightList.add(str);
 
-                                            if (size > 10) {
-                                                String s10 = strWeightList.get(size - 1);
-                                                String s9 = strWeightList.get(size - 2);
-                                                String s8 = strWeightList.get(size - 3);
-                                                String s7 = strWeightList.get(size - 4);
-                                                String s6 = strWeightList.get(size - 5);
-                                                String s5 = strWeightList.get(size - 6);
-                                                String s4 = strWeightList.get(size - 7);
-                                                String s3 = strWeightList.get(size - 8);
-                                                String s2 = strWeightList.get(size - 9);
-                                                String s1 = strWeightList.get(size - 10);
+                                        //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
+                                        if (StringUtils.isStable(strLowWeightList, 10)) {
 
-                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
+                                            //出料口倾倒完毕，此时关闭出料口
+                                            controlRelay.turnOffOutLine();
+//                                                if (manager != null && manager.isConnect()) {
+//                                                    manager.send(new WriteData(Order.getTurnOff().get(outLine)));
+//                                                }
 
-                                                    if (!isWrite[0]) {
+                                            //间隔1秒之后打开入料口开关，传送带
+                                            Observable.timer(1000, TimeUnit.MILLISECONDS)
+                                                    .subscribe(new Consumer<Long>() {
+                                                        @Override
+                                                        public void accept(Long aLong) throws Exception {
 
-                                                        isWrite[0] = true;
-
-                                                        Cumulative cumulative = new Cumulative();
-                                                        cumulative.setCategory("净重");
-                                                        cumulative.setWeight(s10);
-
-                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                            Cumulative cumulativeLast =
-                                                                    LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
-                                                        } else {
-                                                            cumulative.setCount(1);
+                                                            //间隔1秒之后打开入料口
+                                                            controlRelay.turnOnInLine();
+//                                                                if (manager != null && manager.isConnect()) {
+//                                                                    manager.send(new WriteData(Order.getTurnOn()
+//                                                                    .get(inLine)));
+//                                                                }
+                                                            isWrite[0] = false;
+                                                            isTurn[0] = false;
+                                                            controlRelay.setIsTurn(isTurn);
+                                                            strLowWeightList.clear();
                                                         }
-
-                                                        cumulative.save();
-
-                                                        myToasty.showSuccess("OK");
-
-                                                        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                                                        double cWeight =
-                                                                Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                                        /**
-                                                         * 相加：b1.add(b2).doubleValue();
-                                                         * 相减：b1.subtract(b2).doubleValue();
-                                                         * 相乘：b1.multiply(b2).doubleValue();
-                                                         */
-                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                                        BigDecimal b2 = new BigDecimal(s5);
-                                                        cWeight = b1.add(b2).doubleValue();
-                                                        count = count + 1;
-
-                                                        tvCumulativeCount.setText(String.valueOf(count));
-                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
-
-                                                        //计重之后打开2号开关，出料口
-                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
-                                                        }
+                                                    });
 
 
-                                                        //intervalTime秒之后开关置反
-//                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
+                                        }
+
+                                    }
+
+                                }
+
+
+//                                switch (CONNECT_TYPE) {
+//                                    //Wifi继电器
+//                                    case 1:
+//
+//                                        if (weight > compareWeight[0]) {
+//
+//                                            //超过单重之后关闭入料口，传送带
+//                                            controlRelay.turnOffInLine();
+////                                            if (!isTurn[0] && manager != null && manager.isConnect()) {
+////                                                isTurn[0] = true;
+////                                                manager.send(new WriteData(Order.getTurnOff().get(inLine)));
+////
+////                                            }
+//
+//                                            strWeightList.add(str);
+//                                            int size = strWeightList.size();
+//
+//                                            if (size > 10) { //连续10个数相等，则说明电子秤读数稳定
+//
+//                                                String s10 = strWeightList.get(size - 1);
+//                                                String s9 = strWeightList.get(size - 2);
+//                                                String s8 = strWeightList.get(size - 3);
+//                                                String s7 = strWeightList.get(size - 4);
+//                                                String s6 = strWeightList.get(size - 5);
+//                                                String s5 = strWeightList.get(size - 6);
+//                                                String s4 = strWeightList.get(size - 7);
+//                                                String s3 = strWeightList.get(size - 8);
+//                                                String s2 = strWeightList.get(size - 9);
+//                                                String s1 = strWeightList.get(size - 10);
+//
+//                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
+//                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3
+//                                                        .equals(s2) && s2.equals(s1)) {
+//
+//                                                    if (!isWrite[0]) {
+//
+//                                                        isWrite[0] = true;
+//
+//                                                        Cumulative cumulative = new Cumulative();
+//                                                        cumulative.setCategory("净重");
+//                                                        cumulative.setWeight(s10);
+//
+//                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative
+//                                                        .class).size() > 0) {
+//                                                            Cumulative cumulativeLast =
+//                                                                    LitePal.where("hasBill < ?", "0").findLast
+//                                                                    (Cumulative.class);
+//                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
+//                                                        } else {
+//                                                            cumulative.setCount(1);
+//                                                        }
+//
+//                                                        cumulative.save();
+//
+//                                                        myToasty.showSuccess("OK");
+//
+//                                                        int count =
+//                                                                Integer.parseInt(tvCumulativeCount.getText()
+//                                                                .toString());
+//                                                        double cWeight =
+//                                                                Double.parseDouble(tvCumulativeWeight.getText()
+//                                                                .toString());
+//
+//                                                        /**
+//                                                         * 相加：b1.add(b2).doubleValue();
+//                                                         * 相减：b1.subtract(b2).doubleValue();
+//                                                         * 相乘：b1.multiply(b2).doubleValue();
+//                                                         */
+//                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+//                                                        BigDecimal b2 = new BigDecimal(s5);
+//                                                        cWeight = b1.add(b2).doubleValue();
+//                                                        count = count + 1;
+//
+//                                                        tvCumulativeCount.setText(String.valueOf(count));
+//                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
+//
+//                                                        //计重之后打开2号开关，出料口开始倾倒物料
+//                                                        if (manager != null && manager.isConnect()) {
+//                                                            manager.send(new WriteData(Order.getTurnOn().get
+//                                                            (outLine)));
+//                                                        }
+//
+//
+//                                                    }
+//
+//                                                }
+//
+//                                            }
+//
+//                                        } else {
+//
+//                                            if (isWrite[0]) {
+//
+//                                                if (strWeightList.size() > 0) {
+//                                                    strWeightList.clear();
+//                                                }
+//
+//                                                strLowWeightList.add(str);
+//                                                int size = strLowWeightList.size();
+//                                                if (size > 10) {
+//
+//                                                    String s10 = strLowWeightList.get(size - 1);
+//                                                    String s9 = strLowWeightList.get(size - 2);
+//                                                    String s8 = strLowWeightList.get(size - 3);
+//                                                    String s7 = strLowWeightList.get(size - 4);
+//                                                    String s6 = strLowWeightList.get(size - 5);
+//                                                    String s5 = strLowWeightList.get(size - 6);
+//                                                    String s4 = strLowWeightList.get(size - 7);
+//                                                    String s3 = strLowWeightList.get(size - 8);
+//                                                    String s2 = strLowWeightList.get(size - 9);
+//                                                    String s1 = strLowWeightList.get(size - 10);
+//
+//                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
+//                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7
+//                                                    .equals(s6)
+//                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) &&
+//                                                            s3.equals(s2) && s2.equals(s1)) {
+//
+//                                                        //此时关闭出料口
+//                                                        if (manager != null && manager.isConnect()) {
+//                                                            manager.send(new WriteData(Order.getTurnOff().get
+//                                                            (outLine)));
+//                                                        }
+//
+//                                                        //间隔1秒之后打开入料口开关，传送带
+//                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
 //                                                                .subscribe(new Consumer<Long>() {
 //                                                                    @Override
 //                                                                    public void accept(Long aLong) throws Exception {
+//
+//                                                                        if (manager != null && manager.isConnect()) {
+//                                                                            manager.send(new WriteData(Order
+//                                                                            .getTurnOn().get(inLine)));
+//                                                                        }
+//                                                                        isWrite[0] = false;
+//                                                                        isTurn[0] = false;
+//                                                                        strLowWeightList.clear();
 //                                                                    }
 //                                                                });
-
-                                                    }
-
-                                                }
-
-                                            }
-
-                                        } else {
-
-                                            if (isWrite[0]) {
-
-                                                if (strWeightList.size() > 0) {
-                                                    strWeightList.clear();
-                                                }
-
-                                                strLowWeightList.add(str);
-                                                int size = strLowWeightList.size();
-                                                if (size > 10) {
-
-                                                    String s10 = strLowWeightList.get(size - 1);
-                                                    String s9 = strLowWeightList.get(size - 2);
-                                                    String s8 = strLowWeightList.get(size - 3);
-                                                    String s7 = strLowWeightList.get(size - 4);
-                                                    String s6 = strLowWeightList.get(size - 5);
-                                                    String s5 = strLowWeightList.get(size - 6);
-                                                    String s4 = strLowWeightList.get(size - 7);
-                                                    String s3 = strLowWeightList.get(size - 8);
-                                                    String s2 = strLowWeightList.get(size - 9);
-                                                    String s1 = strLowWeightList.get(size - 10);
-
-                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
-                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3.equals(s2) && s2.equals(s1)) {
-                                                        //此时关闭出料口
-                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-                                                        }
-
-                                                        //间隔1秒之后打开入料口开关，传送带
-                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
-                                                                .subscribe(new Consumer<Long>() {
-                                                                    @Override
-                                                                    public void accept(Long aLong) throws Exception {
-
-                                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
-                                                                        }
-                                                                        isWrite[0] = false;
-                                                                        isTurn[0] = false;
-                                                                        strLowWeightList.clear();
-                                                                    }
-                                                                });
-
-                                                    }
-
-                                                }
-
-                                            }
-
-                                        }
-
-                                        break;
-
-                                    default:
-                                        break;
-
-                                }
+//
+//                                                    }
+//
+//                                                }
+//
+//                                            }
+//
+//                                        }
+//
+//                                        break;
+//                                    //蓝牙继电器
+//                                    case 2:
+//
+//                                        if (weight > compareWeight[0]) {
+//
+//                                            if (!isTurn[0] && bluetoothRelay.getMyBluetoothManager().isConnect()) {
+//                                                isTurn[0] = true;
+//                                                bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder
+//                                                .getTurnOff().get(inLine)).subscribe(stateOB);
+//
+//                                            }
+//
+//
+//                                            strWeightList.add(str);
+//                                            int size = strWeightList.size();
+//
+//                                            if (size > 10) {
+//                                                String s10 = strWeightList.get(size - 1);
+//                                                String s9 = strWeightList.get(size - 2);
+//                                                String s8 = strWeightList.get(size - 3);
+//                                                String s7 = strWeightList.get(size - 4);
+//                                                String s6 = strWeightList.get(size - 5);
+//                                                String s5 = strWeightList.get(size - 6);
+//                                                String s4 = strWeightList.get(size - 7);
+//                                                String s3 = strWeightList.get(size - 8);
+//                                                String s2 = strWeightList.get(size - 9);
+//                                                String s1 = strWeightList.get(size - 10);
+//
+//                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
+//                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3
+//                                                        .equals(s2) && s2.equals(s1)) {
+//
+//                                                    if (!isWrite[0]) {
+//
+//                                                        isWrite[0] = true;
+//
+//                                                        Cumulative cumulative = new Cumulative();
+//                                                        cumulative.setCategory("净重");
+//                                                        cumulative.setWeight(s10);
+//
+//                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative
+//                                                        .class).size() > 0) {
+//                                                            Cumulative cumulativeLast =
+//                                                                    LitePal.where("hasBill < ?", "0").findLast
+//                                                                    (Cumulative.class);
+//                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
+//                                                        } else {
+//                                                            cumulative.setCount(1);
+//                                                        }
+//
+//                                                        cumulative.save();
+//
+//                                                        myToasty.showSuccess("OK");
+//
+//                                                        int count =
+//                                                                Integer.parseInt(tvCumulativeCount.getText()
+//                                                                .toString());
+//                                                        double cWeight =
+//                                                                Double.parseDouble(tvCumulativeWeight.getText()
+//                                                                .toString());
+//
+//                                                        /**
+//                                                         * 相加：b1.add(b2).doubleValue();
+//                                                         * 相减：b1.subtract(b2).doubleValue();
+//                                                         * 相乘：b1.multiply(b2).doubleValue();
+//                                                         */
+//                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+//                                                        BigDecimal b2 = new BigDecimal(s5);
+//                                                        cWeight = b1.add(b2).doubleValue();
+//                                                        count = count + 1;
+//
+//                                                        tvCumulativeCount.setText(String.valueOf(count));
+//                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
+//
+//                                                        //计重之后打开2号开关，出料口
+//                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+//                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB
+//                                                            (BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
+//                                                        }
+//
+//
+//                                                        //intervalTime秒之后开关置反
+////                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
+////                                                                .subscribe(new Consumer<Long>() {
+////                                                                    @Override
+////                                                                    public void accept(Long aLong) throws
+// Exception {
+////                                                                    }
+////                                                                });
+//
+//                                                    }
+//
+//                                                }
+//
+//                                            }
+//
+//                                        } else {
+//
+//                                            if (isWrite[0]) {
+//
+//                                                if (strWeightList.size() > 0) {
+//                                                    strWeightList.clear();
+//                                                }
+//
+//                                                strLowWeightList.add(str);
+//                                                int size = strLowWeightList.size();
+//                                                if (size > 10) {
+//
+//                                                    String s10 = strLowWeightList.get(size - 1);
+//                                                    String s9 = strLowWeightList.get(size - 2);
+//                                                    String s8 = strLowWeightList.get(size - 3);
+//                                                    String s7 = strLowWeightList.get(size - 4);
+//                                                    String s6 = strLowWeightList.get(size - 5);
+//                                                    String s5 = strLowWeightList.get(size - 6);
+//                                                    String s4 = strLowWeightList.get(size - 7);
+//                                                    String s3 = strLowWeightList.get(size - 8);
+//                                                    String s2 = strLowWeightList.get(size - 9);
+//                                                    String s1 = strLowWeightList.get(size - 10);
+//
+//                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
+//                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7
+//                                                    .equals(s6)
+//                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) &&
+//                                                            s3.equals(s2) && s2.equals(s1)) {
+//                                                        //此时关闭出料口
+//                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+//                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB
+//                                                            (BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
+//                                                        }
+//
+//
+//                                                        //间隔1秒之后打开入料口开关，传送带
+//                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
+//                                                                .subscribe(new Consumer<Long>() {
+//                                                                    @Override
+//                                                                    public void accept(Long aLong) throws Exception {
+//
+//                                                                        if (bluetoothRelay.getMyBluetoothManager()
+//                                                                        .isConnect()) {
+//                                                                            bluetoothRelay.getMyBluetoothManager()
+//                                                                            .getWriteOB(BTOrder.getTurnOn().get
+//                                                                            (inLine)).subscribe(stateOB);
+//                                                                        }
+//                                                                        isWrite[0] = false;
+//                                                                        isTurn[0] = false;
+//                                                                        strLowWeightList.clear();
+//                                                                    }
+//                                                                });
+//
+//                                                    }
+//
+//                                                }
+//
+//                                            }
+//
+//                                        }
+//
+//                                        break;
+//
+//                                    default:
+//                                        break;
+//
+//                                }
 
 
                             }
@@ -1649,7 +1794,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                                 SAMPLING_MODE = 1;
 
-                                                SamplingFragment samplingFragment = SamplingFragment.newInstance("0", supplierId,
+                                                SamplingFragment samplingFragment = SamplingFragment.newInstance("0",
+                                                        supplierId,
                                                         matterId, matterLevelId);
                                                 showDialogFragment(samplingFragment, SAMPLING);
                                             } else {
@@ -1680,7 +1826,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                         SAMPLING_MODE = 1;
 
-                                        SamplingFragment samplingFragment = SamplingFragment.newInstance("0", supplierId,
+                                        SamplingFragment samplingFragment = SamplingFragment.newInstance("0",
+                                                supplierId,
                                                 matterId, matterLevelId);
                                         showDialogFragment(samplingFragment, SAMPLING);
                                     } else {
@@ -1711,9 +1858,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showDialogFragment(samplingDetailsFragment, SAMPLING_DETAILS);
                 break;
 
-            case R.id.id_tv_cumulative://累计
+            case R.id.id_tv_deduction_cumulative://扣重累计
 
-                CumulativeFragment cumulativeFragment = new CumulativeFragment();
+                CumulativeFragment deductionCumulativeFragment = CumulativeFragment.newInstance(1);
+
+                showDialogFragment(deductionCumulativeFragment, CUMULATIVE);
+                break;
+
+            case R.id.id_tv_cumulative://计重累计
+
+                CumulativeFragment cumulativeFragment = CumulativeFragment.newInstance(2);
 
                 showDialogFragment(cumulativeFragment, CUMULATIVE);
                 break;
@@ -1775,9 +1929,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                String pieceWeight = editText.getText().toString().trim();
+
                                 SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_PIECE_WEIGHT,
-                                        editText.getText().toString().trim());
-                                mShowPieceWeight.setText(editText.getText().toString().trim());
+                                        pieceWeight);
+                                mShowPieceWeight.setText(pieceWeight);
+
+                                observablePieceWeight = Observable.create(new ObservableOnSubscribe<Double>() {
+                                    @Override
+                                    public void subscribe(ObservableEmitter<Double> emitter) throws Exception {
+                                        emitter.onNext(Double.valueOf(pieceWeight));
+                                        emitter.onComplete();
+                                    }
+                                });
 
                             }
                         })
@@ -1840,7 +2004,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (type == 1) {
                         //根据规格计算
                         //判断采样明细里面是否确认了规格和单价
-                        List<SamplingBySpecs> samplingBySpecsList = LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class);
+                        List<SamplingBySpecs> samplingBySpecsList =
+                                LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class);
                         if (samplingBySpecsList.size() <= 0) {
                             //未确认
                             myToasty.showWarning("请先点击采样累计，确认规格和单价！");
@@ -1971,15 +2136,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EventBus.getDefault().unregister(this);
     }
 
-    /**
-     *控制继电器的开关，进料口和出料口
-     */
-
-    private void controlRelay(){
-
-
-
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

@@ -235,9 +235,25 @@
         android:textColor="@color/qmui_config_color_white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
+        app:layout_constraintStart_toEndOf="@+id/id_tv_deduction_cumulative"
+        app:layout_constraintTop_toTopOf="@+id/id_iv_print"
+        app:layout_constraintVertical_bias="1.0"/>
+
+    <TextView
+        android:id="@+id/id_tv_deduction_cumulative"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/text_background"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:text="扣重累计"
+        android:textColor="@color/qmui_config_color_white"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/id_iv_print"
         app:layout_constraintStart_toEndOf="@+id/id_tv_deductionMix"
         app:layout_constraintTop_toTopOf="@+id/id_iv_print"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.0"/>
 
     <TextView
         android:id="@+id/textView16"

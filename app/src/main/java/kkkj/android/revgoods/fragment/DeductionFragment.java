@@ -59,6 +59,7 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     }
 
 
+    @Override
     public void initData() {
 
         deductionList = LitePal.findAll(DeductionCategory.class);
