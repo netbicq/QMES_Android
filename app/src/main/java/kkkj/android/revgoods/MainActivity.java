@@ -118,6 +118,7 @@ import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.CRC16Util;
+import kkkj.android.revgoods.utils.DoubleCountUtils;
 import kkkj.android.revgoods.utils.LangUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
@@ -137,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView mPrintImageView;
     @BindView(R.id.id_tv_choose_supplier)
     ImageView mChooseSupplierImageView;
-
     @BindView(R.id.id_tv_weight)
     TextView mWeightTextView;
     @BindView(R.id.id_tv_show_piece_weight)
@@ -958,14 +958,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             //取最后一个数
                                             cumulative.setWeight(strWeightList.get(size - 1));
 
-                                            if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                                                Cumulative cumulativeLast =
-                                                        LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                                                cumulative.setCount(cumulativeLast.getCount() + 1);
-                                            } else {
-                                                cumulative.setCount(1);
-                                            }
-
                                             cumulative.save();
 
                                             myToasty.showSuccess("OK");
@@ -975,11 +967,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             double cWeight =
                                                     Double.parseDouble(tvCumulativeWeight.getText().toString());
 
-                                            /**
-                                             * 相加：b1.add(b2).doubleValue();
-                                             * 相减：b1.subtract(b2).doubleValue();
-                                             * 相乘：b1.multiply(b2).doubleValue();
-                                             */
                                             BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
                                             BigDecimal b2 = new BigDecimal(strWeightList.get(size - 1));
                                             cWeight = b1.add(b2).doubleValue();
@@ -2027,27 +2014,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     cumulative.setCategory("净重");
                     cumulative.setWeight(mWeightTextView.getText().toString());
 
-                    if (LitePal.where("hasBill < ?", "0").find(Cumulative.class).size() > 0) {
-                        Cumulative cumulativeLast = LitePal.where("hasBill < ?", "0").findLast(Cumulative.class);
-                        cumulative.setCount(cumulativeLast.getCount() + 1);
-
-                    } else {
-                        cumulative.setCount(1);
-                    }
-
                     cumulative.save();
 
                     int count = Integer.parseInt(tvCumulativeCount.getText().toString());
                     double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
 
-                    /**浮点数
-                     * 相加：b1.add(b2).doubleValue();
-                     * 相减：b1.subtract(b2).doubleValue();
-                     * 相乘：b1.multiply(b2).doubleValue();
-                     */
-                    BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                    BigDecimal b2 = new BigDecimal(mWeightTextView.getText().toString());
-                    cWeight = b1.add(b2).doubleValue();
+                    cWeight = new DoubleCountUtils(cWeight,Double.valueOf(mWeightTextView.getText().toString())).add();
                     count = count + 1;
 
                     tvCumulativeCount.setText(String.valueOf(count));

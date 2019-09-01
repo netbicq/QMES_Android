@@ -146,7 +146,7 @@
             android:screenOrientation="landscape"
             android:theme="@style/QMUI.Compat.NoActionBar" />
         <activity android:name=".common.getpic.GetPicOrMP4Activity" />
-        <activity android:name=".HomeActivity" />
+        <activity android:name=".ui.home.HomeActivity" />
         <activity
             android:name=".ui.chooseMatter.ChooseMatterActivity"
             android:configChanges="locale"
