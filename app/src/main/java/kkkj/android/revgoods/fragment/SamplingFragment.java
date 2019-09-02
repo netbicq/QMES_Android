@@ -2,11 +2,11 @@ package kkkj.android.revgoods.fragment;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,14 +19,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.util.QMUIStatusBarHelper;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.tbruyelle.rxpermissions2.RxPermissions;
-import com.tencent.smtt.sdk.TbsVideo;
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
 import org.greenrobot.eventbus.EventBus;
@@ -44,7 +43,6 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.PicOrMp4Adapter;
 import kkkj.android.revgoods.bean.Matter;
@@ -63,11 +61,9 @@ import kkkj.android.revgoods.http.RetrofitServiceManager;
 import kkkj.android.revgoods.http.api.APIAttachfile;
 import kkkj.android.revgoods.http.api.UploadCallbacks;
 import kkkj.android.revgoods.ui.chooseSupplier.UpLoadFileModel;
-import kkkj.android.revgoods.ui.saveBill.SaveBillWithoutSamplingActivity;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
 import kkkj.android.revgoods.utils.NetUtils;
-
-import static kkkj.android.revgoods.mvpInterface.MvpModel.apiAttachfile;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 采样
@@ -77,6 +73,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     private Button mSaveButton;
     private Button mEnterButton;
+    private Button mBtnChangeUnit;
+    private TextView mTvUnit;
     private EditText mEtNumber;
     private EditText mEtWeight;
     private EditText mEtPrice;
@@ -108,7 +106,12 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     private QMUITipDialog qmuiTipDialog;
 
-
+    /**
+     * 采样单位
+     * 1. 系统默认单位kg
+     * 2. g
+     */
+    int samplingUnit;
 
     //返回的路径集合
     private List<Path> pathList = new ArrayList<>();
@@ -141,6 +144,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         supplier = LitePal.find(Supplier.class, supplierId);
         matter = LitePal.find(Matter.class, matterId);
         matterLevel = LitePal.find(MatterLevel.class, matterLevelId);
+
+        samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
     }
 
     @Override
@@ -184,9 +189,9 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                             File file = new File(path);
                             Uri uri;
                             if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
-                                uri = FileProvider.getUriForFile(getActivity(),"kkkj.android.revgoods.fileprovider",file);
+                                uri = FileProvider.getUriForFile(getActivity(), "kkkj.android.revgoods.fileprovider", file);
                                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            }else {
+                            } else {
                                 uri = Uri.fromFile(file);
                             }
                             intent.setDataAndType(uri, "video/*");
@@ -239,19 +244,44 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
         ivRight.setImageResource(R.drawable.ic_camera);
         tvTitle.setText(R.string.sampling);
-        mEtNumber = view.findViewById(R.id.id_et_number);
+
         mEtWeight = view.findViewById(R.id.id_et_weight);
+
+        mTvUnit = view.findViewById(R.id.tv_unit);
+        switch (samplingUnit) {
+            case 1://kg
+                mTvUnit.setText("重量(kg)");
+                mEtWeight.setText(weight);
+                break;
+
+            case 2://g
+                mTvUnit.setText("重量(g)");
+                if (weight != null && weight.length() > 0) {
+                    double d = Double.valueOf(weight);
+                    d = d * 1000;
+                    mEtWeight.setText(String.valueOf(d));
+                }else {
+                    mEtWeight.setText("0");
+                }
+                break;
+                default:
+                    break;
+        }
+
+        mEtNumber = view.findViewById(R.id.id_et_number);
         mEtPrice = view.findViewById(R.id.id_et_price);
         mSpSpecs = view.findViewById(R.id.id_sp_specs);
         mSpSpecs.setAdapter(specsAdapter);
 
         mSaveButton = view.findViewById(R.id.button);
         mEnterButton = view.findViewById(R.id.button_enter);
-        mEtWeight.setText(weight);
+        mBtnChangeUnit = view.findViewById(R.id.btn_change_unit);
+
 
         ivRight.setOnClickListener(this);
         mSaveButton.setOnClickListener(this);
         mEnterButton.setOnClickListener(this);
+        mBtnChangeUnit.setOnClickListener(this);
 
         recyclerView = view.findViewById(R.id.id_recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
@@ -300,7 +330,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 if (tempPriceList.size() > 0) {
                     Price lastPrice = tempPriceList.get(tempPriceList.size() - 1);//最新一个价格
                     mEtPrice.setText(String.valueOf(lastPrice.getPrice()));
-                }else {
+                } else {
                     myToasty.showWarning("当前未配置价格，请手动填写！");
                     mEtPrice.setText("");
                 }
@@ -336,6 +366,48 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
     @Override
     public void onClick(View view) {
+
+        if (view.getId() == R.id.btn_change_unit) {
+            String[] items = new String[2];
+            items[0] = "千克 -> 克";
+            items[1] = "克 -> 千克";
+            QMUIDialog.MenuDialogBuilder builder = new QMUIDialog.MenuDialogBuilder(getContext());
+            builder.addItems(items, new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    switch (i) {
+                        case 0:
+                            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,2);
+                            mTvUnit.setText("重量(g)");
+                            if (weight != null && weight.length() > 0) {
+                                double d = Double.valueOf(weight);
+                                d = d * 1000;
+                                mEtWeight.setText(String.valueOf(d));
+                            }
+
+                            break;
+
+                        case 1:
+                            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+                            mTvUnit.setText("重量(kg)");
+                            if (weight != null && weight.length() > 0) {
+                                double d = Double.valueOf(weight);
+                                d = d * 0.001;
+                                mEtWeight.setText(String.valueOf(d));
+                            }
+
+                            break;
+                        default:
+                            break;
+                    }
+                    dialogInterface.dismiss();
+
+                }
+            }).show();
+
+            return;
+        }
 
         String weight = mEtWeight.getText().toString().trim();
         String number = mEtNumber.getText().toString().trim();
@@ -421,6 +493,22 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 double specs = Double.parseDouble(weight) / Integer.parseInt(number);
                 specs = DoubleCountUtils.keep(specs);
+
+                int postion = 0;
+                for (int i=1;i<specsList.size();i++) {
+                    Specs specs1 = specsList.get(i);
+                    if (specs1.getMinWeight() < specs && specs < specs1.getMaxWeight()) {
+                        postion = i;
+                    }
+                }
+                //此时已匹配到对应规格
+                if (postion != 0) {
+                    mSpSpecs.setSelection(postion,true);
+                }else {
+                    myToasty.showWarning("根据当前计算结果，未能在系统内匹配到对应规格，请手动选择！");
+                }
+
+
                 //单重
                 singalWeight = DoubleCountUtils.keep(specs);
                 specsNameList.set(0, String.valueOf(specs));
@@ -587,7 +675,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                                     Logger.d("是否保存成功：" + b);
                                     pathList.add(path1);
                                     myToasty.showSuccess("上传成功！");
-                                }else {
+                                } else {
                                     myToasty.showError("上传失败：" + response.getMsg());
                                 }
                             }

@@ -14,7 +14,9 @@ import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import kkkj.android.revgoods.R;
@@ -126,6 +128,13 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
                         deduction.setCategory(deductionCategory.getName());
                         deduction.setWeight(DoubleCountUtils.keep(Double.valueOf(wt)));
                         deduction.setKeyID(deductionCategory.getKeyID());
+
+                        //获取当前时间 HH:mm:ss
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                        Date date = new Date(System.currentTimeMillis());
+                        String time = simpleDateFormat.format(date);
+                        deduction.setTime(time);
+
                         deduction.save();
 
                         dismiss();

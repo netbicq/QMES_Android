@@ -4,8 +4,8 @@ import android.bluetooth.BluetoothDevice;
 
 import java.util.List;
 
+import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.relay.bean.RelayBean;
-import kkkj.android.revgoods.ui.home.model.DeviceBean;
 import kkkj.android.revgoods.ui.home.model.HomeModel;
 
 /**
@@ -32,9 +32,21 @@ public class HomePresenter extends HomeContract.Presenter{
         }
 
         homeModel.connectScale(device, new DeviceCallback<String>(getView()) {
+
+
             @Override
-            public void deciceInfo(DeviceBean deviceBean) {
-                getView().deviceInfo(deviceBean);
+            public void isConnected(boolean isConnected) {
+                getView().isConnectedMainScale(isConnected);
+            }
+
+            @Override
+            public void onConnectFail(String msg) {
+                getView().onConnectedMainScaleFail(msg);
+            }
+
+            @Override
+            public void onDisconnected() {
+                getView().onDisconnectedMainScale();
             }
 
             @Override
@@ -45,17 +57,29 @@ public class HomePresenter extends HomeContract.Presenter{
     }
 
     @Override
-    public void connectBluetoothRelay(BluetoothDevice device,int inLine) {
+    public void connectBluetoothRelay(BluetoothDevice device,int inLine,int outLine) {
 
         if (!isViewAttached()){
             //如果没有View引用就不加载数据
             return;
         }
 
-        homeModel.connectBlueToothRelay(device, inLine, new DeviceCallback<List<RelayBean>>(getView()) {
+        homeModel.connectBlueToothRelay(device, inLine,outLine, new DeviceCallback<List<RelayBean>>(getView()) {
+
+
             @Override
-            public void deciceInfo(DeviceBean deviceBean) {
-                getView().deviceInfo(deviceBean);
+            public void isConnected(boolean isConnected) {
+                getView().isConnectedBluetoothRelay(isConnected);
+            }
+
+            @Override
+            public void onConnectFail(String msg) {
+                getView().onConnectedBluetoothRelayFail(msg);
+            }
+
+            @Override
+            public void onDisconnected() {
+
             }
 
             @Override
@@ -69,4 +93,40 @@ public class HomePresenter extends HomeContract.Presenter{
     public void sendBluetoothRelayData(byte[] bytes) {
         homeModel.sendBluetoothRelayData(bytes);
     }
+
+
+    /**
+     * 显示屏
+     */
+    @Override
+    public void connectBleScreen(Ble ble) {
+        if (!isViewAttached()){
+            //如果没有View引用就不加载数据
+            return;
+        }
+
+        homeModel.connectBleScreen(ble, new DeviceCallback<String>(getView()) {
+            @Override
+            public void isConnected(boolean isConnected) {
+
+            }
+
+            @Override
+            public void onConnectFail(String msg) {
+
+            }
+
+            @Override
+            public void onDisconnected() {
+
+            }
+
+            @Override
+            public void onRead(String data) {
+
+            }
+        });
+    }
+
+
 }

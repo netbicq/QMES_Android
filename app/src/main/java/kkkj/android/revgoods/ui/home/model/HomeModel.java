@@ -1,6 +1,8 @@
 package kkkj.android.revgoods.ui.home.model;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 
 import com.orhanobut.logger.Logger;
 import com.xuhao.didi.core.utils.BytesUtils;
@@ -12,6 +14,8 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.SwitchIcon;
+import kkkj.android.revgoods.conn.ControlRelay;
+import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.conn.classicbt.BleManager;
 import kkkj.android.revgoods.conn.classicbt.Connect;
 import kkkj.android.revgoods.conn.classicbt.listener.ConnectResultlistner;
@@ -21,6 +25,8 @@ import kkkj.android.revgoods.mvpInterface.MvpCallback;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.ui.home.DeviceCallback;
+import kkkj.android.revgoods.utils.CRC16Util;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 项目名:   RevGoods
@@ -41,20 +47,40 @@ public class HomeModel {
      */
     private BluetoothBean bluetoothRelay;
     private Observer<String> stateOB;
+    //蓝牙Ble显示屏的连接状态
+    private boolean bleScreenConnectionState = false;
+    private Ble ble;
 
+
+    //继电器控制的开关
+    private int inLine;
+    private int outLine;
+
+    /**
+     * 收料秤
+     */
     public void connectScale(BluetoothDevice device, final DeviceCallback<String> callback) {
 
-        DeviceBean deviceBean = new DeviceBean();
-        deviceBean.setType(Constant.MAIN_SCALE);
+        final boolean[] isSend = {false};
+        //单重
+        final double[] compareWeight = {Double.parseDouble(SharedPreferenceUtil
+                .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT))};
+
+        List<String> strWeightList = new ArrayList<>();
+        List<String> strLowWeightList = new ArrayList<>();
 
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
+
+            final boolean[] isWrite = {false};
+            final boolean[] isTurn = {false};
+
+//            ControlRelay controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, CONNECT_TYPE, stateOB,
+//                    bluetoothRelay);
 
             @Override
             public void connectSuccess(Connect connect) {
 
-                deviceBean.setConnected(true);
-                callback.deciceInfo(deviceBean);
-
+                callback.isConnected(true);
 
                 connect.read(new TransferProgressListener() {
                     @Override
@@ -76,6 +102,39 @@ public class HomeModel {
                                 }
 
                                 callback.onRead(msg);
+
+                                byte[] weightByte = CRC16Util.stringToByte(msg);
+
+                                if (ble != null) {
+                                    bleScreenConnectionState = ble.isConnected();
+                                    if (!isSend[0] && bleScreenConnectionState) {
+
+                                        //myToasty.showSuccess("显示屏连接成功！");
+
+                                        //小数位数，固定2位
+//                                        byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
+//                                        ble.send(point);
+                                        isSend[0] = true;
+
+                                    }
+//                                    ble.send(weightByte);//ModBus方式
+
+                                    /**   $001,2.91#   显示2.91
+                                     *    $001,01&     显示YES
+                                     *    ASCII码  b1,b3,b4首尾固定格式
+                                     *    b2  数据
+                                     */
+
+                                    byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
+                                    byte[] b3 = {0x23};
+                                    byte[] b4 = {0x30, 0x31, 0x26};
+                                    byte[] b2 = msg.getBytes();
+                                    b2 = CRC16Util.addBytes(b1, b2);
+                                    b3 = CRC16Util.addBytes(b2, b3);
+                                    b4 = CRC16Util.addBytes(b1, b4);
+                                    ble.send(b3);
+                                }
+
                             }
                         }
 
@@ -91,15 +150,13 @@ public class HomeModel {
             @Override
             public void connectFailed(Exception e) {
 
-                deviceBean.setFailMsg(e.getMessage());
-                callback.deciceInfo(deviceBean);
+                callback.onConnectFail(e.getMessage());
             }
 
             @Override
             public void disconnected() {
 
-                deviceBean.setConnectionChanged(false);
-                callback.deciceInfo(deviceBean);
+                callback.onDisconnected();
             }
 
 
@@ -107,11 +164,16 @@ public class HomeModel {
 
     }
 
-    public void connectBlueToothRelay(BluetoothDevice device, int inLine,final DeviceCallback<List<RelayBean>> callback) {
+    /**
+     * 蓝牙继电器
+     * @param device
+     * @param inLine
+     * @param callback
+     */
+    public void connectBlueToothRelay(BluetoothDevice device, int inLine,int outLine,final DeviceCallback<List<RelayBean>> callback) {
 
-        DeviceBean deviceBean = new DeviceBean();
-        deviceBean.setType(Constant.BLUETOOTH_RELAY);
-
+        this.inLine = inLine;
+        this.outLine = outLine;
         BluetoothBean bluetoothBean = new BluetoothBean();
         bluetoothBean.setBluetoothDevice(device);
 
@@ -203,9 +265,8 @@ public class HomeModel {
 
             @Override
             public void onNext(Boolean aBoolean) {
+                callback.isConnected(aBoolean);
                 if (aBoolean) {
-                    deviceBean.setConnected(true);
-                    callback.deciceInfo(deviceBean);
                     //打开某个开关
                     bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
                 }
@@ -214,8 +275,7 @@ public class HomeModel {
             @Override
             public void onError(Throwable e) {
                 e.printStackTrace();
-                deviceBean.setFailMsg(e.getMessage());
-                callback.deciceInfo(deviceBean);
+                callback.onConnectFail(e.getMessage());
             }
 
             @Override
@@ -226,8 +286,24 @@ public class HomeModel {
         });
     }
 
+    /**
+     * 蓝牙继电器发送数据
+     * @param bytes
+     */
     public void sendBluetoothRelayData(byte[] bytes) {
         bluetoothRelay.getMyBluetoothManager().getWriteOB(bytes).subscribe(stateOB);
+    }
+
+    /**
+     * Ble显示屏
+     */
+    public void connectBleScreen(Ble ble,final DeviceCallback<String> callback) {
+        if (bleScreenConnectionState) {
+            return;
+        }
+        this.ble = ble;
+        bleScreenConnectionState = ble.connect();
+
     }
 
 }

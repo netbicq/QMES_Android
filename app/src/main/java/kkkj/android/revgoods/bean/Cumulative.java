@@ -26,9 +26,22 @@ public class Cumulative extends LitePalSupport {
     private String weight;
 
     /**
+     * 记录时间
+     */
+    private String time;
+
+    /**
      * 所属单据
      */
     private Bill bill;
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
 
     public int isHasBill() {
         return hasBill;

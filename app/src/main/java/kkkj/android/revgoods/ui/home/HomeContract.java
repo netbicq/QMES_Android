@@ -4,12 +4,10 @@ import android.bluetooth.BluetoothDevice;
 
 import java.util.List;
 
+import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
 import kkkj.android.revgoods.mvpInterface.MvpView;
 import kkkj.android.revgoods.relay.bean.RelayBean;
-import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierContract;
-import kkkj.android.revgoods.ui.home.model.DeviceBean;
-import kkkj.android.revgoods.ui.saveBill.BillModel;
 
 /**
  * 项目名:   RevGoods
@@ -22,11 +20,21 @@ public class HomeContract {
 
     public interface View extends MvpView {
 
+        /**
+         *主秤，收料秤
+         */
         void readScaleData(String data);
+        void isConnectedMainScale(boolean isConnected);
+        void onConnectedMainScaleFail(String msg);
+        void onDisconnectedMainScale();
 
+        /**
+         *蓝牙继电器
+         */
         void readBluetoothRelayData(List<RelayBean> relayBeanList);
+        void isConnectedBluetoothRelay(boolean isConnected);
+        void onConnectedBluetoothRelayFail(String msg);
 
-        void deviceInfo(DeviceBean deviceBean);
 
     }
 
@@ -34,7 +42,9 @@ public class HomeContract {
 
         public abstract void connectScaleDevice(BluetoothDevice device);
 
-        public abstract void connectBluetoothRelay(BluetoothDevice device,int inLine);
+        public abstract void connectBluetoothRelay(BluetoothDevice device,int inLine,int outLine);
+
+        public abstract void connectBleScreen(Ble ble);
 
         public abstract void sendBluetoothRelayData(byte[] bytes);
     }

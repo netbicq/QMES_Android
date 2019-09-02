@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -24,7 +27,6 @@ import android.widget.TextView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.suke.widget.SwitchButton;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -39,52 +41,39 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import kkkj.android.revgoods.MainActivity;
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
-import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.Master;
 import kkkj.android.revgoods.bean.Matter;
-import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.Power;
 import kkkj.android.revgoods.bean.ProduceLine;
 import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
-import kkkj.android.revgoods.bean.Sapmle;
 import kkkj.android.revgoods.bean.ShowOut;
-import kkkj.android.revgoods.bean.Specs;
-import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.bean.SwitchIcon;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
+import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.conn.classicbt.BleManager;
 import kkkj.android.revgoods.conn.classicbt.BluetoothPermissionHandler;
 import kkkj.android.revgoods.conn.classicbt.listener.BluetoothPermissionCallBack;
 import kkkj.android.revgoods.conn.classicbt.listener.PinResultListener;
-import kkkj.android.revgoods.conn.socket.WriteData;
-import kkkj.android.revgoods.elcscale.view.ElcScaleActivity;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.fragment.BillListFragment;
 import kkkj.android.revgoods.fragment.CumulativeFragment;
 import kkkj.android.revgoods.fragment.DeductionFragment;
 import kkkj.android.revgoods.fragment.ProduceLineListFragment;
 import kkkj.android.revgoods.fragment.SamplingDetailsFragment;
-import kkkj.android.revgoods.fragment.SamplingFragment;
 import kkkj.android.revgoods.fragment.SettingFragment;
 import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
-import kkkj.android.revgoods.relay.wifi.model.Order;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.ui.ChooseMatterLevelActivity;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
-import kkkj.android.revgoods.ui.home.model.DeviceBean;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
@@ -158,6 +147,10 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
     private BluetoothPermissionHandler permissionHandler;
     private List<RelayBean> mRelayList;
     private SwitchAdapter switchAdapter;
+    //蓝牙Ble设备
+    private Ble ble;
+    //蓝牙Ble显示屏的连接状态
+    private boolean bleScreenConnectionState = false;
 
 
     private static final int MAIN_SCALE = 0;
@@ -209,6 +202,19 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
     @Override
     protected void initData() {
         mRelayList = new ArrayList<>();
+
+        //初始化wifi继电器实体类
+        List<Integer> leftIcon = new ArrayList<>(SwitchIcon.getRedIcon());
+        List<Integer> rightIcon = new ArrayList<>(SwitchIcon.getGreenIcon());
+
+        for (int i = 0; i < leftIcon.size(); i++) {
+            RelayBean relayBean = new RelayBean();
+            relayBean.setLeftIamgeView(leftIcon.get(i));
+            relayBean.setRightImageView(rightIcon.get(i));
+            mRelayList.add(relayBean);
+
+        }
+
 
         //蓝牙电子秤
         permissionHandler = new BluetoothPermissionHandler(this, new BluetoothPermissionCallBack() {
@@ -480,7 +486,7 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
                 } else {
 
                     int inLine = power.getInLine() - 1;
-//                    outLine = power.getOutLine() - 1;
+                    int outLine = power.getOutLine() - 1;
 
                     switch (power.getDeviceType()) {
                         case 1://蓝牙继电器
@@ -489,7 +495,7 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
                             try {
                                 BluetoothDevice bluetoothDevice1 =
                                         BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                                mPresenter.connectBluetoothRelay(bluetoothDevice1,inLine);
+                                mPresenter.connectBluetoothRelay(bluetoothDevice1,inLine,outLine);
 //                                connectBluetoothRelay(bluetoothDevice1);
 
                             } catch (Exception e) {
@@ -531,20 +537,23 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
 ////                }
 //
 //                //显示屏 蓝牙Ble设备
-//                String showOutString = produceLine.getShowOut();
-//                ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
-//                if (!(showOut.getDeviceAddr() == null)) {
-//                    String addressBle = showOut.getDeviceAddr().trim();//"D8:E0:4B:FD:31:F6"
-//                    try {
-//                        BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
-////                        connectBle(bleDevice);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                        myToasty.showInfo(e.getMessage());
-//                    }
-//                } else {
-//                    myToasty.showInfo("当前未配置显示屏！");
-//                }
+                String showOutString = produceLine.getShowOut();
+                ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
+                if (!(showOut.getDeviceAddr() == null)) {
+                    String addressBle = showOut.getDeviceAddr().trim();//"D8:E0:4B:FD:31:F6"
+                    try {
+                        BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
+                        ble = new Ble(bleDevice, this);
+                        mPresenter.connectBleScreen(ble);
+
+//                        connectBle(bleDevice);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        myToasty.showInfo(e.getMessage());
+                    }
+                } else {
+                    myToasty.showInfo("当前未配置显示屏！");
+                }
             }
 
 
@@ -815,7 +824,7 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
 
                                 SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_PIECE_WEIGHT,
                                         pieceWeight);
-                                mTvPieceWeight.setText(pieceWeight);
+                                mTvShowPieceWeight.setText(pieceWeight);
 
 //                                observablePieceWeight = Observable.create(new ObservableOnSubscribe<Double>() {
 //                                    @Override
@@ -939,81 +948,51 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
     }
 
     @Override
+    public void isConnectedMainScale(boolean isConnected) {
+        if (isConnected) {
+            myToasty.showSuccess("电子秤连接成功！");
+        }else {
+            myToasty.showWarning("电子秤连接失败，请重连！");
+        }
+    }
+
+    @Override
+    public void onConnectedMainScaleFail(String msg) {
+        myToasty.showError(msg);
+    }
+
+    @Override
+    public void onDisconnectedMainScale() {
+        myToasty.showWarning("电子秤连接已断开！");
+    }
+
+    /**
+     * 蓝牙继电器
+     * @param relayBeanList
+     */
+    @Override
     public void readBluetoothRelayData(List<RelayBean> relayBeanList) {
         mRelayList.clear();
         mRelayList.addAll(relayBeanList);
         switchAdapter.notifyDataSetChanged();
     }
 
+    @Override
+    public void isConnectedBluetoothRelay(boolean isConnected) {
+        if (isConnected) {
+            myToasty.showSuccess("蓝牙继电器连接成功！");
+        }else {
+            myToasty.showWarning("蓝牙继电器连接失败，请重连！");
+        }
+    }
 
     @Override
-    public void deviceInfo(DeviceBean deviceBean) {
-        int type = deviceBean.getType();
-        boolean isConnected = deviceBean.isConnected();
-        boolean connectionChanged = deviceBean.isConnectionChanged();
-        String failMsg = deviceBean.getFailMsg();
-
-        String connectInfo = "";
-
-        switch (type) {
-
-            case MAIN_SCALE:
-            case SAMPLING_SCALE:
-
-                if (isConnected) {
-                    connectInfo = "电子秤连接成功";
-                } else {
-                    connectInfo = "电子秤连接失败";
-                }
-
-                break;
-
-            case BLUETOOTH_RELAY:
-
-                if (isConnected) {
-                    connectInfo = "蓝牙继电器连接成功";
-                } else {
-                    connectInfo = "蓝牙继电器连接失败";
-                }
-
-                break;
-
-            case WIFI_RELAY:
-
-                if (isConnected) {
-                    connectInfo = "Wifi继电器连接成功";
-                } else {
-                    connectInfo = "Wifi继电器连接失败";
-                }
-
-                break;
-
-
-            case BLE_SCREEN:
-
-                if (isConnected) {
-                    connectInfo = "显示屏连接成功";
-                } else {
-                    connectInfo = "显示屏连接失败";
-                }
-
-                break;
-
-            default:
-                break;
-        }
-
-        if (isConnected) {
-            myToasty.showSuccess(connectInfo);
-        } else {
-            myToasty.showError(connectInfo);
-        }
-
-        if (failMsg != null && failMsg.length() > 0) {
-            myToasty.showError(failMsg);
-        }
-
+    public void onConnectedBluetoothRelayFail(String msg) {
+        myToasty.showError(msg);
     }
+
+
+
 
     private void showDialogFragment(DialogFragment dialogFragment, final String Tag) {
         //清除已经存在的，相同的fragment
@@ -1073,6 +1052,7 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // TODO: add setContentView(...) invocation
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
     }

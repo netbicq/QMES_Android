@@ -72,7 +72,7 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
 
             for (int i = 0;i<deductionList.size();i++) {
                 Cumulative cumulative = new Cumulative();
-                cumulative.setCount(i + 1);
+                cumulative.setTime(deductionList.get(i).getTime());
                 cumulative.setCategory(deductionList.get(i).getCategory());
                 cumulative.setWeight(String.valueOf(deductionList.get(i).getWeight()));
                 cumulativeList.add(cumulative);

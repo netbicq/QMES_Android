@@ -606,6 +606,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             BigDecimal b1 = new BigDecimal(Double.toString(deductionWeight));
             BigDecimal b2 = new BigDecimal(deductionList.get(i).getWeight());
             deductionWeight = b1.add(b2).doubleValue();
+            deductionWeight = DoubleCountUtils.keep(deductionWeight);
         }
         //减扣重
         BigDecimal b1 = new BigDecimal(Double.toString(mWeight));

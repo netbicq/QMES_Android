@@ -9,8 +9,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.orhanobut.logger.Logger;
-
 import org.litepal.LitePal;
 
 import java.math.BigDecimal;
@@ -33,11 +31,11 @@ import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
 import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
-import kkkj.android.revgoods.bean.Specs;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class ShowBillDetailsActivity extends BaseActivity implements View.OnClickListener {
 
@@ -100,6 +98,8 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     TextView tvSpecsSampling;
     @BindView(R.id.tv_price_sampling)
     TextView tvPriceSampling;
+    @BindView(R.id.tv_unit)
+    TextView tvUnit;
 
 
     private List<BillDetails> billDetailsList;
@@ -129,6 +129,18 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         tvTitle.setText(R.string.bill_details);
         ivBack.setOnClickListener(this);
 
+        int samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+        switch (samplingUnit) {
+            case 1://kg
+                tvUnit.setText("重量(kg)");
+                break;
+
+            case 2://g
+                tvUnit.setText("重量(g)");
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
@@ -228,6 +240,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
             BigDecimal b1 = new BigDecimal(Double.toString(deductionWeight));
             BigDecimal b2 = new BigDecimal(deductionList.get(i).getWeight());
             deductionWeight = b1.add(b2).doubleValue();
+            deductionWeight = DoubleCountUtils.keep(deductionWeight);
         }
         //减扣重
         BigDecimal b1 = new BigDecimal(Double.toString(mWeight));

@@ -30,7 +30,7 @@ public class StringUtils {
         List<String> list = new ArrayList<>();
 
 
-        if (size >= n) {
+        if (size > n) {
             for (int i=0;i<n;i++) {
                 String s = weightList.get(size - (i + 1));
                 list.add(s);
@@ -38,7 +38,9 @@ public class StringUtils {
 
             for (int j=0;j<list.size();j++) {
 
-                isStable = isStable && (list.get(j).equals(list.get(j + 1)));
+                if (j != list.size() - 1) {
+                    isStable = isStable && (list.get(j).equals(list.get(j + 1)));
+                }
             }
 
             return isStable;

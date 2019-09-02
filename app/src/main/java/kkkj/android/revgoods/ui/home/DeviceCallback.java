@@ -1,7 +1,6 @@
 package kkkj.android.revgoods.ui.home;
 
 import kkkj.android.revgoods.mvpInterface.MvpView;
-import kkkj.android.revgoods.ui.home.model.DeviceBean;
 
 /**
  * 项目名:   RevGoods
@@ -19,24 +18,19 @@ public abstract class DeviceCallback<T> {
     }
 
     /**
-     *
+     * 设备连接后的回调
      */
-    public abstract void deciceInfo(DeviceBean deviceBean);
+    public abstract void isConnected(boolean isConnected);
 
-//    /**
-//     * 设备连接后的回调
-//     */
-//    public abstract void isConnected(boolean isConnected);
-//
-//    /**
-//     * 连接失败的回调
-//     */
-//    public abstract void onConnectFail(String msg);
-//
-//    /**
-//     * 连接状态改变的回调
-//     */
-//    public abstract void onConnectionChanged(boolean isConnected);
+    /**
+     * 连接失败的回调
+     */
+    public abstract void onConnectFail(String msg);
+
+    /**
+     * 连接状态改变的回调
+     */
+    public abstract void onDisconnected();
 
     /**
      *  读取设备数据

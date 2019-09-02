@@ -26,9 +26,22 @@ public class Deduction extends LitePalSupport {
     private String KeyID;
 
     /**
+     * 记录时间
+     */
+    private String time;
+
+    /**
      * 所属单据
      */
     private Bill bill;
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
 
     public Bill getBill() {
         return bill;

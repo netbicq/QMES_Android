@@ -49,7 +49,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -877,12 +879,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void transferSuccess(String str) {
 
-                        observablePieceWeight.subscribe(new Consumer<Double>() {
-                            @Override
-                            public void accept(Double aDouble) throws Exception {
-                                compareWeight[0] = aDouble;
-                            }
-                        });
+                        if (observablePieceWeight != null) {
+                            observablePieceWeight.subscribe(new Consumer<Double>() {
+                                @Override
+                                public void accept(Double aDouble) throws Exception {
+                                    compareWeight[0] = aDouble;
+                                }
+                            });
+                        }
 
                         if (str.length() == 8) {
                             //取反
@@ -958,9 +962,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             //取最后一个数
                                             cumulative.setWeight(strWeightList.get(size - 1));
 
+                                            //获取当前时间 HH:mm:ss
+                                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                                            Date date = new Date(System.currentTimeMillis());
+                                            String time = simpleDateFormat.format(date);
+                                            cumulative.setTime(time);
+
                                             cumulative.save();
 
-                                            myToasty.showSuccess("OK");
+                                            //半自动模式，表示当前未连接继电器
+                                            if (manager == null || !manager.isConnect() || bluetoothRelay == null || !bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                                                myToasty.showSuccess("OK");
+                                                }
 
                                             int count =
                                                     Integer.parseInt(tvCumulativeCount.getText().toString());
@@ -1448,7 +1461,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             @Override
                             public void onNext(String s) {
-                                Logger.d("读取到数据:" + s);
+
                                 if (s.length() == 8) {
                                     //去掉前面的“=”号和零
                                     String str1 = s.replace("=", "");
@@ -1734,9 +1747,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.tv_produce_line://选择生产线
-                ProduceLineListFragment produceLineListFragment = new ProduceLineListFragment();
 
-                showDialogFragment(produceLineListFragment, PRODUCE_LINE_LIST);
+                if (supplier != null && matterId > 0 && matterLevelId > 0) {
+                    ProduceLineListFragment produceLineListFragment = new ProduceLineListFragment();
+                    showDialogFragment(produceLineListFragment, PRODUCE_LINE_LIST);
+                }else {
+                    myToasty.showWarning("请先选择供应商，品类，品类等级！");
+                }
 
                 break;
 
@@ -2010,20 +2027,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_hand://手动计重
                 double weight = Double.parseDouble(mWeightTextView.getText().toString());
                 if (weight > 0d) {
-                    Cumulative cumulative = new Cumulative();
-                    cumulative.setCategory("净重");
-                    cumulative.setWeight(mWeightTextView.getText().toString());
 
-                    cumulative.save();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("确定上传数据？")
+                            .setPositiveButton(R.string.enter, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
 
-                    int count = Integer.parseInt(tvCumulativeCount.getText().toString());
-                    double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+                                    Cumulative cumulative = new Cumulative();
+                                    cumulative.setCategory("净重");
+                                    cumulative.setWeight(mWeightTextView.getText().toString());
 
-                    cWeight = new DoubleCountUtils(cWeight,Double.valueOf(mWeightTextView.getText().toString())).add();
-                    count = count + 1;
+                                    //获取当前时间 HH:mm:ss
+                                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                                    Date date = new Date(System.currentTimeMillis());
+                                    String time = simpleDateFormat.format(date);
+                                    cumulative.setTime(time);
 
-                    tvCumulativeCount.setText(String.valueOf(count));
-                    tvCumulativeWeight.setText(String.valueOf(cWeight));
+                                    cumulative.save();
+
+                                    int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+                                    double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+                                    cWeight = new DoubleCountUtils(cWeight,Double.valueOf(mWeightTextView.getText().toString())).add();
+                                    count = count + 1;
+
+                                    tvCumulativeCount.setText(String.valueOf(count));
+                                    tvCumulativeWeight.setText(String.valueOf(cWeight));
+
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Logger.d("取消");
+                                }
+                            }).show();
+
                 } else {
                     myToasty.showWarning("当前重量为零，请勿计重！");
                 }

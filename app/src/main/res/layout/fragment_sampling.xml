@@ -38,6 +38,7 @@
             android:text="@string/quantity" />
 
         <TextView
+            android:id="@+id/tv_unit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -179,6 +180,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/btn_change_unit"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_style"
+            android:text="切换单位"
+            android:textColor="@color/qmui_config_color_white" />
 
         <Button
             android:id="@+id/button"

@@ -55,6 +55,7 @@ import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.customer.SlideRecyclerView;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 /**
  * 采样明细
@@ -70,6 +71,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     private ShowSamplingPictureFragment mFragment;
     private TextView tvCount;
     private TextView tvWeight;
+    private TextView tvUnit;
     private Spinner spSpecs;
     private EditText tvPrice;
     private Button btnSave;
@@ -101,6 +103,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     private Specs tempSpecs;
 
     private int position = 0;
+    private double specstemp;
 
     @Override
     public int setLayout() {
@@ -145,7 +148,8 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
 
         if (count != 0) {
 
-            double specstemp = DoubleCountUtils.keep(weight / count);
+            specstemp = DoubleCountUtils.keep(weight / count);
+
             tempSpecs.setValue(String.valueOf(specstemp));
 
             specsList.add(tempSpecs);
@@ -240,6 +244,21 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
 
         tvCount = view.findViewById(R.id.tv_count);
         tvWeight = view.findViewById(R.id.tv_weight);
+
+        tvUnit = view.findViewById(R.id.tv_unit);
+        int samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+        switch (samplingUnit) {
+            case 1://kg
+                tvUnit.setText("重量(kg)");
+                break;
+
+            case 2://g
+                tvUnit.setText("重量(g)");
+                break;
+            default:
+                break;
+        }
+
         spSpecs = view.findViewById(R.id.id_sp_specs);
         spSpecs.setAdapter(specsAdapter);
         tvCount.setText(String.valueOf(count));
@@ -248,6 +267,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         btnSave = view.findViewById(R.id.button);
         btnSave.setOnClickListener(this);
         mView = view.findViewById(R.id.id_view);
+
 
         spSpecs.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -305,6 +325,20 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
                 position = 0;
             }
         });
+
+        int postion = 0;
+        for (int i=1;i<specsList.size();i++) {
+            Specs specs1 = specsList.get(i);
+            if (specs1.getMinWeight() < specstemp && specstemp < specs1.getMaxWeight()) {
+                postion = i;
+            }
+        }
+        //此时已匹配到对应规格
+        if (postion != 0) {
+            spSpecs.setSelection(postion,true);
+        }else {
+            myToasty.showWarning("根据当前计算结果，未能在系统内匹配到对应规格，请手动选择！");
+        }
 
         tvPrice.addTextChangedListener(new TextWatcher() {
             @Override

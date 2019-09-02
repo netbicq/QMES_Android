@@ -314,8 +314,7 @@
                     android:layout_weight="1"
                     android:background="#ffffff"
                     android:gravity="center"
-                    android:text="@string/cumulative"
-                    android:textColor="@color/red" />
+                    android:text="总计" />
 
                 <TextView
                     android:id="@+id/tv_init_price"
