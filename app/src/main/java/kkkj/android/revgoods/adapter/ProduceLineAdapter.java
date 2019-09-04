@@ -1,6 +1,8 @@
 package kkkj.android.revgoods.adapter;
 
 import android.support.annotation.Nullable;
+import android.view.View;
+import android.widget.TextView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -25,5 +27,13 @@ public class ProduceLineAdapter extends BaseQuickAdapter<ProduceLine, BaseViewHo
     @Override
     protected void convert(BaseViewHolder helper, ProduceLine item) {
         helper.setText(R.id.id_tv_device,item.getName());
+
+        TextView tvSetting = helper.getView(R.id.tv_setting);
+        tvSetting.setVisibility(View.GONE);
+        if (helper.getAdapterPosition() == 0) {
+            //tvSetting.setVisibility(View.GONE);
+        }
+
+        helper.addOnClickListener(R.id.tv_setting);
     }
 }

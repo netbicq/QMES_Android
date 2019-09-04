@@ -20,6 +20,11 @@ public class SharedPreferenceUtil {
     public static final String SP_MATTER = "Matter";
     public static final String SP_MATTER_LEVEL = "Matter_Level";
 
+    /**
+     * 采样单位
+     * 1. 系统默认单位kg
+     * 2. g
+     */
     public static final String SP_SAMPLING_UNIT = "Sampling_Unit";
 
     public static final String SP_REMEBER_PWD = "SP_REMEBER_PWD";

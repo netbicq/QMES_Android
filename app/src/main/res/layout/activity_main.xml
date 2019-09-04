@@ -366,7 +366,7 @@
         android:padding="6dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_camera_36dp" />
+        app:srcCompat="@drawable/ic_loop_black_36dp" />
 
     <ImageView
         android:id="@+id/id_iv_choose_matter"

@@ -2,12 +2,15 @@ package kkkj.android.revgoods.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.xuhao.didi.socket.common.interfaces.utils.TextUtils;
 
@@ -34,6 +37,8 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     private Button mSaveButton;
     private Spinner mSpinner;
     private EditText mEtWeight;
+    private EditText mEtCount;
+    private TextView mTvTotalWeight;
 
     private ArrayAdapter adapter;
     private String weight;
@@ -87,9 +92,61 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
 
         mEtWeight = view.findViewById(R.id.id_et_weight);
         mEtWeight.setText(weight);
+        mEtCount = view.findViewById(R.id.id_et_count);
+        mTvTotalWeight = view.findViewById(R.id.tv_total_weight);
+        mTvTotalWeight.setText(weight);
         mSpinner = view.findViewById(R.id.id_et_number);
         mSpinner.setAdapter(adapter);
         mSaveButton.setOnClickListener(this);
+
+        mEtWeight.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String sWeight = charSequence.toString().trim();
+                String sCount = mEtCount.getText().toString().trim();
+                if (sWeight.length() > 0 && sCount.length() > 0) {
+                    double totalWeight = Double.valueOf(sWeight);
+                    int count = Integer.valueOf(sCount);
+                    totalWeight = DoubleCountUtils.keep(count * totalWeight);
+                    mTvTotalWeight.setText(String.valueOf(totalWeight));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        mEtCount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String sCount = charSequence.toString().trim();
+                String sWeight = mEtWeight.getText().toString().trim();
+                if (sCount.length() > 0 && sWeight.length() > 0) {
+                    int count = Integer.valueOf(sCount);
+                    double totalWeight = Double.valueOf(sWeight);
+                    totalWeight = DoubleCountUtils.keep(count * totalWeight);
+                    mTvTotalWeight.setText(String.valueOf(totalWeight));
+                }
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
 
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -121,12 +178,15 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
                 } else {
 
                     String wt = mEtWeight.getText().toString().trim();
+                    String sCount = mEtCount.getText().toString().trim();
+                    String totalWeight = mTvTotalWeight.getText().toString();
 
-                    if (!TextUtils.isEmpty(wt)) {
+
+                    if (!TextUtils.isEmpty(wt) && !TextUtils.isEmpty(sCount)) {
 
                         deduction = new Deduction();
                         deduction.setCategory(deductionCategory.getName());
-                        deduction.setWeight(DoubleCountUtils.keep(Double.valueOf(wt)));
+                        deduction.setWeight(Double.valueOf(totalWeight));
                         deduction.setKeyID(deductionCategory.getKeyID());
 
                         //获取当前时间 HH:mm:ss

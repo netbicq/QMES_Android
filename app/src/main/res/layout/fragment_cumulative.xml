@@ -35,7 +35,7 @@
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:gravity="center"
-            android:text="@string/count"/>
+            android:text="序号"/>
 
         <TextView
             android:layout_width="0dp"

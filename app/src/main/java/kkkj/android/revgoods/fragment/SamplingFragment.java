@@ -75,6 +75,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
     private Button mEnterButton;
     private Button mBtnChangeUnit;
     private TextView mTvUnit;
+    private TextView mTvSpecsName;
     private EditText mEtNumber;
     private EditText mEtWeight;
     private EditText mEtPrice;
@@ -111,7 +112,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
      * 1. 系统默认单位kg
      * 2. g
      */
-    int samplingUnit;
+    private int samplingUnit;
 
     //返回的路径集合
     private List<Path> pathList = new ArrayList<>();
@@ -248,6 +249,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         mEtWeight = view.findViewById(R.id.id_et_weight);
 
         mTvUnit = view.findViewById(R.id.tv_unit);
+        mTvSpecsName = view.findViewById(R.id.tv_specs_name);
         switch (samplingUnit) {
             case 1://kg
                 mTvUnit.setText("重量(kg)");
@@ -295,6 +297,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 }
                 specs = specsList.get(i);
                 position = i;
+                mTvSpecsName.setText(specs.getName());
 
                 /**
                  * 根据supplierId，matterId ,specs 和当前品类等级  查找价格配置表   是否匹配
@@ -495,9 +498,18 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 specs = DoubleCountUtils.keep(specs);
 
                 int postion = 0;
+
+                int unit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+                int rate;//换算率
+                if (unit ==1) {
+                    rate = 1;//此时采样系统默认单位Kg，规格里面的单位也是kg,因此不需要转换
+                }else {
+                    rate = 1000;//此时单位g，规格里面的单位是kg,因此需要转换
+                }
+
                 for (int i=1;i<specsList.size();i++) {
                     Specs specs1 = specsList.get(i);
-                    if (specs1.getMinWeight() < specs && specs < specs1.getMaxWeight()) {
+                    if (specs1.getMinWeight() * rate < specs && specs < specs1.getMaxWeight() * rate) {
                         postion = i;
                     }
                 }

@@ -327,9 +327,18 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         });
 
         int postion = 0;
+
+        int unit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+        int rate;//换算率
+        if (unit ==1) {
+            rate = 1;//此时采样系统默认单位Kg，规格里面的单位也是kg,因此不需要转换
+        }else {
+            rate = 1000;//此时单位g，规格里面的单位是kg,因此需要转换
+        }
+
         for (int i=1;i<specsList.size();i++) {
             Specs specs1 = specsList.get(i);
-            if (specs1.getMinWeight() < specstemp && specstemp < specs1.getMaxWeight()) {
+            if (specs1.getMinWeight() * rate < specstemp && specstemp < specs1.getMaxWeight() * rate) {
                 postion = i;
             }
         }
@@ -337,7 +346,10 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         if (postion != 0) {
             spSpecs.setSelection(postion,true);
         }else {
-            myToasty.showWarning("根据当前计算结果，未能在系统内匹配到对应规格，请手动选择！");
+            if (samplingDetailsList.size() != 0) {
+                myToasty.showWarning("根据当前计算结果，未能在系统内匹配到对应规格，请手动选择！");
+            }
+
         }
 
         tvPrice.addTextChangedListener(new TextWatcher() {

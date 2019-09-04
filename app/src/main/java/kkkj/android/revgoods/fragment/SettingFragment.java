@@ -33,14 +33,18 @@ import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.addDeductionCategory.DeductionCategoryActivity;
 import kkkj.android.revgoods.ui.login.view.LoginActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
+import kkkj.android.revgoods.utils.AppVersionInfoUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class SettingFragment extends DialogFragment implements View.OnClickListener {
 
     private TextView mSettingDeductionCategoryTextView;
     private TextView mChangeLanguageTv;
-    private TextView mTvSetTime;
+    private TextView mTvDeviceList;
     private TextView mTvChangeUser;
+    private TextView mTvVersionName;
+
+    private String versionName;
 
     @Nullable
     @Override
@@ -57,17 +61,23 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
     }
 
     private void initData() {
+
+        versionName = AppVersionInfoUtils.getAppVersionName(getActivity());
     }
 
     private void initView(View view) {
         mChangeLanguageTv = view.findViewById(R.id.id_tv_change_language);
         mSettingDeductionCategoryTextView = view.findViewById(R.id.id_tv_deduction_category);
-        mTvSetTime = view.findViewById(R.id.tv_set_time);
+        mTvDeviceList = view.findViewById(R.id.tv_device_list);
+
+        mTvVersionName = view.findViewById(R.id.tv_version_name);
+        mTvVersionName.setText("系统版本号:" + versionName);
+
         mTvChangeUser = view.findViewById(R.id.tv_change_user);
         mTvChangeUser.setOnClickListener(this);
         mSettingDeductionCategoryTextView.setOnClickListener(this);
         mChangeLanguageTv.setOnClickListener(this);
-        mTvSetTime.setOnClickListener(this);
+        mTvDeviceList.setOnClickListener(this);
     }
 
 
@@ -119,7 +129,10 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
                 }).show();
                 break;
 
-            case R.id.tv_set_time:
+            case R.id.tv_device_list://设备清单
+
+
+
                 //间隔时间,默认2秒
                 int intervalTime = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_INTERVAL_TIME,2);
 

@@ -1,13 +1,20 @@
 package kkkj.android.revgoods.fragment;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
 
 import java.util.ArrayList;
@@ -31,11 +38,37 @@ public class ProduceLineListFragment extends BaseDialogFragment {
     private LinearLayoutManager mLayoutManager;
     private ProduceLineAdapter adapter;
     private List<ProduceLine> produceLineList;
+    private SetProduceLineFragment mFragment;
+    private ProduceLine produceLine;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public int setLayout() {
+        return R.layout.fragment_device_list;
+    }
+
+    //EventBus
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void Refresh(DeviceEvent deviceEvent) {
+        if (deviceEvent.isRefresh()) {
+            produceLineList.clear();
+
+            produceLineList.add(produceLine);
+            produceLineList.addAll(LitePal.findAll(ProduceLine.class));
+            adapter.notifyDataSetChanged();
+        }
+
+    }
 
     @Override
     public void initData() {
         produceLineList = new ArrayList<>();
-        ProduceLine produceLine = new ProduceLine();
+        produceLine = new ProduceLine();
         produceLine.setName("移动称重");
         produceLineList.add(produceLine);
         produceLineList.addAll(LitePal.findAll(ProduceLine.class));
@@ -59,14 +92,32 @@ public class ProduceLineListFragment extends BaseDialogFragment {
                 DeviceEvent deviceEvent = new DeviceEvent();
                 deviceEvent.setProduceLine(produceLineList.get(position));
                 EventBus.getDefault().post(deviceEvent);
+                Logger.d(produceLineList.get(position).isMasterBaned());
                 dismiss();
+            }
+        });
+
+        adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+
+                int id = produceLineList.get(position).getId();
+                if (mFragment != null) {
+                    mFragment = null;
+                }
+                mFragment = SetProduceLineFragment.newInstance(id);
+                FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);//动画 淡入淡出
+                mFragment.show(ft, "ShowSamplingPictureFragment");
+
             }
         });
 
     }
 
     @Override
-    public int setLayout() {
-        return R.layout.fragment_device_list;
+    public void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
 }

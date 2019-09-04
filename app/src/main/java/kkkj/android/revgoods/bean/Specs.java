@@ -5,6 +5,9 @@ import org.litepal.crud.LitePalSupport;
 import java.util.ArrayList;
 import java.util.List;
 
+import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
+
 /**
  * 项目名:   RevGoods
  * 包名:     kkkj.android.revgoods.bean
@@ -22,6 +25,12 @@ public class Specs extends LitePalSupport {
      * MaxWeight : 4.0
      */
 
+    /**
+     * 采样单位
+     * 1. 系统默认单位kg
+     * 2. g
+     */
+
     private String KeyID;
     private String Name;
     private double MinWeight;
@@ -30,7 +39,15 @@ public class Specs extends LitePalSupport {
     private String value;
 
     public String getValue() {
-        return MinWeight + "~" + MaxWeight;
+
+        int unit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+
+        if (unit == 1) {
+            return MinWeight + "kg~" + MaxWeight + "kg";
+        }else {
+            return DoubleCountUtils.keep(MinWeight * 1000) + "g~" + DoubleCountUtils.keep(MaxWeight * 1000) + "g";
+        }
+
     }
 
     public void setValue(String value) {

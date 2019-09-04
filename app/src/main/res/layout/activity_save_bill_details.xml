@@ -6,43 +6,76 @@
     android:layout_height="match_parent"
     tools:context=".ui.saveBill.SaveBillDetailsActivity">
 
-    <TextView
-        android:id="@+id/textView5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:text="采样日期："
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_time_sampling"
+    <LinearLayout
+        android:id="@+id/id_ll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="2019年08月29日15:30"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@color/qmui_config_color_pure_black"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView5"
-        app:layout_constraintTop_toTopOf="@+id/textView5" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@color/qmui_config_color_white"
+            android:gravity="center"
+            android:text="名称" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@color/qmui_config_color_white"
+            android:gravity="center"
+            android:text="设备类型" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@color/qmui_config_color_white"
+            android:gravity="center"
+            android:text="状态" />
+
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:background="@color/qmui_config_color_white"
+            android:gravity="center"
+            android:text="操作" />
+
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:text="供应商名称："
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-    <TextView
-        android:id="@+id/tv_supplier_sampling"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="重庆库克科技有限公司"
-        app:layout_constraintStart_toEndOf="@+id/textView8"
-        app:layout_constraintTop_toTopOf="@+id/textView8" />
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:text="收料秤"
+        app:layout_constraintEnd_toStartOf="@+id/guideline4"
+        app:layout_constraintStart_toStartOf="@+id/id_ll"
+        app:layout_constraintTop_toBottomOf="@+id/id_ll" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline"
@@ -52,21 +85,212 @@
         app:layout_constraintGuide_percent="0.5" />
 
     <TextView
-        android:id="@+id/textView10"
+        android:id="@+id/textView17"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="供应商编号："
+        android:layout_marginTop="16dp"
+        android:text="继电器"
+        app:layout_constraintEnd_toEndOf="@+id/textView8"
+        app:layout_constraintStart_toStartOf="@+id/textView8"
+        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.25" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.74" />
+
+    <ImageView
+        android:id="@+id/iv_master"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/textView8"
+        app:layout_constraintEnd_toStartOf="@+id/guideline6"
         app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/textView8"
+        app:srcCompat="@drawable/ic_connect_24dp" />
+
+    <ImageView
+        android:id="@+id/iv_sampling"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_sampling"
+        app:layout_constraintEnd_toStartOf="@+id/guideline6"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/tv_sampling"
+        app:srcCompat="@drawable/ic_connect_24dp" />
+
+    <ImageView
+        android:id="@+id/iv_show_out"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_show_out"
+        app:layout_constraintEnd_toStartOf="@+id/guideline6"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/tv_show_out"
+        app:srcCompat="@drawable/ic_connect_24dp" />
+
+    <ImageView
+        android:id="@+id/iv_relay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_relay"
+        app:layout_constraintEnd_toStartOf="@+id/guideline6"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/tv_relay"
+        app:srcCompat="@drawable/ic_connect_24dp" />
+
+    <TextView
+        android:id="@+id/tv_master"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="未配置"
+        app:layout_constraintBottom_toBottomOf="@+id/textView8"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="@+id/guideline4"
         app:layout_constraintTop_toTopOf="@+id/textView8" />
 
     <TextView
-        android:id="@+id/tv_supplier_number_sampling"
+        android:id="@+id/tv_relay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="未配置"
+        app:layout_constraintEnd_toEndOf="@+id/tv_master"
+        app:layout_constraintStart_toStartOf="@+id/tv_master"
+        app:layout_constraintTop_toBottomOf="@+id/tv_master" />
+
+    <TextView
+        android:id="@+id/textView21"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="入料线路"
+        app:layout_constraintEnd_toEndOf="@+id/textView17"
+        app:layout_constraintStart_toStartOf="@+id/textView17"
+        app:layout_constraintTop_toBottomOf="@+id/textView17" />
+
+    <TextView
+        android:id="@+id/textView22"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="出料线路"
+        app:layout_constraintEnd_toEndOf="@+id/textView21"
+        app:layout_constraintStart_toStartOf="@+id/textView21"
+        app:layout_constraintTop_toBottomOf="@+id/textView21" />
+
+    <TextView
+        android:id="@+id/textView23"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="采样秤"
+        app:layout_constraintEnd_toEndOf="@+id/textView22"
+        app:layout_constraintStart_toStartOf="@+id/textView22"
+        app:layout_constraintTop_toBottomOf="@+id/textView22" />
+
+    <TextView
+        android:id="@+id/textView26"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="显示屏"
+        app:layout_constraintEnd_toEndOf="@+id/textView23"
+        app:layout_constraintStart_toStartOf="@+id/textView23"
+        app:layout_constraintTop_toBottomOf="@+id/textView23" />
+
+    <TextView
+        android:id="@+id/tv_in_line"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="未配置"
+        app:layout_constraintEnd_toEndOf="@+id/tv_relay"
+        app:layout_constraintStart_toStartOf="@+id/tv_relay"
+        app:layout_constraintTop_toBottomOf="@+id/tv_relay" />
+
+    <TextView
+        android:id="@+id/tv_out_line"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="未配置"
+        app:layout_constraintEnd_toEndOf="@+id/tv_in_line"
+        app:layout_constraintStart_toStartOf="@+id/tv_in_line"
+        app:layout_constraintTop_toBottomOf="@+id/tv_in_line" />
+
+    <TextView
+        android:id="@+id/tv_sampling"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="未配置"
+        app:layout_constraintEnd_toEndOf="@+id/tv_out_line"
+        app:layout_constraintStart_toStartOf="@+id/tv_out_line"
+        app:layout_constraintTop_toBottomOf="@+id/tv_out_line" />
+
+    <TextView
+        android:id="@+id/tv_show_out"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="未配置"
+        app:layout_constraintEnd_toEndOf="@+id/tv_sampling"
+        app:layout_constraintStart_toStartOf="@+id/tv_sampling"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sampling" />
+
+    <Switch
+        android:id="@+id/switch_master"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="123456789"
-        app:layout_constraintStart_toEndOf="@+id/textView10"
-        app:layout_constraintTop_toTopOf="@+id/textView10" />
+        android:layout_marginEnd="8dp"
+        android:text="Switch"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_master"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline6"
+        app:layout_constraintTop_toTopOf="@+id/iv_master" />
+
+    <Switch
+        android:id="@+id/switch_relay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Switch"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_relay"
+        app:layout_constraintEnd_toEndOf="@+id/switch_master"
+        app:layout_constraintStart_toStartOf="@+id/switch_master"
+        app:layout_constraintTop_toTopOf="@+id/iv_relay" />
+
+    <Switch
+        android:id="@+id/switch_sampling"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Switch"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_sampling"
+        app:layout_constraintEnd_toEndOf="@+id/switch_relay"
+        app:layout_constraintStart_toStartOf="@+id/switch_relay"
+        app:layout_constraintTop_toTopOf="@+id/iv_sampling" />
+
+    <Switch
+        android:id="@+id/switch_show_out"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Switch"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_show_out"
+        app:layout_constraintEnd_toEndOf="@+id/switch_sampling"
+        app:layout_constraintStart_toStartOf="@+id/switch_sampling"
+        app:layout_constraintTop_toTopOf="@+id/iv_show_out" />
 
 
 </android.support.constraint.ConstraintLayout>

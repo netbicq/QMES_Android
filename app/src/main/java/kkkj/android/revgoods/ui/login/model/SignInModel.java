@@ -260,19 +260,25 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
             public ObservableSource<PriceModel.Response> apply(ProduceLineModel.Response response) throws Exception {
                 if (response.getState() == RESPONSE_OK) {
                     if (response.getData().size() > 0) {
-                        LitePal.deleteAll(ProduceLine.class);
+                        List<String> keyIdList = new ArrayList<>();
                         List<ProduceLine> list = response.getData();
                         for (int i = 0; i < list.size(); i++) {
                             String keyId = list.get(i).getKeyID();
+                            keyIdList.add(keyId);
                             list.get(i).saveOrUpdate("KeyID = ?", keyId);
                             Logger.d(list.get(i).toString());
-                            //反序列化
-//                                        String sPower = list.get(i).getSapmle();
-//                                        Logger.d( "---------->" + sPower);
-//                                        Sapmle power = new Gson().fromJson(sPower,Sapmle.class);
-//                                        Logger.d(power.toString());
-
                         }
+
+                        List<ProduceLine> produceLineOldList = LitePal.findAll(ProduceLine.class);
+                        for (int j=0;j<produceLineOldList.size();j++) {
+                            String keyIdOld = produceLineOldList.get(j).getKeyID();
+                            if (!keyIdList.contains(keyIdOld)) {
+                                List<Price> list1 = LitePal.where("KeyID = ?",keyIdOld).find(Price.class);
+                                int id = list1.get(0).getId();
+                                LitePal.delete(Price.class,id);
+                            }
+                        }
+
                     }
                 }
                 return apiApp.getPrice();

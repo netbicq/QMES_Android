@@ -145,6 +145,17 @@ public class BluetoothManager {
         return true;
     }
 
+    public void disconnect() {
+        if (mSocket != null && mSocket.isConnected()) {
+            try {
+                mSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+        }
+    }
+
     /**
      * 获取 读取 观察者
      * 蓝牙电子秤

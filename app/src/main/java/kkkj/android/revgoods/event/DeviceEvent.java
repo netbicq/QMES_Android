@@ -66,6 +66,50 @@ public class DeviceEvent {
      */
     private int intervalTime = -1;
 
+    /**
+     *生产线配置后刷新
+     */
+    private boolean isRefresh = false;
+
+    public boolean isRefresh() {
+        return isRefresh;
+    }
+
+    /**
+     * 断开设备连接
+     * disConnect
+     * 1.收料秤
+     * 2.继电器
+     * 3.采样秤
+     * 4.显示屏
+     */
+    private int disConnectType = -1;
+
+    /**
+     *连接设备
+     */
+    private int connectType = -1;
+
+    public int getConnectType() {
+        return connectType;
+    }
+
+    public void setConnectType(int connectType) {
+        this.connectType = connectType;
+    }
+
+    public int getDisConnectType() {
+        return disConnectType;
+    }
+
+    public void setDisConnectType(int disConnectType) {
+        this.disConnectType = disConnectType;
+    }
+
+    public void setRefresh(boolean refresh) {
+        isRefresh = refresh;
+    }
+
     public int getIntervalTime() {
         return intervalTime;
     }

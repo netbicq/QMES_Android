@@ -58,7 +58,18 @@
             android:layout_marginLeft="1dp"
             android:layout_marginBottom="1dp"
             android:gravity="center"
-            android:text="@string/name" />
+            android:text="规格名称" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/qmui_config_color_white"
+            android:layout_marginTop="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
+            android:gravity="center"
+            android:text="单重范围" />
 
         <TextView
             android:layout_width="0dp"
@@ -119,6 +130,18 @@
             android:layout_width="1dp"
             android:layout_height="match_parent"/>
 
+        <TextView
+            android:id="@+id/tv_specs_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"/>
+
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+        
         <Spinner
             android:id="@+id/id_sp_specs"
             android:layout_width="0dp"

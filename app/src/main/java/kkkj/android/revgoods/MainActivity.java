@@ -87,6 +87,8 @@ import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.ControlRelay;
 import kkkj.android.revgoods.conn.ble.Ble;
+import kkkj.android.revgoods.conn.ble.BleCallback;
+import kkkj.android.revgoods.conn.ble.BleTest;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueCallBack;
 import kkkj.android.revgoods.conn.bluetooth.PinBlueReceiver;
@@ -115,6 +117,7 @@ import kkkj.android.revgoods.relay.bean.RelayBean;
 import kkkj.android.revgoods.relay.bluetooth.model.BTOrder;
 import kkkj.android.revgoods.relay.wifi.model.Order;
 import kkkj.android.revgoods.ui.ChooseMatterLevelActivity;
+import kkkj.android.revgoods.ui.DeviceListActivity;
 import kkkj.android.revgoods.ui.chooseMatter.ChooseMatterActivity;
 import kkkj.android.revgoods.ui.chooseSpecs.ChooseSpecsActivity;
 import kkkj.android.revgoods.ui.chooseSupplier.ChooseSupplierActivity;
@@ -229,7 +232,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //蓝牙Ble显示屏的连接状态
     private boolean bleScreenConnectionState = false;
     //蓝牙Ble设备
-    private Ble ble;
+//    private Ble ble;
+    private BleTest bleTest;
+    //是否已断开显示屏
+    private boolean isDisconnectScreen;
     //间隔时间
     private int intervalTime;
     //扣重率
@@ -237,14 +243,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Observable<Double> observablePieceWeight;
 
-//    private BillListFragment billListFragment;
-//    private DeviceListFragment deviceListFragment;
-//    private SamplingFragment samplingFragment;
-//    private SamplingDetailsFragment samplingDetailsFragment;
-//    private CumulativeFragment cumulativeFragment;
-//    private DeductionFragment deductionFragment;
-//    private SettingFragment settingFragment;
-//    private SaveBillFragment saveBillFragment;
+    //收料秤
+    private BluetoothDevice masterDevice;
+    //蓝牙继电器
+    private BluetoothDevice bluetoothRelayDevice;
+    //Wifi继电器
+    private Device wifiRelayDevice;
+    //采样电子秤
+    private BluetoothDevice samplingDevice;
+    //显示屏
+    private BluetoothDevice showOutDevice;
 
     private Observer<String> stateOB;
     private String isUploadCount = "0/0";
@@ -277,6 +285,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //继电器控制的开关
     private int inLine;
     private int outLine;
+    //生产线
+    private ProduceLine produceLine;
 
     /**
      * 继电器连接类型
@@ -310,7 +320,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        initBlue();
         initData();
         initView();
 
@@ -532,6 +541,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     //EventBus
+    @SuppressLint("CheckResult")
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void ConnectDevice(DeviceEvent deviceEvent) {
         Device device = deviceEvent.getDevice();
@@ -618,6 +628,139 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isUploadCount = isUpload + "/" + total;
             mTvIsUpload.setText(isUploadCount);
         }
+
+        //断开设备连接
+        if (deviceEvent.getDisConnectType() > 0) {
+            switch (deviceEvent.getDisConnectType()) {
+
+                case 1://断开收料秤
+                    if (BleManager.getInstance() != null && bluetoothManager != null) {
+                        BleManager.getInstance().destory();
+                        myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
+                        produceLine.setMasterConnectionState(false);
+                        blueMainScaleConnectionState = false;
+
+                        //延迟1秒之后断开
+                        Observable.timer(1000, TimeUnit.MILLISECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<Long>() {
+                                    @Override
+                                    public void accept(Long aLong) throws Exception {
+                                        mWeightTextView.setText("0.00");
+                                    }
+                                });
+
+                    }
+                    break;
+
+                case 2://断开继电器
+                    //wifi继电器
+                    if (manager != null) {
+                        manager.send(new WriteData(Order.TURN_OFF_ALL));
+                        manager.unRegisterReceiver(listener);
+                        produceLine.setRelayConnectionState(false);
+                        wifiConnectionState = false;
+                        myToasty.showWarning("继电器已断开");
+                    }
+
+                    //蓝牙继电器
+                    if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
+                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
+
+                        //延迟1秒之后断开
+                        Observable.timer(2000, TimeUnit.MILLISECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<Long>() {
+                                    @Override
+                                    public void accept(Long aLong) throws Exception {
+                                        bluetoothRelay.getMyBluetoothManager().disConnect();
+//                                        for (int i=0;i<mWifiList.size();i++) {
+//                                            mWifiList.get(i).setState("0");
+//                                        }
+//                                        switchAdapter.notifyDataSetChanged();
+                                        produceLine.setRelayConnectionState(false);
+                                        blueRelayConnectionState = false;
+                                        myToasty.showWarning("继电器已断开");
+                                    }
+                                });
+
+                    }
+
+                    break;
+
+                case 3://断开采样秤
+                    //采样电子秤
+                    if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) {
+                        bluetoothScale.getMyBluetoothManager().disConnect();
+                        produceLine.setSamplingConnectionState(false);
+                        blueSamplingScaleConnectionState = false;
+                        myToasty.showWarning("采样秤已断开");
+                    }
+                    break;
+
+                case 4://断开显示屏
+                    if (bleTest != null) {
+                        isDisconnectScreen = true;
+                        byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
+                        byte[] b3 = {0x23};
+                        byte[] b2 = "0.00".getBytes();
+                        b2 = CRC16Util.addBytes(b1, b2);
+                        b3 = CRC16Util.addBytes(b2, b3);
+                        bleTest.sendData(b3);
+
+
+                        //延迟1秒之后断开
+                        Observable.timer(1000, TimeUnit.MILLISECONDS)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<Long>() {
+                                    @Override
+                                    public void accept(Long aLong) throws Exception {
+                                        bleTest.diconnect();
+                                        produceLine.setShowOutConnectionState(false);
+                                        bleScreenConnectionState = false;
+//                                        myToasty.showWarning("显示屏已断开");
+                                    }
+                                });
+
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        //连接设备
+
+        if (deviceEvent.getConnectType() > 0) {
+            switch (deviceEvent.getConnectType()) {
+
+                case 1://收料秤
+                    connect(masterDevice);
+                    break;
+
+                case 2://继电器
+                    if (CONNECT_TYPE == 1) {//wifi
+                        connectWifi(wifiRelayDevice);
+                    }else if(CONNECT_TYPE == 2) { //蓝牙
+                        connectBluetoothRelay(bluetoothRelayDevice);
+                    }
+                    break;
+
+                case 3://采样秤
+                    connectAndGetBluetoothScale(samplingDevice);
+                    break;
+
+                case 4://显示屏
+                    connectBle(showOutDevice);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
         //生产线
         if (deviceEvent.getProduceLine() != null) {
 
@@ -626,7 +769,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
 
-            ProduceLine produceLine = deviceEvent.getProduceLine();
+            produceLine = deviceEvent.getProduceLine();
             tvProduceLine.setText(produceLine.getName());
             Logger.d(produceLine.toString());
 
@@ -643,7 +786,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 //蓝牙继电器
                 if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
                     bluetoothRelay.getMyBluetoothManager().disConnect();
                 }
 
@@ -678,16 +822,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Logger.d("------------>" + address);
 
                 try {
-                    BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+                    masterDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
-                    if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                    if (masterDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
                         //connectAndGetBluetoothScale(bluetoothDevice);
                         if (!blueMainScaleConnectionState) {
-                            connect(bluetoothDevice);
+                            connect(masterDevice);
                         }
 
                     } else {
-                        BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
+                        BleManager.getInstance().pin(masterDevice, new PinResultListener() {
                             @Override
                             public void paired(BluetoothDevice device) {
                                 connect(device);
@@ -716,9 +860,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             CONNECT_TYPE = 2;
                             String address1 = power.getDeviceAddr().trim();
                             try {
-                                BluetoothDevice bluetoothDevice1 =
+                                bluetoothRelayDevice =
                                         BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                                connectBluetoothRelay(bluetoothDevice1);
+                                connectBluetoothRelay(bluetoothRelayDevice);
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -736,10 +880,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }
                             String ip = strarr[0].trim();
                             int port = Integer.valueOf(strarr[1]);
-                            Device device1 = new Device();
-                            device1.setWifiIp(ip);
-                            device1.setWifiPort(port);
-                            connectWifi(device1);
+                            wifiRelayDevice = new Device();
+                            wifiRelayDevice.setWifiIp(ip);
+                            wifiRelayDevice.setWifiPort(port);
+                            connectWifi(wifiRelayDevice);
                             break;
 
                         default:
@@ -764,8 +908,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!(showOut.getDeviceAddr() == null)) {
                     String addressBle = showOut.getDeviceAddr().trim();//"D8:E0:4B:FD:31:F6"
                     try {
-                        BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
-                        connectBle(bleDevice);
+                        showOutDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
+                        connectBle(showOutDevice);
                     } catch (Exception e) {
                         e.printStackTrace();
                         myToasty.showInfo(e.getMessage());
@@ -821,7 +965,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     BluetoothDevice bleDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressBle);
                     connectBle(bleDevice);
 
-
                 default:
                     break;
             }
@@ -831,20 +974,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //蓝牙Ble显示屏
     private void connectBle(BluetoothDevice bleDevice) {
+        isDisconnectScreen = false;
         if (bleScreenConnectionState) {
+            produceLine.setShowOutConnectionState(true);
             return;
         }
 
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        ble = new Ble(bleDevice, this);
-        bleScreenConnectionState = ble.connect();
+        bleTest = new BleTest(MainActivity.this, bleDevice.getAddress(), new BleCallback() {
+            @Override
+            public void onConnected(boolean isConnected) {
+                if (isConnected) {
+                    myToasty.showSuccess("显示屏连接成功！");
+                    bleScreenConnectionState = true;
+                    produceLine.setShowOutConnectionState(true);
+                }else {
+                    myToasty.showError("显示屏连接失败！");
+                    bleScreenConnectionState = false;
+                    produceLine.setShowOutConnectionState(false);
+                }
+            }
+
+            @Override
+            public void disConnected() {
+                myToasty.showWarning("显示屏连接已断开！");
+                bleScreenConnectionState = false;
+                produceLine.setShowOutConnectionState(false);
+            }
+        });
+
+        bleTest.connectBle();
 
     }
 
     //蓝牙电子秤
     private void connect(BluetoothDevice device) {
+
+        initBlue();
 
         qmuiTipDialog.show();
         final boolean[] isSend = {false};
@@ -855,11 +1023,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         List<String> strWeightList = new ArrayList<>();
         List<String> strLowWeightList = new ArrayList<>();
 
+        if (blueMainScaleConnectionState) {
+            return;
+        }
+
         BleManager.getInstance().connect(device, new ConnectResultlistner() {
             @Override
             public void connectSuccess(Connect connect) {
                 bluetoothManager = connect;
                 blueMainScaleConnectionState = true;
+                produceLine.setMasterConnectionState(true);
                 qmuiTipDialog.dismiss();
                 myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
 
@@ -903,12 +1076,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 byte[] weightByte = CRC16Util.stringToByte(str);
 
-                                if (ble != null) {
-                                    bleScreenConnectionState = ble.isConnected();
+                                if (bleTest != null && !isDisconnectScreen) {
+//                                    bleScreenConnectionState = ble.isConnected();
                                     if (!isSend[0] && bleScreenConnectionState) {
 
-                                        myToasty.showSuccess("显示屏连接成功！");
-
+//                                        myToasty.showSuccess("显示屏连接成功！");
+//                                        produceLine.setShowOutConnectionState(true);
                                         //小数位数，固定2位
 //                                        byte[] point = {0x01, 0x06, 0x00, 0x04, 0x00, 0x02, 0x49, (byte) 0xCA};
 //                                        ble.send(point);
@@ -930,7 +1103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     b2 = CRC16Util.addBytes(b1, b2);
                                     b3 = CRC16Util.addBytes(b2, b3);
                                     b4 = CRC16Util.addBytes(b1, b4);
-                                    ble.send(b3);
+                                    bleTest.sendData(b3);
                                 }
 
 
@@ -973,7 +1146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             //半自动模式，表示当前未连接继电器
                                             if (manager == null || !manager.isConnect() || bluetoothRelay == null || !bluetoothRelay.getMyBluetoothManager().isConnect()) {
                                                 myToasty.showSuccess("OK");
-                                                }
+                                            }
 
                                             int count =
                                                     Integer.parseInt(tvCumulativeCount.getText().toString());
@@ -1044,321 +1217,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 }
 
-
-//                                switch (CONNECT_TYPE) {
-//                                    //Wifi继电器
-//                                    case 1:
-//
-//                                        if (weight > compareWeight[0]) {
-//
-//                                            //超过单重之后关闭入料口，传送带
-//                                            controlRelay.turnOffInLine();
-////                                            if (!isTurn[0] && manager != null && manager.isConnect()) {
-////                                                isTurn[0] = true;
-////                                                manager.send(new WriteData(Order.getTurnOff().get(inLine)));
-////
-////                                            }
-//
-//                                            strWeightList.add(str);
-//                                            int size = strWeightList.size();
-//
-//                                            if (size > 10) { //连续10个数相等，则说明电子秤读数稳定
-//
-//                                                String s10 = strWeightList.get(size - 1);
-//                                                String s9 = strWeightList.get(size - 2);
-//                                                String s8 = strWeightList.get(size - 3);
-//                                                String s7 = strWeightList.get(size - 4);
-//                                                String s6 = strWeightList.get(size - 5);
-//                                                String s5 = strWeightList.get(size - 6);
-//                                                String s4 = strWeightList.get(size - 7);
-//                                                String s3 = strWeightList.get(size - 8);
-//                                                String s2 = strWeightList.get(size - 9);
-//                                                String s1 = strWeightList.get(size - 10);
-//
-//                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-//                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3
-//                                                        .equals(s2) && s2.equals(s1)) {
-//
-//                                                    if (!isWrite[0]) {
-//
-//                                                        isWrite[0] = true;
-//
-//                                                        Cumulative cumulative = new Cumulative();
-//                                                        cumulative.setCategory("净重");
-//                                                        cumulative.setWeight(s10);
-//
-//                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative
-//                                                        .class).size() > 0) {
-//                                                            Cumulative cumulativeLast =
-//                                                                    LitePal.where("hasBill < ?", "0").findLast
-//                                                                    (Cumulative.class);
-//                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
-//                                                        } else {
-//                                                            cumulative.setCount(1);
-//                                                        }
-//
-//                                                        cumulative.save();
-//
-//                                                        myToasty.showSuccess("OK");
-//
-//                                                        int count =
-//                                                                Integer.parseInt(tvCumulativeCount.getText()
-//                                                                .toString());
-//                                                        double cWeight =
-//                                                                Double.parseDouble(tvCumulativeWeight.getText()
-//                                                                .toString());
-//
-//                                                        /**
-//                                                         * 相加：b1.add(b2).doubleValue();
-//                                                         * 相减：b1.subtract(b2).doubleValue();
-//                                                         * 相乘：b1.multiply(b2).doubleValue();
-//                                                         */
-//                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-//                                                        BigDecimal b2 = new BigDecimal(s5);
-//                                                        cWeight = b1.add(b2).doubleValue();
-//                                                        count = count + 1;
-//
-//                                                        tvCumulativeCount.setText(String.valueOf(count));
-//                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
-//
-//                                                        //计重之后打开2号开关，出料口开始倾倒物料
-//                                                        if (manager != null && manager.isConnect()) {
-//                                                            manager.send(new WriteData(Order.getTurnOn().get
-//                                                            (outLine)));
-//                                                        }
-//
-//
-//                                                    }
-//
-//                                                }
-//
-//                                            }
-//
-//                                        } else {
-//
-//                                            if (isWrite[0]) {
-//
-//                                                if (strWeightList.size() > 0) {
-//                                                    strWeightList.clear();
-//                                                }
-//
-//                                                strLowWeightList.add(str);
-//                                                int size = strLowWeightList.size();
-//                                                if (size > 10) {
-//
-//                                                    String s10 = strLowWeightList.get(size - 1);
-//                                                    String s9 = strLowWeightList.get(size - 2);
-//                                                    String s8 = strLowWeightList.get(size - 3);
-//                                                    String s7 = strLowWeightList.get(size - 4);
-//                                                    String s6 = strLowWeightList.get(size - 5);
-//                                                    String s5 = strLowWeightList.get(size - 6);
-//                                                    String s4 = strLowWeightList.get(size - 7);
-//                                                    String s3 = strLowWeightList.get(size - 8);
-//                                                    String s2 = strLowWeightList.get(size - 9);
-//                                                    String s1 = strLowWeightList.get(size - 10);
-//
-//                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
-//                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7
-//                                                    .equals(s6)
-//                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) &&
-//                                                            s3.equals(s2) && s2.equals(s1)) {
-//
-//                                                        //此时关闭出料口
-//                                                        if (manager != null && manager.isConnect()) {
-//                                                            manager.send(new WriteData(Order.getTurnOff().get
-//                                                            (outLine)));
-//                                                        }
-//
-//                                                        //间隔1秒之后打开入料口开关，传送带
-//                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
-//                                                                .subscribe(new Consumer<Long>() {
-//                                                                    @Override
-//                                                                    public void accept(Long aLong) throws Exception {
-//
-//                                                                        if (manager != null && manager.isConnect()) {
-//                                                                            manager.send(new WriteData(Order
-//                                                                            .getTurnOn().get(inLine)));
-//                                                                        }
-//                                                                        isWrite[0] = false;
-//                                                                        isTurn[0] = false;
-//                                                                        strLowWeightList.clear();
-//                                                                    }
-//                                                                });
-//
-//                                                    }
-//
-//                                                }
-//
-//                                            }
-//
-//                                        }
-//
-//                                        break;
-//                                    //蓝牙继电器
-//                                    case 2:
-//
-//                                        if (weight > compareWeight[0]) {
-//
-//                                            if (!isTurn[0] && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-//                                                isTurn[0] = true;
-//                                                bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder
-//                                                .getTurnOff().get(inLine)).subscribe(stateOB);
-//
-//                                            }
-//
-//
-//                                            strWeightList.add(str);
-//                                            int size = strWeightList.size();
-//
-//                                            if (size > 10) {
-//                                                String s10 = strWeightList.get(size - 1);
-//                                                String s9 = strWeightList.get(size - 2);
-//                                                String s8 = strWeightList.get(size - 3);
-//                                                String s7 = strWeightList.get(size - 4);
-//                                                String s6 = strWeightList.get(size - 5);
-//                                                String s5 = strWeightList.get(size - 6);
-//                                                String s4 = strWeightList.get(size - 7);
-//                                                String s3 = strWeightList.get(size - 8);
-//                                                String s2 = strWeightList.get(size - 9);
-//                                                String s1 = strWeightList.get(size - 10);
-//
-//                                                if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7.equals(s6)
-//                                                        && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) && s3
-//                                                        .equals(s2) && s2.equals(s1)) {
-//
-//                                                    if (!isWrite[0]) {
-//
-//                                                        isWrite[0] = true;
-//
-//                                                        Cumulative cumulative = new Cumulative();
-//                                                        cumulative.setCategory("净重");
-//                                                        cumulative.setWeight(s10);
-//
-//                                                        if (LitePal.where("hasBill < ?", "0").find(Cumulative
-//                                                        .class).size() > 0) {
-//                                                            Cumulative cumulativeLast =
-//                                                                    LitePal.where("hasBill < ?", "0").findLast
-//                                                                    (Cumulative.class);
-//                                                            cumulative.setCount(cumulativeLast.getCount() + 1);
-//                                                        } else {
-//                                                            cumulative.setCount(1);
-//                                                        }
-//
-//                                                        cumulative.save();
-//
-//                                                        myToasty.showSuccess("OK");
-//
-//                                                        int count =
-//                                                                Integer.parseInt(tvCumulativeCount.getText()
-//                                                                .toString());
-//                                                        double cWeight =
-//                                                                Double.parseDouble(tvCumulativeWeight.getText()
-//                                                                .toString());
-//
-//                                                        /**
-//                                                         * 相加：b1.add(b2).doubleValue();
-//                                                         * 相减：b1.subtract(b2).doubleValue();
-//                                                         * 相乘：b1.multiply(b2).doubleValue();
-//                                                         */
-//                                                        BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-//                                                        BigDecimal b2 = new BigDecimal(s5);
-//                                                        cWeight = b1.add(b2).doubleValue();
-//                                                        count = count + 1;
-//
-//                                                        tvCumulativeCount.setText(String.valueOf(count));
-//                                                        tvCumulativeWeight.setText(String.valueOf(cWeight));
-//
-//                                                        //计重之后打开2号开关，出料口
-//                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
-//                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB
-//                                                            (BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
-//                                                        }
-//
-//
-//                                                        //intervalTime秒之后开关置反
-////                                                        Observable.timer(intervalTime, TimeUnit.SECONDS)
-////                                                                .subscribe(new Consumer<Long>() {
-////                                                                    @Override
-////                                                                    public void accept(Long aLong) throws
-// Exception {
-////                                                                    }
-////                                                                });
-//
-//                                                    }
-//
-//                                                }
-//
-//                                            }
-//
-//                                        } else {
-//
-//                                            if (isWrite[0]) {
-//
-//                                                if (strWeightList.size() > 0) {
-//                                                    strWeightList.clear();
-//                                                }
-//
-//                                                strLowWeightList.add(str);
-//                                                int size = strLowWeightList.size();
-//                                                if (size > 10) {
-//
-//                                                    String s10 = strLowWeightList.get(size - 1);
-//                                                    String s9 = strLowWeightList.get(size - 2);
-//                                                    String s8 = strLowWeightList.get(size - 3);
-//                                                    String s7 = strLowWeightList.get(size - 4);
-//                                                    String s6 = strLowWeightList.get(size - 5);
-//                                                    String s5 = strLowWeightList.get(size - 6);
-//                                                    String s4 = strLowWeightList.get(size - 7);
-//                                                    String s3 = strLowWeightList.get(size - 8);
-//                                                    String s2 = strLowWeightList.get(size - 9);
-//                                                    String s1 = strLowWeightList.get(size - 10);
-//
-//                                                    //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
-//                                                    if (s10.equals(s9) && s9.equals(s8) && s8.equals(s7) && s7
-//                                                    .equals(s6)
-//                                                            && s6.equals(s5) && s5.equals(s4) && s4.equals(s3) &&
-//                                                            s3.equals(s2) && s2.equals(s1)) {
-//                                                        //此时关闭出料口
-//                                                        if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
-//                                                            bluetoothRelay.getMyBluetoothManager().getWriteOB
-//                                                            (BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-//                                                        }
-//
-//
-//                                                        //间隔1秒之后打开入料口开关，传送带
-//                                                        Observable.timer(1000, TimeUnit.MILLISECONDS)
-//                                                                .subscribe(new Consumer<Long>() {
-//                                                                    @Override
-//                                                                    public void accept(Long aLong) throws Exception {
-//
-//                                                                        if (bluetoothRelay.getMyBluetoothManager()
-//                                                                        .isConnect()) {
-//                                                                            bluetoothRelay.getMyBluetoothManager()
-//                                                                            .getWriteOB(BTOrder.getTurnOn().get
-//                                                                            (inLine)).subscribe(stateOB);
-//                                                                        }
-//                                                                        isWrite[0] = false;
-//                                                                        isTurn[0] = false;
-//                                                                        strLowWeightList.clear();
-//                                                                    }
-//                                                                });
-//
-//                                                    }
-//
-//                                                }
-//
-//                                            }
-//
-//                                        }
-//
-//                                        break;
-//
-//                                    default:
-//                                        break;
-//
-//                                }
-
-
                             }
                         }
                     }
@@ -1377,13 +1235,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void connectFailed(Exception e) {
                 qmuiTipDialog.dismiss();
                 myToasty.showError(getResources().getString(R.string.connect_failed));
+//                blueMainScaleConnectionState = false;
+//                produceLine.setMasterConnectionState(false);
             }
 
             @Override
             public void disconnected() {
-                myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
-
-                blueMainScaleConnectionState = false;
+//                myToasty.showWarning(getResources().getString(R.string.bluetooth_diconnected));
+//                blueMainScaleConnectionState = false;
+//                produceLine.setMasterConnectionState(false);
             }
         });
     }
@@ -1414,6 +1274,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onNext(Boolean aBoolean) {
                     myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
                     blueSamplingScaleConnectionState = true;
+                    produceLine.setSamplingConnectionState(true);
                 }
 
                 @Override
@@ -1498,6 +1359,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             bluetoothBean.getMyBluetoothManager().pin();
         } else {
             if (blueRelayConnectionState) {
+                produceLine.setRelayConnectionState(true);
                 return;
             }
             qmuiTipDialog.show();
@@ -1514,6 +1376,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         qmuiTipDialog.dismiss();
                         initBluetoothRelay();
                         myToasty.showSuccess("蓝牙继电器连接成功！");
+                        produceLine.setRelayConnectionState(true);
                         blueRelayConnectionState = true;
                         //打开某个开关
                         bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
@@ -1624,6 +1487,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onConnectionSuccess() {
                 myToasty.showSuccess("Wifi继电器连接成功！");
                 wifiConnectionState = true;
+                produceLine.setRelayConnectionState(true);
                 manager.send(new WriteData(Order.GET_STATE));
                 //连接成功之后就打开某个开关
                 manager.send(new WriteData(Order.getTurnOn().get(inLine)));
@@ -1674,6 +1538,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onDisconnection(Exception e) {
                 myToasty.showWarning("Wifi继电器连接已断开！");
+                produceLine.setRelayConnectionState(false);
             }
 
             @Override
@@ -1751,7 +1616,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (supplier != null && matterId > 0 && matterLevelId > 0) {
                     ProduceLineListFragment produceLineListFragment = new ProduceLineListFragment();
                     showDialogFragment(produceLineListFragment, PRODUCE_LINE_LIST);
-                }else {
+                } else {
                     myToasty.showWarning("请先选择供应商，品类，品类等级！");
                 }
 
@@ -1773,9 +1638,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     if (isSetSapmle) {//是否配置了采样秤
                         try {
-                            BluetoothDevice bluetoothDevice2 =
+                            samplingDevice =
                                     BluetoothAdapter.getDefaultAdapter().getRemoteDevice(sampleMacAddress);
-                            connectAndGetBluetoothScale(bluetoothDevice2);
+                            connectAndGetBluetoothScale(samplingDevice);
                         } catch (Exception e) {
                             e.printStackTrace();
                             myToasty.showInfo(e.getMessage());
@@ -1965,7 +1830,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_iv_takePicture:
-                takePicture();
+//                takePicture();
+                if (produceLine == null) {
+                    myToasty.showWarning("当前未连接过任何设备，无法查看！");
+                    return;
+                }
+
+                Intent it = new Intent(MainActivity.this, DeviceListActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("produceLine", produceLine);
+                it.putExtras(bundle);
+                startActivity(it);
+
                 break;
 
             case R.id.id_tv_save_bill://保存单据
@@ -2049,7 +1925,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     int count = Integer.parseInt(tvCumulativeCount.getText().toString());
                                     double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
 
-                                    cWeight = new DoubleCountUtils(cWeight,Double.valueOf(mWeightTextView.getText().toString())).add();
+                                    cWeight = new DoubleCountUtils(cWeight, Double.valueOf(mWeightTextView.getText().toString())).add();
                                     count = count + 1;
 
                                     tvCumulativeCount.setText(String.valueOf(count));
@@ -2141,8 +2017,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             BleManager.getInstance().destory();
         }
 
-        if (ble != null) {
-            ble.destory();
+        if (bleTest != null) {
+            bleTest.diconnect();
         }
 
         EventBus.getDefault().unregister(this);
