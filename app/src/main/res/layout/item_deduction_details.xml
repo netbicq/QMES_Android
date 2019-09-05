@@ -15,7 +15,7 @@
         android:layout_marginLeft="1dp"
         android:layout_marginBottom="1dp"
         android:gravity="center"
-        tolls:text="次数"/>
+        tolls:text="序号"/>
 
     <TextView
         android:id="@+id/id_tv_time"
@@ -37,7 +37,29 @@
         android:layout_marginBottom="1dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="@string/category"/>
+        tolls:text="@string/category"/>
+
+    <TextView
+        android:id="@+id/id_tv_single_weight"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/qmui_config_color_white"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        tolls:text="单重"/>
+
+    <TextView
+        android:id="@+id/id_tv_deduction_count"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/qmui_config_color_white"
+        android:layout_marginLeft="1dp"
+        android:layout_marginBottom="1dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        tolls:text="次数"/>
 
     <TextView
         android:id="@+id/id_tv_weight"
@@ -49,7 +71,7 @@
         android:layout_marginRight="1dp"
         android:layout_marginBottom="1dp"
         android:gravity="center"
-        android:text="@string/weight"/>
+        tolls:text="重量"/>
 
 
 </LinearLayout>

@@ -40,6 +40,7 @@ public class ProduceLineListFragment extends BaseDialogFragment {
     private List<ProduceLine> produceLineList;
     private SetProduceLineFragment mFragment;
     private ProduceLine produceLine;
+    private ProduceLine byHandProduceLine;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,6 +60,7 @@ public class ProduceLineListFragment extends BaseDialogFragment {
             produceLineList.clear();
 
             produceLineList.add(produceLine);
+            produceLineList.add(byHandProduceLine);
             produceLineList.addAll(LitePal.findAll(ProduceLine.class));
             adapter.notifyDataSetChanged();
         }
@@ -69,8 +71,11 @@ public class ProduceLineListFragment extends BaseDialogFragment {
     public void initData() {
         produceLineList = new ArrayList<>();
         produceLine = new ProduceLine();
-        produceLine.setName("移动称重");
+        produceLine.setName("半自动");
         produceLineList.add(produceLine);
+        byHandProduceLine = new ProduceLine();
+        byHandProduceLine.setName("手动");
+        produceLineList.add(byHandProduceLine);
         produceLineList.addAll(LitePal.findAll(ProduceLine.class));
     }
 

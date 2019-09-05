@@ -20,6 +20,17 @@ public class Deduction extends LitePalSupport {
      * 重量
      */
     private double weight;
+
+    /**
+     * 单重
+     */
+    private double singleWeight;
+
+    /**
+     * 次数
+     */
+    private int count;
+
     /**
      * 扣重类别ID
      */
@@ -34,6 +45,22 @@ public class Deduction extends LitePalSupport {
      * 所属单据
      */
     private Bill bill;
+
+    public double getSingleWeight() {
+        return singleWeight;
+    }
+
+    public void setSingleWeight(double singleWeight) {
+        this.singleWeight = singleWeight;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
 
     public String getTime() {
         return time;

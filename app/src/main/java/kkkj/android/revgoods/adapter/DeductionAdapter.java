@@ -30,6 +30,8 @@ public class DeductionAdapter extends BaseQuickAdapter<Deduction, BaseViewHolder
         helper.setText(R.id.id_tv_time,item.getTime());
         helper.setText(R.id.id_tv_category,item.getCategory());
         helper.setText(R.id.id_tv_weight,String.valueOf(item.getWeight()));
+        helper.setText(R.id.id_tv_single_weight,String.valueOf(item.getSingleWeight()));
+        helper.setText(R.id.id_tv_deduction_count,String.valueOf(item.getCount()));
     }
 
 }

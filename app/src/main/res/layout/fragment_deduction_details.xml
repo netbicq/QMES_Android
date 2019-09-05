@@ -29,7 +29,7 @@
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="@color/qmui_config_color_white"
             android:layout_marginTop="1dp"
             android:layout_marginLeft="1dp"
@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="@color/qmui_config_color_white"
             android:layout_marginTop="1dp"
             android:layout_marginLeft="1dp"
@@ -50,7 +50,7 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_marginTop="1dp"
             android:layout_marginLeft="1dp"
@@ -61,12 +61,34 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
+            android:background="@color/qmui_config_color_white"
+            android:gravity="center"
+            android:text="单重(kg)"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
+            android:background="@color/qmui_config_color_white"
+            android:gravity="center"
+            android:text="次数"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="1dp"
             android:background="@color/qmui_config_color_white"
             android:gravity="center"
-            android:text="@string/weight"/>
+            android:text="合计重量(kg)"/>
 
     </LinearLayout>
 

@@ -43,6 +43,10 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     private ArrayAdapter adapter;
     private String weight;
 
+    //单重
+    private double singleWeight;
+    //次数
+    private int deductionCount = 1;
 
     //扣重类别
     private List<DeductionCategory> deductionList;
@@ -63,6 +67,7 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         weight = (String)getArguments().getSerializable("weight");
+        singleWeight = Double.valueOf(weight);
     }
 
 
@@ -111,6 +116,7 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
                 String sCount = mEtCount.getText().toString().trim();
                 if (sWeight.length() > 0 && sCount.length() > 0) {
                     double totalWeight = Double.valueOf(sWeight);
+                    singleWeight = totalWeight;
                     int count = Integer.valueOf(sCount);
                     totalWeight = DoubleCountUtils.keep(count * totalWeight);
                     mTvTotalWeight.setText(String.valueOf(totalWeight));
@@ -135,6 +141,7 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
                 String sWeight = mEtWeight.getText().toString().trim();
                 if (sCount.length() > 0 && sWeight.length() > 0) {
                     int count = Integer.valueOf(sCount);
+                    deductionCount = count;
                     double totalWeight = Double.valueOf(sWeight);
                     totalWeight = DoubleCountUtils.keep(count * totalWeight);
                     mTvTotalWeight.setText(String.valueOf(totalWeight));
@@ -190,10 +197,12 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
                         deduction.setKeyID(deductionCategory.getKeyID());
 
                         //获取当前时间 HH:mm:ss
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
                         Date date = new Date(System.currentTimeMillis());
                         String time = simpleDateFormat.format(date);
                         deduction.setTime(time);
+                        deduction.setSingleWeight(singleWeight);
+                        deduction.setCount(deductionCount);
 
                         deduction.save();
 

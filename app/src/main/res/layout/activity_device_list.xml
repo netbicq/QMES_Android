@@ -39,73 +39,90 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <LinearLayout
-                    android:id="@+id/id_ll"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
+                <View
+                    android:id="@+id/view11"
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
                     android:background="@color/qmui_config_color_pure_black"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/guideline6"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0" />
+
+                <View
+                    android:id="@+id/view12"
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/textView19"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="名称"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline4"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="1dp"
-                        android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"
-                        android:layout_weight="1"
-                        android:background="@color/qmui_config_color_white"
-                        android:gravity="center"
-                        android:text="名称" />
+                <TextView
+                    android:id="@+id/textView20"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="设备类型"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline6"
+                    app:layout_constraintStart_toStartOf="@+id/guideline4"
+                    app:layout_constraintTop_toTopOf="@+id/textView19" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="1dp"
-                        android:layout_marginTop="1dp"
-                        android:layout_marginBottom="1dp"
-                        android:layout_weight="1"
-                        android:background="@color/qmui_config_color_white"
-                        android:gravity="center"
-                        android:text="设备类型" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:gravity="center"
+                    android:text="状态"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/guideline6"
+                    app:layout_constraintTop_toTopOf="@+id/textView20" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="1dp"
-                        android:layout_weight="1"
-                        android:background="@color/qmui_config_color_white"
-                        android:gravity="center"
-                        android:text="状态" />
-
-
-                </LinearLayout>
 
                 <TextView
                     android:id="@+id/textView8"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:layout_marginEnd="8dp"
                     android:text="收料秤"
                     app:layout_constraintEnd_toStartOf="@+id/guideline4"
-                    app:layout_constraintStart_toStartOf="@+id/id_ll"
-                    app:layout_constraintTop_toBottomOf="@+id/id_ll" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/view14" />
 
                 <TextView
                     android:id="@+id/textView17"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="12dp"
                     android:text="继电器"
                     app:layout_constraintEnd_toEndOf="@+id/textView8"
                     app:layout_constraintStart_toStartOf="@+id/textView8"
-                    app:layout_constraintTop_toBottomOf="@+id/textView8" />
+                    app:layout_constraintTop_toBottomOf="@+id/view2" />
 
                 <android.support.constraint.Guideline
                     android:id="@+id/guideline4"
@@ -125,6 +142,7 @@
                     android:id="@id/tv_master"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="未配置"
                     app:layout_constraintBottom_toBottomOf="@+id/textView8"
@@ -146,41 +164,41 @@
                     android:id="@+id/textView21"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="12dp"
                     android:text="入料线路"
                     app:layout_constraintEnd_toEndOf="@+id/textView17"
                     app:layout_constraintStart_toStartOf="@+id/textView17"
-                    app:layout_constraintTop_toBottomOf="@+id/textView17" />
+                    app:layout_constraintTop_toBottomOf="@+id/view7" />
 
                 <TextView
                     android:id="@+id/textView22"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="12dp"
                     android:text="出料线路"
                     app:layout_constraintEnd_toEndOf="@+id/textView21"
                     app:layout_constraintStart_toStartOf="@+id/textView21"
-                    app:layout_constraintTop_toBottomOf="@+id/textView21" />
+                    app:layout_constraintTop_toBottomOf="@+id/view3" />
 
                 <TextView
                     android:id="@+id/textView23"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="12dp"
                     android:text="采样秤"
                     app:layout_constraintEnd_toEndOf="@+id/textView22"
                     app:layout_constraintStart_toStartOf="@+id/textView22"
-                    app:layout_constraintTop_toBottomOf="@+id/textView22" />
+                    app:layout_constraintTop_toBottomOf="@+id/view4" />
 
                 <TextView
                     android:id="@+id/textView26"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="12dp"
                     android:text="显示屏"
                     app:layout_constraintEnd_toEndOf="@+id/textView23"
                     app:layout_constraintStart_toStartOf="@+id/textView23"
-                    app:layout_constraintTop_toBottomOf="@+id/textView23" />
+                    app:layout_constraintTop_toBottomOf="@+id/view6" />
 
                 <TextView
                     android:id="@+id/tv_in_line"
@@ -227,52 +245,174 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:visibility="gone"
-                    app:sb_checked_color="@color/green"
-                    app:sb_background="@color/red"
-                    app:sb_uncheckcircle_color="@color/red"
                     app:layout_constraintBottom_toBottomOf="@+id/tv_master"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/guideline6"
-                    app:layout_constraintTop_toTopOf="@+id/tv_master" />
+                    app:layout_constraintTop_toTopOf="@+id/tv_master"
+                    app:sb_background="@color/red"
+                    app:sb_checked_color="@color/green"
+                    app:sb_uncheckcircle_color="@color/red" />
 
                 <com.suke.widget.SwitchButton
                     android:id="@+id/switch_relay"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    app:sb_checked_color="@color/green"
-                    app:sb_background="@color/red"
-                    app:sb_uncheckcircle_color="@color/red"
                     app:layout_constraintBottom_toBottomOf="@+id/tv_relay"
                     app:layout_constraintEnd_toEndOf="@+id/switch_master"
                     app:layout_constraintStart_toStartOf="@+id/switch_master"
-                    app:layout_constraintTop_toTopOf="@+id/tv_relay" />
+                    app:layout_constraintTop_toTopOf="@+id/tv_relay"
+                    app:sb_background="@color/red"
+                    app:sb_checked_color="@color/green"
+                    app:sb_uncheckcircle_color="@color/red" />
 
                 <com.suke.widget.SwitchButton
                     android:id="@+id/switch_sampling"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    app:sb_checked_color="@color/green"
-                    app:sb_background="@color/red"
-                    app:sb_uncheckcircle_color="@color/red"
                     app:layout_constraintBottom_toBottomOf="@+id/tv_sampling"
                     app:layout_constraintEnd_toEndOf="@+id/switch_relay"
                     app:layout_constraintStart_toStartOf="@+id/switch_relay"
-                    app:layout_constraintTop_toTopOf="@+id/tv_sampling" />
+                    app:layout_constraintTop_toTopOf="@+id/tv_sampling"
+                    app:sb_background="@color/red"
+                    app:sb_checked_color="@color/green"
+                    app:sb_uncheckcircle_color="@color/red" />
 
                 <com.suke.widget.SwitchButton
                     android:id="@+id/switch_show_out"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    app:sb_checked_color="@color/green"
-                    app:sb_background="@color/red"
-                    app:sb_uncheckcircle_color="@color/red"
                     app:layout_constraintBottom_toBottomOf="@+id/tv_show_out"
                     app:layout_constraintEnd_toEndOf="@+id/switch_sampling"
                     app:layout_constraintStart_toStartOf="@+id/switch_sampling"
-                    app:layout_constraintTop_toTopOf="@+id/tv_show_out" />
+                    app:layout_constraintTop_toTopOf="@+id/tv_show_out"
+                    app:sb_background="@color/red"
+                    app:sb_checked_color="@color/green"
+                    app:sb_uncheckcircle_color="@color/red" />
+
+                <View
+                    android:id="@+id/view2"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+                <View
+                    android:id="@+id/view9"
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <View
+                    android:id="@+id/view10"
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline4"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="1.0" />
+
+                <View
+                    android:id="@+id/view7"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView17" />
+
+                <View
+                    android:id="@+id/view3"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView21" />
+
+                <View
+                    android:id="@+id/view14"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView19" />
+
+                <View
+                    android:id="@+id/view13"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:layout_editor_absoluteY="38dp" />
+
+                <View
+                    android:id="@+id/view4"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView22" />
+
+                <View
+                    android:id="@+id/view6"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView23" />
+
+                <View
+                    android:id="@+id/view8"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/qmui_config_color_pure_black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView26" />
 
             </android.support.constraint.ConstraintLayout>
 

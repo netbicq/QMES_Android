@@ -25,6 +25,7 @@ import java.util.List;
 
 import kkkj.android.revgoods.R;
 import kkkj.android.revgoods.adapter.CumulativeAdapter;
+import kkkj.android.revgoods.adapter.DeductionAdapter;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Deduction;
 
@@ -33,7 +34,8 @@ import kkkj.android.revgoods.bean.Deduction;
  */
 public class CumulativeFragment extends BaseDialogFragment implements View.OnClickListener {
 
-    private CumulativeAdapter adapter;
+    private CumulativeAdapter cumulativeAdapter;
+    private DeductionAdapter deductionAdapter;
 
     /**
      * type = 1 : 扣重明细
@@ -58,34 +60,34 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
 
     @Override
     public int setLayout() {
-        return R.layout.fragment_cumulative;
+        if (type == 1) {
+            return R.layout.fragment_deduction_details;
+        } else {
+            return R.layout.fragment_cumulative;
+        }
+
     }
 
     @Override
     public void initData() {
         List<Cumulative> cumulativeList = new ArrayList<>();
+        List<Deduction> deductionList = new ArrayList<>();
 
         if (type == 1) {
 
-            List<Deduction> deductionList =LitePal.where("hasBill < ?","0")
+            deductionList =LitePal.where("hasBill < ?","0")
                     .find(Deduction.class);
+            deductionAdapter = new DeductionAdapter(R.layout.item_deduction_details,deductionList);
 
-            for (int i = 0;i<deductionList.size();i++) {
-                Cumulative cumulative = new Cumulative();
-                cumulative.setTime(deductionList.get(i).getTime());
-                cumulative.setCategory(deductionList.get(i).getCategory());
-                cumulative.setWeight(String.valueOf(deductionList.get(i).getWeight()));
-                cumulativeList.add(cumulative);
-            }
-
-        }else if (type == 2) {
+        }else {
 
             cumulativeList = LitePal.where("hasBill < ?","0")
                     .find(Cumulative.class);
+            cumulativeAdapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
 
         }
 
-        adapter = new CumulativeAdapter(R.layout.item_cumulative,cumulativeList);
+
     }
 
     @Override
@@ -101,7 +103,12 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(adapter);
+        if (type == 1) {
+            mRecyclerView.setAdapter(deductionAdapter);
+        }else {
+            mRecyclerView.setAdapter(cumulativeAdapter);
+        }
+
     }
 
 

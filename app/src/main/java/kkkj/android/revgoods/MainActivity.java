@@ -11,6 +11,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.AssetFileDescriptor;
+import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,6 +26,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -48,6 +51,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.LitePal;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -302,7 +306,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private static int SAMPLING_MODE = 0;
 
+    /**
+     * 计重模式
+     * 全手动模式
+     */
+    private boolean isByHandOnly = false;
+
     private QMUITipDialog qmuiTipDialog;
+
+    private MediaPlayer mediaPlayer;
+    //播放 assets/saveweight.wav 音乐文件
+    private AssetFileDescriptor fd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -491,6 +505,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initData() {
+
+        try {
+            fd = getAssets().openFd("saveweight.wav");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //间隔时间,默认2秒
         intervalTime = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_INTERVAL_TIME, 2);
 
@@ -773,8 +794,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tvProduceLine.setText(produceLine.getName());
             Logger.d(produceLine.toString());
 
-            if (produceLine.getName().equals("移动称重")) {
-
+            if (produceLine.getName().equals("半自动") || produceLine.getName().equals("手动")) {
+                if (produceLine.getName().equals("手动")) {
+                    isByHandOnly = true;
+                }
                 //主称
                 if (BleManager.getInstance() != null && bluetoothManager != null) {
                     BleManager.getInstance().destory();
@@ -804,7 +827,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 switchAdapter.notifyDataSetChanged();
 
-                mTvHand.setVisibility(View.VISIBLE);
+//                mTvHand.setVisibility(View.VISIBLE);
                 Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
                 startActivity(intent);
             } else {
@@ -918,7 +941,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     myToasty.showInfo("当前未配置显示屏！");
                 }
             }
-
 
         }
 
@@ -1125,47 +1147,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                     if (StringUtils.isStable(strWeightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
 
-
                                         if (!isWrite[0]) {
 
-                                            isWrite[0] = true;
+                                            if (!isByHandOnly) {
+                                                //半自动模式，表示当前未连接继电器
+                                                if (manager == null && bluetoothRelay == null) {
+                                                    openAssetMusics();
+                                                }
 
-                                            Cumulative cumulative = new Cumulative();
-                                            cumulative.setCategory("净重");
-                                            //取最后一个数
-                                            cumulative.setWeight(strWeightList.get(size - 1));
+                                                isWrite[0] = true;
 
-                                            //获取当前时间 HH:mm:ss
-                                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                                            Date date = new Date(System.currentTimeMillis());
-                                            String time = simpleDateFormat.format(date);
-                                            cumulative.setTime(time);
+                                                //计重
+                                                saveWeight(strWeightList.get(size - 1));
+//                                                Cumulative cumulative = new Cumulative();
+//                                                cumulative.setCategory("净重");
+//                                                //取最后一个数
+//                                                cumulative.setWeight(strWeightList.get(size - 1));
+//
+//                                                //获取当前时间 HH:mm:ss
+//                                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+//                                                Date date = new Date(System.currentTimeMillis());
+//                                                String time = simpleDateFormat.format(date);
+//                                                cumulative.setTime(time);
+//
+//                                                cumulative.save();
+//
+//
+//                                                int count =
+//                                                        Integer.parseInt(tvCumulativeCount.getText().toString());
+//                                                double cWeight =
+//                                                        Double.parseDouble(tvCumulativeWeight.getText().toString());
+//
+//                                                BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
+//                                                BigDecimal b2 = new BigDecimal(strWeightList.get(size - 1));
+//                                                cWeight = b1.add(b2).doubleValue();
+//                                                count = count + 1;
+//
+//                                                tvCumulativeCount.setText(String.valueOf(count));
+//                                                tvCumulativeWeight.setText(String.valueOf(cWeight));
 
-                                            cumulative.save();
-
-                                            //半自动模式，表示当前未连接继电器
-                                            if (manager == null || !manager.isConnect() || bluetoothRelay == null || !bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                                                myToasty.showSuccess("OK");
-                                            }
-
-                                            int count =
-                                                    Integer.parseInt(tvCumulativeCount.getText().toString());
-                                            double cWeight =
-                                                    Double.parseDouble(tvCumulativeWeight.getText().toString());
-
-                                            BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-                                            BigDecimal b2 = new BigDecimal(strWeightList.get(size - 1));
-                                            cWeight = b1.add(b2).doubleValue();
-                                            count = count + 1;
-
-                                            tvCumulativeCount.setText(String.valueOf(count));
-                                            tvCumulativeWeight.setText(String.valueOf(cWeight));
-
-                                            //计重之后打开2号开关，出料口开始倾倒物料
-                                            controlRelay.turnOnOutLine();
+                                                //计重之后打开2号开关，出料口开始倾倒物料
+                                                controlRelay.turnOnOutLine();
 //                                                if (manager != null && manager.isConnect()) {
 //                                                    manager.send(new WriteData(Order.getTurnOn().get(outLine)));
 //                                                }
+                                            } else {
+                                                //手动模式
+                                                openAssetMusics();
+                                                isWrite[0] = true;
+                                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                                builder.setTitle("确定上传数据？")
+                                                        .setPositiveButton(R.string.enter, new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                                //计重
+                                                                saveWeight(strWeightList.get(size - 1));
+
+                                                            }
+                                                        })
+                                                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                                Logger.d("取消");
+                                                                isWrite[0] = false;
+                                                            }
+                                                        }).show();
+
+
+                                            }
 
                                         }
 
@@ -1992,17 +2041,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         //wifi继电器
         if (manager != null) {
-            manager.send(new WriteData(Order.TURN_OFF_ALL));
+            //manager.send(new WriteData(Order.TURN_OFF_ALL));
             manager.unRegisterReceiver(listener);
+            manager = null;
         }
         //蓝牙继电器
         if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
+            //bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
             bluetoothRelay.getMyBluetoothManager().disConnect();
+            bluetoothRelay = null;
         }
         //采样电子秤
         if (bluetoothScale != null && bluetoothScale.getMyBluetoothManager() != null && bluetoothScale.getMyBluetoothManager().isConnect()) {
             bluetoothScale.getMyBluetoothManager().disConnect();
+            bluetoothScale = null;
         }
 
         if (pinBlueReceiver != null) {
@@ -2019,6 +2071,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (bleTest != null) {
             bleTest.diconnect();
+            bleTest = null;
         }
 
         EventBus.getDefault().unregister(this);
@@ -2071,6 +2124,57 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             | View.SYSTEM_UI_FLAG_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         }
+    }
+
+    //播放称重成功提示音
+    private void openAssetMusics() {
+
+        try {
+            if (mediaPlayer == null) {
+                mediaPlayer = new MediaPlayer();
+            }
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
+            mediaPlayer.prepare();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mp.start();
+                }
+            });
+
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //计重
+    private void saveWeight(String weight) {
+
+        Cumulative cumulative = new Cumulative();
+        cumulative.setCategory("净重");
+        cumulative.setWeight(weight);
+
+        //获取当前时间 HH:mm:ss
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+        Date date = new Date(System.currentTimeMillis());
+        String time = simpleDateFormat.format(date);
+        cumulative.setTime(time);
+
+        cumulative.save();
+
+        int count = Integer.parseInt(tvCumulativeCount.getText().toString());
+        double cWeight = Double.parseDouble(tvCumulativeWeight.getText().toString());
+
+        cWeight = new DoubleCountUtils(cWeight, Double.valueOf(weight)).add();
+        count = count + 1;
+
+        tvCumulativeCount.setText(String.valueOf(count));
+        tvCumulativeWeight.setText(String.valueOf(cWeight));
+
     }
 
 

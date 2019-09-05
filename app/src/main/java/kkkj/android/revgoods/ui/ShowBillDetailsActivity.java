@@ -9,6 +9,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.orhanobut.logger.Logger;
+
 import org.litepal.LitePal;
 
 import java.math.BigDecimal;
@@ -159,7 +161,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
 
         BillDetailsAdapter adapter = new BillDetailsAdapter(R.layout.item_price_details, billDetailsList);
         WeightListAdapter weightListAdapter = new WeightListAdapter(R.layout.item_weight_list, weightList);
-        DeductionAdapter deductionAdapter = new DeductionAdapter(R.layout.item_cumulative, deductionList);
+        DeductionAdapter deductionAdapter = new DeductionAdapter(R.layout.item_deduction_details, deductionList);
         BillDetailsSamplingAdapter billDetailsSamplingAdapter = new BillDetailsSamplingAdapter(R.layout.item_bill_details_sampling, samplingDetailsList);
 
 //        recyclerView = findViewById(R.id.recycler_view);
@@ -271,8 +273,10 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
 
             SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class, bill.getSamplingBySpecsId());
 
+            Logger.d(bill.getSamplingBySpecsId());
+
             tvSpecsSampling.setText(billDetails.getSpecs());
-            tvPriceSampling.setText(String.valueOf(samplingBySpecs.getPrice()));
+            tvPriceSampling.setText(String.valueOf(billDetails.getPrice()));
 
             tvSpecs.setText(billDetails.getSpecs());
             llCumulative.setVisibility(View.GONE);

@@ -28,6 +28,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
     public TextView tvTitle;
     public ImageView ivRight;
     public MyToasty myToasty;
+    private Dialog dialog;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -60,7 +61,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
     public void onStart() {
         super.onStart();
 
-        Dialog dialog = getDialog();
+        dialog = getDialog();
 
         //设置背景透明
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -92,5 +93,10 @@ public abstract class BaseDialogFragment extends DialogFragment {
         super.onDestroy();
 //        RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
 //        refWatcher.watch(this);
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+            dialog = null;
+        }
+
     }
 }

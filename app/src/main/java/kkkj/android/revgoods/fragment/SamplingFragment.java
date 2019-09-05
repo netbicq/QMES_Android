@@ -162,7 +162,8 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
         specsList.add(tempSpecs);
         specsList.addAll(LitePal.findAll(Specs.class));
 
-        for (int i = 0; i < specsList.size(); i++) {
+        specsNameList.add(getResources().getString(R.string.choose_specs));
+        for (int i = 1; i < specsList.size(); i++) {
             specsNameList.add(specsList.get(i).getValue());
         }
         specsAdapter = new ArrayAdapter<String>(getActivity().getApplication(),
@@ -500,18 +501,41 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 int postion = 0;
 
                 int unit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
-                int rate;//换算率
-                if (unit ==1) {
-                    rate = 1;//此时采样系统默认单位Kg，规格里面的单位也是kg,因此不需要转换
-                }else {
-                    rate = 1000;//此时单位g，规格里面的单位是kg,因此需要转换
-                }
 
                 for (int i=1;i<specsList.size();i++) {
                     Specs specs1 = specsList.get(i);
-                    if (specs1.getMinWeight() * rate < specs && specs < specs1.getMaxWeight() * rate) {
-                        postion = i;
+                    /**
+                     * unit = 1:以千克为单位
+                     * unit = 2:以克为单位
+                     */
+                    if (unit == 1) {
+                        //此时采用得单位为kg,需要将规格里面所有以g为单位的转换成kg,之后再进行比交匹配
+                        if (specs1.getUnit().equals("g")) {
+                            //以g为单位的规格
+                            if (specs1.getMinWeight() * 0.001 < specs && specs < specs1.getMaxWeight() * 0.001) {
+                                postion = i;
+                            }
+                        }else {
+                            //以kg为单位的规格，直接比较，不需要换算
+                            if (specs1.getMinWeight() < specs && specs < specs1.getMaxWeight()) {
+                                postion = i;
+                            }
+                        }
+                    } else {
+                        //此时采用得单位为g,需要将规格里面所有以kg为单位的转换成g,之后再进行比交匹配
+                        if (specs1.getUnit().equals("kg")) {
+                            //以kg为单位的规格
+                            if (specs1.getMinWeight() * 1000 < specs && specs < specs1.getMaxWeight() * 1000) {
+                                postion = i;
+                            }
+                        }else {
+                            //以g为单位的规格，直接比较，不需要换算
+                            if (specs1.getMinWeight() < specs && specs < specs1.getMaxWeight()) {
+                                postion = i;
+                            }
+                        }
                     }
+
                 }
                 //此时已匹配到对应规格
                 if (postion != 0) {
@@ -523,7 +547,12 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 //单重
                 singalWeight = DoubleCountUtils.keep(specs);
-                specsNameList.set(0, String.valueOf(specs));
+                if (unit ==1) {
+                    specsNameList.set(0, specs + "kg");
+                }else {
+                    specsNameList.set(0, specs + "g");
+                }
+
                 specsAdapter.notifyDataSetChanged();
 
                 break;

@@ -23,6 +23,7 @@ public class Specs extends LitePalSupport {
      * Name : sample string 2
      * MinWeight : 3.0
      * MaxWeight : 4.0
+     * Unit: sample string 5
      */
 
     /**
@@ -35,19 +36,20 @@ public class Specs extends LitePalSupport {
     private String Name;
     private double MinWeight;
     private double MaxWeight;
+    private String Unit;
 
     private String value;
 
+    public String getUnit() {
+        return Unit;
+    }
+
+    public void setUnit(String unit) {
+        Unit = unit;
+    }
+
     public String getValue() {
-
-        int unit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
-
-        if (unit == 1) {
-            return MinWeight + "kg~" + MaxWeight + "kg";
-        }else {
-            return DoubleCountUtils.keep(MinWeight * 1000) + "g~" + DoubleCountUtils.keep(MaxWeight * 1000) + "g";
-        }
-
+        return MinWeight + Unit + "~" + MaxWeight + Unit;
     }
 
     public void setValue(String value) {
@@ -112,6 +114,9 @@ public class Specs extends LitePalSupport {
                 ", Name='" + Name + '\'' +
                 ", MinWeight=" + MinWeight +
                 ", MaxWeight=" + MaxWeight +
+                ", Unit='" + Unit + '\'' +
+                ", value='" + value + '\'' +
+                ", samplingDetailsList=" + samplingDetailsList +
                 '}';
     }
 }

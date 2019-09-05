@@ -54,6 +54,18 @@ public class BillDetails extends LitePalSupport {
      */
     private double totalPrice;
 
+    /**
+     * 所属单据
+     */
+    private Bill bill;
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+    }
 
     public String getSpecsKeyId() {
         return specsKeyId;

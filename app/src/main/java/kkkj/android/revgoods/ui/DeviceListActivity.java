@@ -72,98 +72,107 @@ public class DeviceListActivity extends BaseActivity implements SwitchButton.OnC
         produceLine = (ProduceLine) bundle.getSerializable("produceLine");
 
         //主秤
-        String masterString = produceLine.getMaster();
-        Master master = new Gson().fromJson(masterString, Master.class);
-        String address = master.getDeviceAddr();
-        if (address != null) {
-            //已配置
-            switchMaster.setVisibility(View.VISIBLE);
-            switchMaster.setChecked(produceLine.isMasterConnectionState());
+        if (produceLine.getMaster() != null) {
+            String masterString = produceLine.getMaster();
+            Master master = new Gson().fromJson(masterString, Master.class);
+            String address = master.getDeviceAddr();
+            if (address != null) {
+                //已配置
+                switchMaster.setVisibility(View.VISIBLE);
+                switchMaster.setChecked(produceLine.isMasterConnectionState());
 
-            switch (master.getDeviceType()) {
-                case 1://蓝牙
-                    tvMaster.setText("蓝牙");
-                    break;
+                switch (master.getDeviceType()) {
+                    case 1://蓝牙
+                        tvMaster.setText("蓝牙");
+                        break;
 
-                case 2://wifi
-                    tvMaster.setText("Wifi");
-                    break;
-                default:
-                    break;
+                    case 2://wifi
+                        tvMaster.setText("Wifi");
+                        break;
+                    default:
+                        break;
 
+                }
             }
         }
 
+
         //继电器
-        String powerString = produceLine.getPower();
-        Power power = new Gson().fromJson(powerString, Power.class);
-        if (power.getDeviceAddr() != null) {
-            //已配置
-            switchRelay.setVisibility(View.VISIBLE);
-            switchRelay.setChecked(produceLine.isRelayConnectionState());
+        if (produceLine.getPower() != null) {
+            String powerString = produceLine.getPower();
+            Power power = new Gson().fromJson(powerString, Power.class);
+            if (power.getDeviceAddr() != null) {
+                //已配置
+                switchRelay.setVisibility(View.VISIBLE);
+                switchRelay.setChecked(produceLine.isRelayConnectionState());
 
-            int inLine = power.getInLine();
-            int outLine = power.getOutLine();
-            tvInLine.setText(String.valueOf(inLine));
-            tvOutLine.setText(String.valueOf(outLine));
+                int inLine = power.getInLine();
+                int outLine = power.getOutLine();
+                tvInLine.setText(String.valueOf(inLine));
+                tvOutLine.setText(String.valueOf(outLine));
 
-            switch (power.getDeviceType()) {
-                case 1://蓝牙
-                    tvRelay.setText("蓝牙");
-                    break;
+                switch (power.getDeviceType()) {
+                    case 1://蓝牙
+                        tvRelay.setText("蓝牙");
+                        break;
 
-                case 2://wifi
-                    tvRelay.setText("Wifi");
-                    break;
-                default:
-                    break;
+                    case 2://wifi
+                        tvRelay.setText("Wifi");
+                        break;
+                    default:
+                        break;
 
+                }
             }
         }
 
 
         //采样秤
-        String sapmleString = produceLine.getSapmle();
-        Sapmle sapmle = new Gson().fromJson(sapmleString, Sapmle.class);
-        //是否配置了采样的秤
-        if (sapmle.getDeviceAddr() != null) {
-            //已配置
-            switchSampling.setVisibility(View.VISIBLE);
-            switchSampling.setChecked(produceLine.isSamplingConnectionState());
+        if (produceLine.getSapmle() != null) {
+            String sapmleString = produceLine.getSapmle();
+            Sapmle sapmle = new Gson().fromJson(sapmleString, Sapmle.class);
+            //是否配置了采样的秤
+            if (sapmle.getDeviceAddr() != null) {
+                //已配置
+                switchSampling.setVisibility(View.VISIBLE);
+                switchSampling.setChecked(produceLine.isSamplingConnectionState());
 
-            switch (sapmle.getDeviceType()) {
-                case 1://蓝牙
-                    tvSampling.setText("蓝牙");
-                    break;
+                switch (sapmle.getDeviceType()) {
+                    case 1://蓝牙
+                        tvSampling.setText("蓝牙");
+                        break;
 
-                case 2://wifi
-                    tvSampling.setText("Wifi");
-                    break;
-                default:
-                    break;
+                    case 2://wifi
+                        tvSampling.setText("Wifi");
+                        break;
+                    default:
+                        break;
 
+                }
             }
         }
 
         //显示屏 蓝牙Ble设备
-        String showOutString = produceLine.getShowOut();
-        ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
-        if (showOut.getDeviceAddr() != null) {
-            //已配置
-            switchShowOut.setVisibility(View.VISIBLE);
-            switchShowOut.setChecked(produceLine.isShowOutConnectionState());
+        if (produceLine.getShowOut() != null) {
+            String showOutString = produceLine.getShowOut();
+            ShowOut showOut = new Gson().fromJson(showOutString, ShowOut.class);
+            if (showOut.getDeviceAddr() != null) {
+                //已配置
+                switchShowOut.setVisibility(View.VISIBLE);
+                switchShowOut.setChecked(produceLine.isShowOutConnectionState());
 
-            switch (showOut.getDeviceType()) {
-                case 1://蓝牙
-                    tvShowOut.setText("蓝牙");
-                    break;
+                switch (showOut.getDeviceType()) {
+                    case 1://蓝牙
+                        tvShowOut.setText("蓝牙");
+                        break;
 
-                case 2://wifi
-                    tvShowOut.setText("Wifi");
-                    break;
-                default:
-                    break;
+                    case 2://wifi
+                        tvShowOut.setText("Wifi");
+                        break;
+                    default:
+                        break;
 
+                }
             }
         }
 

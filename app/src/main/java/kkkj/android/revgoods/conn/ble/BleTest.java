@@ -50,10 +50,10 @@ public class BleTest {
 
     private void init() {
          options = new BleConnectOptions.Builder()
-                .setConnectRetry(3)   // 连接如果失败重试3次
-                .setConnectTimeout(30000)   // 连接超时30s
-                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .setConnectRetry(2)   // 连接如果失败重试3次
+                .setConnectTimeout(5000)   // 连接超时30s
+                .setServiceDiscoverRetry(2)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(5000)  // 发现服务超时20s
                 .build();
 
         mClient = new BluetoothClient(context);
