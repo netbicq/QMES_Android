@@ -32,7 +32,7 @@ import kkkj.android.revgoods.event.DeviceEvent;
  * Package Name：kkkj.android.revgoods.fragment
  * Author: Admin
  * Time: 2019/9/3 10:44
- * Describe: describe
+ * Describe: 禁用设备（暂时没用）
  */
 public class SetProduceLineFragment extends BaseDialogFragment implements View.OnClickListener {
 

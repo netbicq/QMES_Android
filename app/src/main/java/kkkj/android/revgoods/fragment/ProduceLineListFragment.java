@@ -59,8 +59,8 @@ public class ProduceLineListFragment extends BaseDialogFragment {
         if (deviceEvent.isRefresh()) {
             produceLineList.clear();
 
-            produceLineList.add(produceLine);
-            produceLineList.add(byHandProduceLine);
+            //produceLineList.add(produceLine);
+            //produceLineList.add(byHandProduceLine);
             produceLineList.addAll(LitePal.findAll(ProduceLine.class));
             adapter.notifyDataSetChanged();
         }
@@ -71,11 +71,11 @@ public class ProduceLineListFragment extends BaseDialogFragment {
     public void initData() {
         produceLineList = new ArrayList<>();
         produceLine = new ProduceLine();
-        produceLine.setName("半自动");
+        produceLine.setName("移动称重");
         produceLineList.add(produceLine);
         byHandProduceLine = new ProduceLine();
         byHandProduceLine.setName("手动");
-        produceLineList.add(byHandProduceLine);
+        //produceLineList.add(byHandProduceLine);
         produceLineList.addAll(LitePal.findAll(ProduceLine.class));
     }
 

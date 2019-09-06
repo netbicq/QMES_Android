@@ -535,6 +535,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_rigth_setting" />
+        app:srcCompat="@drawable/ic_right_36dp" />
 
 </android.support.constraint.ConstraintLayout>

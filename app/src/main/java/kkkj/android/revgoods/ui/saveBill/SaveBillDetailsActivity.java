@@ -1,15 +1,19 @@
 package kkkj.android.revgoods.ui.saveBill;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -51,6 +55,7 @@ import kkkj.android.revgoods.bean.bill.PurPrices;
 import kkkj.android.revgoods.bean.bill.PurSamples;
 import kkkj.android.revgoods.bean.bill.Scales;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
+import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.event.DeviceEvent;
 import kkkj.android.revgoods.ui.BaseActivity;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
@@ -452,114 +457,32 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                     myToasty.showWarning("请先确认金额！");
                     return;
                 }
-                //单据名称
-                String name = UUID.randomUUID().toString();
 
-                //获取当前时间 HH:mm:ss
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                Date date = new Date(System.currentTimeMillis());
-                stringData = simpleDateFormat.format(date);
+                final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
+                //横屏时禁止输入法全屏
+                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillDetailsActivity.this);
+                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
+                inputDialog1.setPositiveButton(R.string.enter,
+                        new DialogInterface.OnClickListener() {
+                            @SuppressLint("CheckResult")
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (editText1.getText().toString().trim().length() == 0) {
+                                    myToasty.showInfo(getResources().getString(R.string.input_bill_name));
+                                    return;
+                                }
 
-                bill = new Bill();
-                bill.setUUID(name);
-                bill.setName(name);
-                bill.setDeductionMix(deductionMix);
-                bill.setSupplierId(supplierId);
-                bill.setMatterId(matterId);
-                bill.setTime(stringData);
-                bill.setSamplingBySpecsId(samplingBySpecsId);
-                bill.setBillDetailsList(billDetailsList);
-
-
-                bill.setWeight(Double.valueOf(weight));
-
-//                Bitmap bitmap = CodeUtils.createBarcode(name,100,40,true);
-//                Logger.d(bitmap);
-
-                ContentValues values = new ContentValues();
-                values.put("hasBill", 0);
-                LitePal.updateAll(Cumulative.class, values);
-                LitePal.updateAll(Deduction.class, values);
-                LitePal.updateAll(SamplingDetails.class, values);
-                LitePal.updateAll(SamplingBySpecs.class, values);
-
-                bill.setCumulativeList(cumulativeList);
-                bill.setDeductionList(deductionList);
-                bill.setSamplingDetailsList(samplingDetailsList);
-                bill.save();
-
-                DeviceEvent deviceEvent = new DeviceEvent();
-                deviceEvent.setReset(true);
-                EventBus.getDefault().post(deviceEvent);
+                                saveBill(editText1.getText().toString().trim());
 
 
-                if (!NetUtils.checkNetWork()) {
-                    myToasty.showSuccess("保存成功!");
-                    finish();
-                    return;
-                }
-
-                /**
-                 * PurchaseDate : 2019-08-08 15:07:06
-                 * SupplierID : cd529f25-5fae-40a2-ac49-1df6627fe769
-                 * NormID : f1a26ea8-d60f-4874-a8b2-abc5d8387b4d
-                 * CategoryID : 4bdfa721-cc93-4588-b55e-270865614f6c
-                 * CategoryLv : 312387db-e6f9-4ae5-8715-a888c53184de
-                 * Price : 6.0
-                 * Amount : 7.0
-                 * Money : 8.0
-                 * Memo : sample string 9
-                 * "DelWeightRate": 10.0 //扣重率
-                 */
-                //占比最大的规格
-                Specs specs = LitePal.find(Specs.class, maxSamplingDetails.getSpecsId());
-
-                BillMaster billMasterBean = new BillMaster();
-
-                billMasterBean.setCode(name);
-                billMasterBean.setPurchaseDate(stringData);//日期
-                billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
-                billMasterBean.setNormID(specs.getKeyID());//规格ID
-                billMasterBean.setCategoryID(matter.getKeyID());//品类ID
-
-                MatterLevel matterLevel = LitePal.find(MatterLevel.class, maxSamplingDetails.getMatterLevelId());
-                billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
-
-                billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
-                billMasterBean.setAmount(realWeight);//总重量
-                billMasterBean.setDelWeightRate(deductionMix);
-                billMasterBean.setMoney(money);//总金额
-
-
-                request.setBillMaster(billMasterBean);
-
-                mQMUITipDialog.show();
-
-                mPresenter.addBill(request);
-
-
-//                final EditText editText1 = new EditText(SaveBillDetailsActivity.this);
-//                //横屏时禁止输入法全屏
-//                editText1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-//                AlertDialog.Builder inputDialog1 = new AlertDialog.Builder(SaveBillDetailsActivity.this);
-//                inputDialog1.setTitle(R.string.input_bill_name).setView(editText1);
-//                inputDialog1.setPositiveButton(R.string.enter,
-//                        new DialogInterface.OnClickListener() {
-//                            @SuppressLint("CheckResult")
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                if (editText1.getText().toString().trim().length() == 0) {
-//                                    new MyToasty(SaveBillDetailsActivity.this).showInfo(getResources().getString(R.string.input_bill_name));
-//                                    return;
-//                                }
-//
-//                            }
-//                        })
-//                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialogInterface, int i) {
-//                            }
-//                        }).show();
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
 
                 break;
             case R.id.iv_back:
@@ -749,5 +672,94 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
         return samplingDetailsList;
     }
 
+
+    private void saveBill(String name) {
+
+        //单据号
+        String uuid = UUID.randomUUID().toString();
+
+        //获取当前时间 HH:mm:ss
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+        Date date = new Date(System.currentTimeMillis());
+        stringData = simpleDateFormat.format(date);
+
+        bill = new Bill();
+        bill.setUUID(uuid);
+        bill.setName(name);
+        bill.setDeductionMix(deductionMix);
+        bill.setSupplierId(supplierId);
+        bill.setMatterId(matterId);
+        bill.setTime(stringData);
+        bill.setSamplingBySpecsId(samplingBySpecsId);
+        bill.setBillDetailsList(billDetailsList);
+
+
+        bill.setWeight(Double.valueOf(weight));
+
+//                Bitmap bitmap = CodeUtils.createBarcode(name,100,40,true);
+//                Logger.d(bitmap);
+
+        ContentValues values = new ContentValues();
+        values.put("hasBill", 0);
+        LitePal.updateAll(Cumulative.class, values);
+        LitePal.updateAll(Deduction.class, values);
+        LitePal.updateAll(SamplingDetails.class, values);
+        LitePal.updateAll(SamplingBySpecs.class, values);
+
+        bill.setCumulativeList(cumulativeList);
+        bill.setDeductionList(deductionList);
+        bill.setSamplingDetailsList(samplingDetailsList);
+        bill.save();
+
+        DeviceEvent deviceEvent = new DeviceEvent();
+        deviceEvent.setReset(true);
+        EventBus.getDefault().post(deviceEvent);
+
+
+        if (!NetUtils.checkNetWork()) {
+            myToasty.showSuccess("保存成功!");
+            finish();
+            return;
+        }
+
+        /**
+         * PurchaseDate : 2019-08-08 15:07:06
+         * SupplierID : cd529f25-5fae-40a2-ac49-1df6627fe769
+         * NormID : f1a26ea8-d60f-4874-a8b2-abc5d8387b4d
+         * CategoryID : 4bdfa721-cc93-4588-b55e-270865614f6c
+         * CategoryLv : 312387db-e6f9-4ae5-8715-a888c53184de
+         * Price : 6.0
+         * Amount : 7.0
+         * Money : 8.0
+         * Memo : sample string 9
+         * "DelWeightRate": 10.0 //扣重率
+         */
+        //占比最大的规格
+        Specs specs = LitePal.find(Specs.class, maxSamplingDetails.getSpecsId());
+
+        BillMaster billMasterBean = new BillMaster();
+
+        billMasterBean.setCode(name);
+        billMasterBean.setPurchaseDate(stringData);//日期
+        billMasterBean.setSupplierID(supplier.getKeyID());//供应商ID
+        billMasterBean.setNormID(specs.getKeyID());//规格ID
+        billMasterBean.setCategoryID(matter.getKeyID());//品类ID
+
+        MatterLevel matterLevel = LitePal.find(MatterLevel.class, maxSamplingDetails.getMatterLevelId());
+        billMasterBean.setCategoryLv(matterLevel.getKeyID());//品类等级
+
+        billMasterBean.setPrice(DoubleCountUtils.keep(money / realWeight));//整批单价
+        billMasterBean.setAmount(realWeight);//总重量
+        billMasterBean.setDelWeightRate(deductionMix);
+        billMasterBean.setMoney(money);//总金额
+
+
+        request.setBillMaster(billMasterBean);
+
+        mQMUITipDialog.show();
+
+        mPresenter.addBill(request);
+
+    }
 
 }

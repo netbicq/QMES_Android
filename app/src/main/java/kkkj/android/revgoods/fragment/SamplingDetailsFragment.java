@@ -113,6 +113,8 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     @Override
     public void initData() {
 
+        Logger.d("start" + LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class).size());
+
         samplingDetailsList = new ArrayList<>();
         samplingDetailsList = LitePal.where("hasBill < ?", "0")
                 .find(SamplingDetails.class, true);
@@ -445,7 +447,8 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
                 samplingBySpecs.setWeiht(weight);
                 samplingBySpecs.setSpecsId(specs.getId());
                 samplingBySpecs.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
-                samplingBySpecs.save();
+                samplingBySpecs.saveOrUpdate("hasBill < ?", "0");
+                Logger.d("end" + LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class).size());
                 dismiss();
 
                 break;

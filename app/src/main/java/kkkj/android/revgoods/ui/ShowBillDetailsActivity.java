@@ -271,10 +271,6 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         } else {
             BillDetails billDetails = billDetailsList.get(0);
 
-            SamplingBySpecs samplingBySpecs = LitePal.find(SamplingBySpecs.class, bill.getSamplingBySpecsId());
-
-            Logger.d(bill.getSamplingBySpecsId());
-
             tvSpecsSampling.setText(billDetails.getSpecs());
             tvPriceSampling.setText(String.valueOf(billDetails.getPrice()));
 

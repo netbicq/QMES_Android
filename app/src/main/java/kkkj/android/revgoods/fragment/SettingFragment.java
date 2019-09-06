@@ -71,7 +71,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
         mTvDeviceList = view.findViewById(R.id.tv_device_list);
 
         mTvVersionName = view.findViewById(R.id.tv_version_name);
-        mTvVersionName.setText("系统版本号:" + versionName);
+        mTvVersionName.setText("系统版本号：" + versionName);
 
         mTvChangeUser = view.findViewById(R.id.tv_change_user);
         mTvChangeUser.setOnClickListener(this);

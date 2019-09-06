@@ -23,7 +23,7 @@
             android:padding="10dp"
             android:text="@string/deduction_category"
             android:background="@drawable/text_black_background"
-            android:textColor="@color/qmui_config_color_50_white"
+            android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
 
         <TextView
@@ -38,7 +38,7 @@
             android:padding="10dp"
             android:text="间隔时间"
             android:background="@drawable/text_black_background"
-            android:textColor="@color/qmui_config_color_50_white"
+            android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
 
         <TextView
@@ -53,7 +53,7 @@
             android:padding="10dp"
             android:text="@string/change_language"
             android:background="@drawable/text_black_background"
-            android:textColor="@color/qmui_config_color_50_white"
+            android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
 
         <TextView
@@ -68,7 +68,7 @@
             android:padding="10dp"
             android:text="切换账号"
             android:background="@drawable/text_black_background"
-            android:textColor="@color/qmui_config_color_50_white"
+            android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
 
         <TextView
@@ -81,7 +81,7 @@
             android:layout_margin="20dp"
             android:layout_gravity="center"
             tools:text="系统版本号"
-            android:textColor="@color/qmui_config_color_50_white"
+            android:textColor="@color/qmui_config_color_white"
             android:textSize="18sp" />
 
     </LinearLayout>

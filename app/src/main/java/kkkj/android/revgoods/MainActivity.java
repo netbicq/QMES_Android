@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CompositeDisposable compositeDisposable;
 
     private String mSampling = "(0)";//采样累计默认数字
+    private int samplingSize;//采样累计的数量
 
     private PinBlueReceiver pinBlueReceiver;
 
@@ -389,6 +390,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSamplingNumber.setText(mSampling);
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
+        //供应商
+        if (supplier != null) {
+            //单据未保存退出，重新打开时
+            mTvSupplier.setText(supplier.getName());
+        }
+
         //品类等级
         matterLevel = new MatterLevel();
         matterLevelId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_MATTER_LEVEL, -1);
@@ -518,8 +525,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         compositeDisposable = new CompositeDisposable();
 
         myToasty = new MyToasty(this);
-        if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
-            mSampling = "(" + LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class).getCount() + ")";
+        samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
+        if (samplingSize > 0) {
+            mSampling = "(" + samplingSize + ")";
+            SamplingDetails samplingDetails = LitePal.findAll(SamplingDetails.class, true).get(0);
+            supplierId = samplingDetails.getSupplierId();
+            supplier = LitePal.find(Supplier.class, supplierId);
         }
 
         if (LitePal.isExist(Bill.class)) {
@@ -740,7 +751,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         bleTest.diconnect();
                                         produceLine.setShowOutConnectionState(false);
                                         bleScreenConnectionState = false;
-//                                        myToasty.showWarning("显示屏已断开");
+                                        myToasty.showWarning("显示屏已断开");
                                     }
                                 });
 
@@ -764,7 +775,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case 2://继电器
                     if (CONNECT_TYPE == 1) {//wifi
                         connectWifi(wifiRelayDevice);
-                    }else if(CONNECT_TYPE == 2) { //蓝牙
+                    } else if (CONNECT_TYPE == 2) { //蓝牙
                         connectBluetoothRelay(bluetoothRelayDevice);
                     }
                     break;
@@ -794,7 +805,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tvProduceLine.setText(produceLine.getName());
             Logger.d(produceLine.toString());
 
-            if (produceLine.getName().equals("半自动") || produceLine.getName().equals("手动")) {
+            if (produceLine.getName().equals("移动称重") || produceLine.getName().equals("手动")) {
                 if (produceLine.getName().equals("手动")) {
                     isByHandOnly = true;
                 }
@@ -827,7 +838,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 switchAdapter.notifyDataSetChanged();
 
-//                mTvHand.setVisibility(View.VISIBLE);
+                mTvHand.setVisibility(View.VISIBLE);
                 Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
                 startActivity(intent);
             } else {
@@ -1012,7 +1023,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     myToasty.showSuccess("显示屏连接成功！");
                     bleScreenConnectionState = true;
                     produceLine.setShowOutConnectionState(true);
-                }else {
+                } else {
                     myToasty.showError("显示屏连接失败！");
                     bleScreenConnectionState = false;
                     produceLine.setShowOutConnectionState(false);
@@ -1021,7 +1032,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void disConnected() {
-                myToasty.showWarning("显示屏连接已断开！");
+//                myToasty.showWarning("显示屏连接已断开！");
                 bleScreenConnectionState = false;
                 produceLine.setShowOutConnectionState(false);
             }
@@ -1639,21 +1650,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-
+        samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
         switch (view.getId()) {
             case R.id.id_iv_choose_matter://选择品类
-                Intent intent = new Intent(MainActivity.this, ChooseMatterActivity.class);
-                startActivity(intent);
+                Intent matterIntent = new Intent(MainActivity.this, ChooseMatterActivity.class);
+
+                if ( samplingSize > 0) {
+                    isContinue(matterIntent);
+                }else {
+                    startActivity(matterIntent);
+                }
+
                 break;
 
             case R.id.id_iv_choose_matter_level://选择品类等级
+                Intent matterLevelIntent = new Intent(MainActivity.this, ChooseMatterLevelActivity.class);
 
-                startActivity(new Intent(MainActivity.this, ChooseMatterLevelActivity.class));
+                if ( samplingSize > 0) {
+                    isContinue(matterLevelIntent);
+                }else {
+                    startActivity(matterLevelIntent);
+                }
 
                 break;
 
             case R.id.id_tv_choose_supplier://选择供应商
-                startActivity(new Intent(MainActivity.this, ChooseSupplierActivity.class));
+                Intent supplierIntent = new Intent(MainActivity.this, ChooseSupplierActivity.class);
+
+                if ( samplingSize > 0) {
+                    isContinue(supplierIntent);
+                }else {
+                    startActivity(supplierIntent);
+                }
+
                 break;
 
             case R.id.id_iv_choose_specs://选择规格
@@ -1964,7 +1993,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     cumulative.setWeight(mWeightTextView.getText().toString());
 
                                     //获取当前时间 HH:mm:ss
-                                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
                                     Date date = new Date(System.currentTimeMillis());
                                     String time = simpleDateFormat.format(date);
                                     cumulative.setTime(time);
@@ -2174,6 +2203,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         tvCumulativeCount.setText(String.valueOf(count));
         tvCumulativeWeight.setText(String.valueOf(cWeight));
+
+    }
+
+    //当已有采样数据时，是否继续选择供应商，品类，品类等级
+    //继续，则删除所有采样数据
+    private void isContinue(Intent intent) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("当前已采样，请勿重复选择！")
+                .setMessage("继续则将删除所有采样数据？！")
+                .setPositiveButton("继续", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        LitePal.deleteAll(SamplingDetails.class, "hasBill < ?", "0");
+                        LitePal.deleteAll(SamplingBySpecs.class, "hasBill < ?", "0");
+                        mSamplingNumber.setText("(0)");
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Logger.d("取消");
+                    }
+                }).show();
+
 
     }
 
