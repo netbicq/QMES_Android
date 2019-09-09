@@ -990,8 +990,6 @@ public class HomeActivity extends BaseActivity<HomePresenter> implements HomeCon
     }
 
 
-
-
     private void showDialogFragment(DialogFragment dialogFragment, final String Tag) {
         //清除已经存在的，相同的fragment
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

@@ -308,7 +308,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             }
             myToasty.showSuccess("上传成功！");
         } else {
-
+            myToasty.showWarning("上传失败，单据已保存至本地，请前往单据列表页面重新上传！");
             if (mQMUITipDialog.isShowing()) {
                 mQMUITipDialog.dismiss();
             }
@@ -717,7 +717,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
 
 
         if (!NetUtils.checkNetWork()) {
-            myToasty.showSuccess("保存成功!");
+            myToasty.showWarning("当前网络连接异常，已保存至本地，请前往单据列表页面重新上传！");
             finish();
             return;
         }
