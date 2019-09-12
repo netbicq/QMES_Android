@@ -16,30 +16,36 @@ import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
+import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.suke.widget.SwitchButton;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.xuhao.didi.core.utils.BytesUtils;
@@ -57,6 +63,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -72,7 +79,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
 import kkkj.android.revgoods.adapter.SwitchAdapter;
-import kkkj.android.revgoods.bean.Bill;
 import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Device;
 import kkkj.android.revgoods.bean.Master;
@@ -90,7 +96,6 @@ import kkkj.android.revgoods.bean.SwitchIcon;
 import kkkj.android.revgoods.common.getpic.GetPicModel;
 import kkkj.android.revgoods.common.getpic.GetPicOrMP4Activity;
 import kkkj.android.revgoods.conn.ControlRelay;
-import kkkj.android.revgoods.conn.ble.Ble;
 import kkkj.android.revgoods.conn.ble.BleCallback;
 import kkkj.android.revgoods.conn.ble.BleTest;
 import kkkj.android.revgoods.conn.bluetooth.Bluetooth;
@@ -106,6 +111,7 @@ import kkkj.android.revgoods.conn.classicbt.listener.TransferProgressListener;
 import kkkj.android.revgoods.conn.socket.CallBack;
 import kkkj.android.revgoods.conn.socket.MyOkSocket;
 import kkkj.android.revgoods.conn.socket.WriteData;
+import kkkj.android.revgoods.customer.CircleTextView;
 import kkkj.android.revgoods.customer.MyToasty;
 import kkkj.android.revgoods.elcscale.bean.BluetoothBean;
 import kkkj.android.revgoods.elcscale.view.ElcScaleActivity;
@@ -129,6 +135,7 @@ import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.CRC16Util;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
 import kkkj.android.revgoods.utils.LangUtils;
+import kkkj.android.revgoods.utils.QMUIUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import kkkj.android.revgoods.utils.StringUtils;
 
@@ -138,15 +145,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @BindView(R.id.id_wifiRelay_recyclerView)
     RecyclerView mWifiRelayRecyclerView;
     @BindView(R.id.id_iv_choose_matter)
-    ImageView mChooseMatterImageView;
+    TextView mChooseMatterImageView;
     @BindView(R.id.id_iv_takePicture)
-    ImageView mTakePictureImageView;
-    @BindView(R.id.id_iv_choose_printer)
-    ImageView mChoosePrinterImageView;
+    TextView mTakePictureImageView;
     @BindView(R.id.id_iv_print)
-    ImageView mPrintImageView;
+    TextView mPrintImageView;
     @BindView(R.id.id_tv_choose_supplier)
-    ImageView mChooseSupplierImageView;
+    TextView mChooseSupplierImageView;
     @BindView(R.id.id_tv_weight)
     TextView mWeightTextView;
     @BindView(R.id.id_tv_show_piece_weight)
@@ -157,14 +162,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mSamplingTextView;//采样
     @BindView(R.id.id_tv_sampling_count)
     TextView mSamplingCount;//采样累计
-    @BindView(R.id.id_tv_sampling_number)
-    TextView mSamplingNumber;//采样累计数字
     @BindView(R.id.id_tv_cumulative)
     TextView mCumulativeTextView;//累计
     @BindView(R.id.id_tv_deduction)
     TextView mDeductionTextView;//扣重
     @BindView(R.id.id_iv_choose_specs)
-    ImageView mChooseSpecsImageView;
+    TextView mChooseSpecsImageView;
     @BindView(R.id.id_iv_setting)
     ImageView mSettingImageView;
     @BindView(R.id.tv_specs)
@@ -177,8 +180,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView mTvSaveBill;
     @BindView(R.id.id_tv_hand)
     TextView mTvHand;//手动计重
-    @BindView(R.id.id_tv_is_upload)
-    TextView mTvIsUpload;
     @BindView(R.id.id_tv_hand_switch)
     SwitchButton mTvHandSwitch;
     @BindView(R.id.tv_matter)
@@ -188,13 +189,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @BindView(R.id.tv_matter_level)
     TextView mTvMatterLevel;
     @BindView(R.id.id_iv_choose_matter_level)
-    ImageView mIvChooseMatterLevel;
+    TextView mIvChooseMatterLevel;
     @BindView(R.id.tv_produce_line)
     TextView tvProduceLine;
     @BindView(R.id.id_tv_deductionMix)
     TextView mTvDeductionMix;
     @BindView(R.id.id_tv_deduction_cumulative)
     TextView mTvDeductionCumulative;
+    @BindView(R.id.tv_out_line)
+    TextView tvOutLine;
+    @BindView(R.id.tv_in_line)
+    TextView tvInLine;
+    @BindView(R.id.tv_third)
+    TextView tvThird;
+    @BindView(R.id.tv_second)
+    TextView tvSecond;
+    @BindView(R.id.tv_first)
+    TextView tvFirst;
+    @BindView(R.id.id_constraintLayout)
+    ConstraintLayout mConstraintLayout;
 
     private CompositeDisposable compositeDisposable;
 
@@ -261,8 +274,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Observer<String> stateOB;
     private String isUploadCount = "0/0";
-    private int total = 0;
-    private int isUpload = 0;
+
     private boolean isClickable = false;
     private MyToasty myToasty;
 
@@ -286,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String SETTING = "settingFragment";
     private static final String SAVE_BILL = "saveBillFragment";
     private static final String PRODUCE_LINE_LIST = "produceLineListFragment";
+
 
     //继电器控制的开关
     private int inLine;
@@ -319,6 +332,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //播放 assets/saveweight.wav 音乐文件
     private AssetFileDescriptor fd;
 
+    private TextToSpeech tts;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -335,10 +350,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
+        CircleTextView circleTextView = findViewById(R.id.textView29);
+        circleTextView.setClickListener(new CircleTextView.onClickListener() {
+            @Override
+            public void onClick() {
+                QMUIUtils.showNormalPopup(MainActivity.this,circleTextView,QMUIPopup.DIRECTION_BOTTOM,"你说什么就是什么！");
+            }
+        });
+
         initData();
         initView();
 
     }
+
 
     private void initBlue() {
 
@@ -374,7 +398,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mChooseSupplierImageView.setOnClickListener(this);
         mIvChooseMatterLevel.setOnClickListener(this);
         mPieceweightTextView.setOnClickListener(this);
-        mChoosePrinterImageView.setOnClickListener(this);
         mTakePictureImageView.setOnClickListener(this);
         mChooseMatterImageView.setOnClickListener(this);
         mChooseSpecsImageView.setOnClickListener(this);
@@ -386,8 +409,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTvDeductionCumulative.setOnClickListener(this);
         mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
 
-        mTvIsUpload.setText(isUploadCount);
-        mSamplingNumber.setText(mSampling);
+//        mShowPieceWeight.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG); //下划线
         mShowPieceWeight.setText(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_PIECE_WEIGHT));
 
         //供应商
@@ -513,6 +535,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initData() {
 
+        //初始化语音合成
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                if (i == TextToSpeech.SUCCESS) {
+                    int result = tts.setLanguage(Locale.CHINA);
+                    if (result != TextToSpeech.LANG_COUNTRY_AVAILABLE && result != TextToSpeech.LANG_AVAILABLE) {
+                        myToasty.showWarning("当前设备不支持语音合成！");
+                    }
+                }
+
+            }
+        });
+//        tts.setSpeechRate(1.0f); 语速
+//        tts.setPitch(1.0f);语调
+
+
         try {
             fd = getAssets().openFd("saveweight.wav");
         } catch (IOException e) {
@@ -533,13 +572,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             supplier = LitePal.find(Supplier.class, supplierId);
         }
 
-        if (LitePal.isExist(Bill.class)) {
-            total = LitePal.findAll(Bill.class).size();
-            //大于等于0，已上传
-            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
-            isUploadCount = isUpload + "/" + total;
-        }
-
 
         Bluetooth mBluetooth = new Bluetooth();
 
@@ -556,7 +588,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             relayBean.setLeftIamgeView(leftIcon.get(i));
             relayBean.setRightImageView(rightIcon.get(i));
             mWifiList.add(relayBean);
-
         }
 
         //打开蓝牙
@@ -589,10 +620,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             count = count + 1;
             tvCumulativeCount.setText(String.valueOf(count));
         }
-        //更新采样数
-        if (deviceEvent.getSamplingNumber() >= 0) {
-            mSamplingNumber.setText("(" + deviceEvent.getSamplingNumber() + ")");
-        }
+
         //更新供应商
         if (deviceEvent.getSupplierId() >= 0) {
             supplierId = deviceEvent.getSupplierId();
@@ -640,25 +668,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //保存单据后数据重置
         if (deviceEvent.isReset()) {
-            mSamplingNumber.setText("(0)");
             tvCumulativeCount.setText("0");
             tvCumulativeWeight.setText("0");
 
-            total = total + 1;
-            //大于等于0，已上传
-            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
 
-            isUploadCount = isUpload + "/" + total;
-            mTvIsUpload.setText(isUploadCount);
-
-        }
-        //删除单据后更新
-        if (deviceEvent.isResetUploadCount()) {
-            total = total - 1;
-            //大于等于0，已上传
-            isUpload = LitePal.where("isUpload >= ?", "0").find(Bill.class).size();
-            isUploadCount = isUpload + "/" + total;
-            mTvIsUpload.setText(isUploadCount);
         }
 
         //断开设备连接
@@ -700,7 +713,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
                         bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
 
-                        //延迟1秒之后断开
+                        //延迟2秒之后断开
                         Observable.timer(2000, TimeUnit.MILLISECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Consumer<Long>() {
@@ -734,6 +747,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case 4://断开显示屏
                     if (bleTest != null) {
                         isDisconnectScreen = true;
+                        /**
+                         * 置零0.00
+                         */
                         byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
                         byte[] b3 = {0x23};
                         byte[] b2 = "0.00".getBytes();
@@ -842,7 +858,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent = ElcScaleActivity.newIntent(MainActivity.this, 0);
                 startActivity(intent);
             } else {
-                mTvHand.setVisibility(View.GONE);
+//                mTvHand.setVisibility(View.GONE);
 
                 //主秤
                 String masterString = produceLine.getMaster();
@@ -1139,9 +1155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     bleTest.sendData(b3);
                                 }
 
-
                                 double weight = Double.parseDouble(str);
-
 
                                 if (weight > compareWeight[0]) {
 
@@ -1158,11 +1172,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                     if (StringUtils.isStable(strWeightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
 
+
                                         if (!isWrite[0]) {
 
-                                            if (!isByHandOnly) {
-                                                //半自动模式，表示当前未连接继电器
-                                                if (manager == null && bluetoothRelay == null) {
+                                            //语音播报,第二个参数代表清空消息队列
+                                            tts.speak(strWeightList.get(size - 1), TextToSpeech.QUEUE_FLUSH, null);
+
+                                            if (!isByHandOnly) { //自动 + 半自动
+
+                                                if (manager == null && bluetoothRelay == null) { //当前未连接继电器，说明此时是半自动模式
                                                     openAssetMusics();
                                                 }
 
@@ -1170,33 +1188,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                                 //计重
                                                 saveWeight(strWeightList.get(size - 1));
-//                                                Cumulative cumulative = new Cumulative();
-//                                                cumulative.setCategory("净重");
-//                                                //取最后一个数
-//                                                cumulative.setWeight(strWeightList.get(size - 1));
-//
-//                                                //获取当前时间 HH:mm:ss
-//                                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-//                                                Date date = new Date(System.currentTimeMillis());
-//                                                String time = simpleDateFormat.format(date);
-//                                                cumulative.setTime(time);
-//
-//                                                cumulative.save();
-//
-//
-//                                                int count =
-//                                                        Integer.parseInt(tvCumulativeCount.getText().toString());
-//                                                double cWeight =
-//                                                        Double.parseDouble(tvCumulativeWeight.getText().toString());
-//
-//                                                BigDecimal b1 = new BigDecimal(Double.toString(cWeight));
-//                                                BigDecimal b2 = new BigDecimal(strWeightList.get(size - 1));
-//                                                cWeight = b1.add(b2).doubleValue();
-//                                                count = count + 1;
-//
-//                                                tvCumulativeCount.setText(String.valueOf(count));
-//                                                tvCumulativeWeight.setText(String.valueOf(cWeight));
 
+                                                tvFirst.setText(tvSecond.getText());
+                                                tvSecond.setText(tvThird.getText());
+                                                tvThird.setText(strWeightList.get(size - 1));
+//
                                                 //计重之后打开2号开关，出料口开始倾倒物料
                                                 controlRelay.turnOnOutLine();
 //                                                if (manager != null && manager.isConnect()) {
@@ -1228,7 +1224,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             }
 
                                         }
-
 
                                     }
 
@@ -1490,10 +1485,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             //第几号开关
                             int whichSwitch = Integer.parseInt(index.substring(1, 2));
 
+                            if (whichSwitch == inLine) {
+                                if (state.equals("00")) {
+                                    tvInLine.setBackground(getResources().getDrawable(R.drawable.red_background));
+                                    tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                                } else {
+                                    tvInLine.setBackground(getResources().getDrawable(R.drawable.green_background));
+                                    tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                                }
+                            }
+
+                            if (whichSwitch == outLine) {
+                                if (state.equals("00")) {
+                                    tvOutLine.setBackground(getResources().getDrawable(R.drawable.red_background));
+                                    tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                                } else {
+                                    tvOutLine.setBackground(getResources().getDrawable(R.drawable.green_background));
+                                    tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                                }
+                            }
+
                             if (state.equals("00")) {
-                                mWifiList.get(whichSwitch).setState("0");
+                                mWifiList.get(whichSwitch).setState("0");//断开
                             } else {
-                                mWifiList.get(whichSwitch).setState("1");
+                                mWifiList.get(whichSwitch).setState("1");//吸和
                             }
 
                             switchAdapter.notifyDataSetChanged();
@@ -1582,6 +1597,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Logger.d("---" + index + "---" + state + "---");
                     //第几号开关
                     int whichSwitch = Integer.parseInt(index.substring(1, 2));
+
+                    if (whichSwitch == inLine) {
+                        if (state.equals("00")) {
+                            tvInLine.setBackground(getResources().getDrawable(R.drawable.red_background));
+                            tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                        } else {
+                            tvInLine.setBackground(getResources().getDrawable(R.drawable.green_background));
+                            tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                        }
+                    }
+
+                    if (whichSwitch == outLine) {
+                        if (state.equals("00")) {
+                            tvOutLine.setBackground(getResources().getDrawable(R.drawable.red_background));
+                            tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                        } else {
+                            tvOutLine.setBackground(getResources().getDrawable(R.drawable.green_background));
+                            tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                        }
+                    }
+
                     /*
                      * 设置继电器各个开关的状态
                      */
@@ -1655,9 +1691,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_iv_choose_matter://选择品类
                 Intent matterIntent = new Intent(MainActivity.this, ChooseMatterActivity.class);
 
-                if ( samplingSize > 0) {
+                if (samplingSize > 0) {
                     isContinue(matterIntent);
-                }else {
+                } else {
                     startActivity(matterIntent);
                 }
 
@@ -1666,9 +1702,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_iv_choose_matter_level://选择品类等级
                 Intent matterLevelIntent = new Intent(MainActivity.this, ChooseMatterLevelActivity.class);
 
-                if ( samplingSize > 0) {
+                if (samplingSize > 0) {
                     isContinue(matterLevelIntent);
-                }else {
+                } else {
                     startActivity(matterLevelIntent);
                 }
 
@@ -1677,9 +1713,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.id_tv_choose_supplier://选择供应商
                 Intent supplierIntent = new Intent(MainActivity.this, ChooseSupplierActivity.class);
 
-                if ( samplingSize > 0) {
+                if (samplingSize > 0) {
                     isContinue(supplierIntent);
-                }else {
+                } else {
                     startActivity(supplierIntent);
                 }
 
@@ -1852,13 +1888,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
 
-            case R.id.id_iv_choose_printer://选择打印机
-//                if (deviceListFragment == null) {
-//                    deviceListFragment = new DeviceListFragment();
-//                }
-//                showDialogFragment(deviceListFragment, DEVICE_LIST);
-                break;
-
             case R.id.id_iv_print://打印(单据列表)
 
                 BillListFragment billListFragment = new BillListFragment();
@@ -1907,7 +1936,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showDialogFragment(settingFragment, SETTING);
                 break;
 
-            case R.id.id_iv_takePicture:
+            case R.id.id_iv_takePicture://设备列表
 //                takePicture();
                 if (produceLine == null) {
                     myToasty.showWarning("当前未连接过任何设备，无法查看！");
@@ -2103,6 +2132,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             bleTest = null;
         }
 
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
+        }
+
         EventBus.getDefault().unregister(this);
     }
 
@@ -2110,7 +2145,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        permissionHandler.onActivityResult(requestCode, resultCode, data);
+        if (permissionHandler != null) {
+            permissionHandler.onActivityResult(requestCode, resultCode, data);
+        }
 
 //        if (samplingFragment != null) {
 //            samplingFragment.onActivityResult(requestCode, resultCode, data);//在DialogFragment中获取回调结果
@@ -2218,7 +2255,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialogInterface, int i) {
                         LitePal.deleteAll(SamplingDetails.class, "hasBill < ?", "0");
                         LitePal.deleteAll(SamplingBySpecs.class, "hasBill < ?", "0");
-                        mSamplingNumber.setText("(0)");
                         startActivity(intent);
                     }
                 })

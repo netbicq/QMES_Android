@@ -21,10 +21,6 @@ public class DeviceEvent {
      */
     private boolean reset = false;
 
-    /**
-     * 采样累计（samplingNumber）
-     */
-    public int samplingNumber = -1;
 
     /**
      * 供应商Supplier Id
@@ -180,13 +176,6 @@ public class DeviceEvent {
 
     public DeviceEvent(){
 
-    }
-    public int getSamplingNumber() {
-        return samplingNumber;
-    }
-
-    public void setSamplingNumber(int samplingNumber) {
-        this.samplingNumber = samplingNumber;
     }
 
     public DeviceEvent(String msg) {

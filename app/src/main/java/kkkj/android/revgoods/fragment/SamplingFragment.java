@@ -213,6 +213,9 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                     case R.id.iv_delete:
                         mList.remove(position);
                         picOrMp4Adapter.notifyDataSetChanged();
+                        //删除本地文件
+
+
                         break;
 
                     case R.id.ed_content:
@@ -415,17 +418,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
         String weight = mEtWeight.getText().toString().trim();
         String number = mEtNumber.getText().toString().trim();
-        if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
-            if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
 
-            } else {
-                myToasty.showWarning("输入不能为零！请重新输入！");
-                return;
-            }
-        } else {
-            myToasty.showWarning("请填写数量和重量！");
-            return;
-        }
 
         switch (view.getId()) {
 
@@ -434,6 +427,19 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 break;
 
             case R.id.button://提交
+
+                if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
+                    if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
+
+                    } else {
+                        myToasty.showWarning("输入不能为零！请重新输入！");
+                        return;
+                    }
+                } else {
+                    myToasty.showWarning("请填写数量和重量！");
+                    return;
+                }
+
                 for (int i = 0; i < mList.size(); i++) {
                     mList.get(i).setIsDwon(1);//不可编辑
                 }
@@ -475,18 +481,14 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
 
                 samplingDetails.setModelList(mList);
 
-                DeviceEvent deviceEvent = new DeviceEvent();
 
                 if (LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size() > 0) {
                     SamplingDetails lastDetails = LitePal.where("hasBill < ?", "0").findLast(SamplingDetails.class);
                     samplingDetails.setCount(lastDetails.getCount() + 1);
-                    deviceEvent.setSamplingNumber(lastDetails.getCount() + 1);
                 } else {
                     samplingDetails.setCount(1);
-                    deviceEvent.setSamplingNumber(1);
                 }
 
-                EventBus.getDefault().post(deviceEvent);
                 samplingDetails.save();
 
                 dismiss();
@@ -494,6 +496,18 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 break;
 
             case R.id.button_enter://计算
+
+                if (!TextUtils.isEmpty(weight) && !TextUtils.isEmpty(number)) {
+                    if (Double.parseDouble(weight) != 0 && Integer.parseInt(number) != 0) {
+
+                    } else {
+                        myToasty.showWarning("输入不能为零！请重新输入！");
+                        return;
+                    }
+                } else {
+                    myToasty.showWarning("请填写数量和重量！");
+                    return;
+                }
 
                 double specs = Double.parseDouble(weight) / Integer.parseInt(number);
                 specs = DoubleCountUtils.keep(specs);

@@ -417,9 +417,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.iv_back:
-                DeviceEvent deviceEvent = new DeviceEvent();
-                deviceEvent.setSamplingNumber(samplingDetailsList.size());
-                EventBus.getDefault().post(deviceEvent);
+
                 dismiss();
                 break;
 
