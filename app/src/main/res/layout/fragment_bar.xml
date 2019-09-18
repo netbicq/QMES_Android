@@ -32,7 +32,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:padding="8dp" />
+        android:textColor="@color/qmui_config_color_white"
+        android:gravity="center"
+        tools:text="打印"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"/>
 
 
 </RelativeLayout>

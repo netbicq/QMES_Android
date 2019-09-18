@@ -20,7 +20,7 @@ import kkkj.android.revgoods.MainActivity;
  */
 public class QMUIUtils {
 
-    public static void showNormalPopup(Context context,View v, int preferredDirection,String msg) {
+    public static void showNormalPopup(Context context,View v, int preferredDirection,String msg,int offset) {
         QMUIPopup mNormalPopup = new QMUIPopup(context, QMUIPopup.DIRECTION_NONE);
         TextView textView = new TextView(context);
         textView.setLayoutParams(mNormalPopup.generateLayoutParam(QMUIDisplayHelper.dp2px(context, 250),
@@ -36,7 +36,7 @@ public class QMUIUtils {
         });
 
         mNormalPopup.setAnimStyle(QMUIPopup.ANIM_GROW_FROM_CENTER);
-        mNormalPopup.setPositionOffsetX(-100);//设置浮层位置偏移量
+        mNormalPopup.setPositionOffsetX(offset);//设置浮层位置偏移量
         mNormalPopup.setPreferredDirection(preferredDirection);//QMUIPopup.DIRECTION_TOP、DIRECTION_BOTTOM、DIRECTION_NONE
         mNormalPopup.show(v);
     }

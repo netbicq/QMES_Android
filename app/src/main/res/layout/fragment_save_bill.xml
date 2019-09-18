@@ -4,170 +4,155 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/qmui_config_color_white">
+    >
 
     <include
         android:id="@+id/bar_container"
         layout="@layout/fragment_bar_theme"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/button"
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@drawable/bg_style"
-        android:text="@string/enter"
-        android:textColor="@color/qmui_config_color_white"
+        android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/id_ll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bar_container">
+        app:layout_constraintTop_toBottomOf="@id/bar_container">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/user" />
-
-        <View
-            android:layout_width="1dp"
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/constraintLayout"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/qmui_config_color_pure_black" />
+            android:background="@color/qmui_config_color_white">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="品类等级" />
+            <Button
+                android:id="@+id/button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_style"
+                android:text="@string/enter"
+                android:textColor="@color/qmui_config_color_white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/et_out" />
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="@color/qmui_config_color_pure_black" />
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:text="置零后延迟(/s)："
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView34" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="扣重率 /%" />
+            <TextView
+                android:id="@+id/textView31"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="记录确认延迟(/s)："
+                app:layout_constraintStart_toStartOf="@+id/textView2"
+                app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/bill_name" />
+            <TextView
+                android:id="@+id/textView33"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="卸料时间延迟(/s)："
+                app:layout_constraintStart_toStartOf="@+id/textView31"
+                app:layout_constraintTop_toBottomOf="@+id/textView31" />
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="@color/qmui_config_color_pure_black" />
+            <EditText
+                android:id="@+id/et_save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:imeOptions="flagNoExtractUi"
+                android:inputType="number"
+                app:layout_constraintBottom_toBottomOf="@+id/textView31"
+                app:layout_constraintStart_toEndOf="@+id/textView31"
+                app:layout_constraintTop_toTopOf="@+id/textView31" />
+
+            <EditText
+                android:id="@+id/et_out"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:imeOptions="flagNoExtractUi"
+                android:inputType="number"
+                app:layout_constraintBottom_toBottomOf="@+id/textView33"
+                app:layout_constraintStart_toEndOf="@+id/textView33"
+                app:layout_constraintTop_toTopOf="@+id/textView33" />
+
+            <EditText
+                android:id="@+id/et_zero"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:imeOptions="flagNoExtractUi"
+                android:inputType="number"
+                app:layout_constraintBottom_toBottomOf="@+id/textView2"
+                app:layout_constraintStart_toEndOf="@+id/textView2"
+                app:layout_constraintTop_toTopOf="@+id/textView2" />
+
+            <RadioGroup
+                android:id="@+id/radioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="@+id/textView34"
+                app:layout_constraintStart_toEndOf="@+id/textView34"
+                app:layout_constraintTop_toTopOf="@+id/textView34">
 
 
+                <RadioButton
+                    android:id="@+id/rb_yes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="零位启动" />
+
+                <RadioButton
+                    android:id="@+id/rb_no"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:text="非零位启动" />
 
 
-    </LinearLayout>
+            </RadioGroup>
 
-    <LinearLayout
-        android:id="@+id/ll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_ll">
+            <TextView
+                android:id="@+id/textView34"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text="是否零位启动："
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <Spinner
-            android:id="@+id/id_sp_user"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center" />
 
-        <Spinner
-            android:id="@+id/id_sp_matter_level"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center" />
+        </android.support.constraint.ConstraintLayout>
 
-        <EditText
-            android:id="@+id/id_et_deduction"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:hint="请输入扣重率"
-            android:inputType="numberSigned"
-            android:imeOptions="flagNoExtractUi" />
+    </android.support.v4.widget.NestedScrollView>
 
-        <EditText
-            android:id="@+id/id_et_bill_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:hint="@string/input_bill_name"
-            android:imeOptions="flagNoExtractUi" />
 
-    </LinearLayout>
-
-    <RadioGroup
-        android:id="@+id/radio_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="@+id/textView2"
-        app:layout_constraintStart_toEndOf="@+id/textView2"
-        app:layout_constraintTop_toTopOf="@+id/textView2">
-
-        <RadioButton
-            android:id="@+id/radioButton_server"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:checked="true"
-            android:text="服务端" />
-
-        <RadioButton
-            android:id="@+id/radioButton_client"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:checked="false"
-            android:text="客户端" />
-    </RadioGroup>
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:text="计价方式："
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/button"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ll"
-        app:layout_constraintVertical_bias="0.0" />
 
 
 </android.support.constraint.ConstraintLayout>

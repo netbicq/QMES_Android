@@ -18,7 +18,7 @@ import kkkj.android.revgoods.R;
  * Package Name：com.quickcq.kotlindemo
  * Author: Admin
  * Time: 2019/9/11 17:09
- * Describe: 自定义View初探
+ * Describe: 自定义View
  */
 public class CircleTextView extends View {
 
@@ -26,6 +26,8 @@ public class CircleTextView extends View {
     private int frontSize;//字体大小
     //背景色
     private int colorBackGround;
+
+    private boolean clickable = true;
 
     private onClickListener onClickListener;
 
@@ -85,35 +87,40 @@ public class CircleTextView extends View {
         float textHeight  =  paint.descent() - paint.ascent();//字体高度
 
         paint.setColor(Color.WHITE);
-        String text="手工";
+        String text="记录";
         paint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(text, getWidth() / 2,getHeight()/2 - paint.descent(), paint);
-        text = "计重";
+        text = "重量";
         canvas.drawText(text, getWidth() / 2,getHeight() / 2 + textHeight - paint.descent(), paint);
 
-        Log.d("发现新版本V2.0.0","11111");
+    }
+
+    @Override
+    public void setClickable(boolean clickable) {
+        this.clickable = clickable;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_MOVE:
-                //按下状态切换背景颜色
-                colorBackGround = getResources().getColor(R.color.deep_red);
-                //重绘
-                invalidate();
-                return true;
-            case MotionEvent.ACTION_UP:
-                colorBackGround = Color.RED;
-                if (onClickListener != null) {
-                    onClickListener.onClick();
-                }
-                invalidate();
-                return true;
+        if (clickable) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_MOVE:
+                    //按下状态切换背景颜色
+                    colorBackGround = getResources().getColor(R.color.deep_red);
+                    //重绘
+                    invalidate();
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    colorBackGround = Color.RED;
+                    if (onClickListener != null) {
+                        onClickListener.onClick();
+                    }
+                    invalidate();
+                    return true;
+            }
         }
-
 
         return super.onTouchEvent(event);
     }

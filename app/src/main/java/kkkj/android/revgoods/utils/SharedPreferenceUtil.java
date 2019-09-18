@@ -17,8 +17,19 @@ public class SharedPreferenceUtil {
     public static final String SP_AUTO_LOGIN = "SP_AUTO_LOGIN";
 
     public static final String SP_INTERVAL_TIME = "Interval_Time";
+
+    public static final String SP_SUPPLIER = "Supplier";
     public static final String SP_MATTER = "Matter";
     public static final String SP_MATTER_LEVEL = "Matter_Level";
+
+    /**
+     * 延迟时间
+     */
+    public static final String SP_ZERO_TIME = "zero_time";
+    public static final String SP_SAVE_TIME = "save_time";
+    public static final String SP_OUT_TIME = "out_time";
+    //是否零位启动
+    public static final String SP_ZERO_START = "zero_start";
 
     /**
      * 采样单位

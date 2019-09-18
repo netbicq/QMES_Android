@@ -9,8 +9,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.orhanobut.logger.Logger;
-
 import org.litepal.LitePal;
 
 import java.math.BigDecimal;
@@ -31,7 +29,6 @@ import kkkj.android.revgoods.bean.Cumulative;
 import kkkj.android.revgoods.bean.Deduction;
 import kkkj.android.revgoods.bean.Matter;
 import kkkj.android.revgoods.bean.MatterLevel;
-import kkkj.android.revgoods.bean.SamplingBySpecs;
 import kkkj.android.revgoods.bean.SamplingDetails;
 import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
@@ -102,6 +99,8 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     TextView tvPriceSampling;
     @BindView(R.id.tv_unit)
     TextView tvUnit;
+    @BindView(R.id.tv_right)
+    TextView tvRight;
 
 
     private List<BillDetails> billDetailsList;
@@ -129,9 +128,10 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     @Override
     protected void initView() {
         tvTitle.setText(R.string.bill_details);
+        tvRight.setText("打印");
         ivBack.setOnClickListener(this);
 
-        int samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
+        int samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT, 1);
         switch (samplingUnit) {
             case 1://kg
                 tvUnit.setText("重量(kg)");

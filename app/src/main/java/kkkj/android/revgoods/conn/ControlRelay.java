@@ -81,6 +81,32 @@ public class ControlRelay {
 
     }
 
+    //单独控制开关时使用
+    public void turnOffInLineWithOutIsTurn() {
+        switch (CONNECT_TYPE) {
+            case 1:
+
+                if (manager != null && manager.isConnect()) {
+                    manager.send(new WriteData(Order.getTurnOff().get(inLine)));
+
+                }
+                break;
+
+            case 2:
+
+                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
+
+                }
+
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
     //计重之后打开2号开关，出料口开始倾倒物料
     public void turnOnOutLine() {
         switch (CONNECT_TYPE) {
@@ -152,5 +178,16 @@ public class ControlRelay {
                 break;
         }
     }
+
+    //闭合灯光开关
+    public void turnOnLightLine() {
+
+    }
+
+    //断开灯光开关
+    public void turnOffLightLine() {
+
+    }
+
 
 }

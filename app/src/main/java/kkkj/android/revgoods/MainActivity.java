@@ -17,20 +17,19 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
@@ -42,8 +41,8 @@ import android.widget.Toast;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
-import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.suke.widget.SwitchButton;
@@ -208,10 +207,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView tvFirst;
     @BindView(R.id.id_constraintLayout)
     ConstraintLayout mConstraintLayout;
+    @BindView(R.id.iv_relay_model)
+    ImageView ivRelayModel;
+    @BindView(R.id.iv_save_model)
+    ImageView ivSaveModel;
+    @BindView(R.id.tv_relay_hand)
+    TextView tvRelayHand;
+    @BindView(R.id.tv_relay_automatic)
+    TextView tvRelayAutomatic;
+    @BindView(R.id.tv_save_automatic)
+    TextView tvSaveAutomatic;
+    @BindView(R.id.tv_save_hand)
+    TextView tvSaveHand;
+    private CircleTextView circleTextView;
 
     private CompositeDisposable compositeDisposable;
 
-    private String mSampling = "(0)";//采样累计默认数字
     private int samplingSize;//采样累计的数量
 
     private PinBlueReceiver pinBlueReceiver;
@@ -303,6 +314,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //继电器控制的开关
     private int inLine;
     private int outLine;
+    //开关闭合状态 true表示闭合
+    private boolean inLineState;
+    private boolean outLineState = false;
+    private Observable<Boolean> observableInLineState;
+    private Observable<Boolean> observableOutLineState;
+    private ControlRelay controlRelay;
+
+    private final boolean[] isWrite = {false};
+    private final boolean[] isSpeak = {false};
+
+    //当前时间
+    private long currentTimeMillis;
+
+    //置零延时
+    private int zero;
+    //记录之后的延时
+    private int save;
+    //卸料之后的延时
+    private int out;
+
     //生产线
     private ProduceLine produceLine;
 
@@ -322,9 +353,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 计重模式
-     * 全手动模式
      */
-    private boolean isByHandOnly = false;
+    private boolean hasRelayAuto = false;
+    private boolean hasRelayByHand = false;
+    private boolean withoutRelayAuto = false;
+    private boolean withoutRelayByHand = false;
+    //是否零位启动
+    private boolean isZeroStart;
+
+    private Disposable beginDisposable;
+    private Disposable finalDisposable;
 
     private QMUITipDialog qmuiTipDialog;
 
@@ -348,15 +386,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().setAttributes(lp);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-
-        CircleTextView circleTextView = findViewById(R.id.textView29);
-        circleTextView.setClickListener(new CircleTextView.onClickListener() {
-            @Override
-            public void onClick() {
-                QMUIUtils.showNormalPopup(MainActivity.this,circleTextView,QMUIPopup.DIRECTION_BOTTOM,"你说什么就是什么！");
-            }
-        });
 
         initData();
         initView();
@@ -407,6 +436,101 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvProduceLine.setOnClickListener(this);
         mTvDeductionMix.setOnClickListener(this);
         mTvDeductionCumulative.setOnClickListener(this);
+        ivRelayModel.setOnClickListener(this);
+        ivSaveModel.setOnClickListener(this);
+        tvRelayAutomatic.setOnClickListener(this);
+        tvRelayHand.setOnClickListener(this);
+        tvSaveAutomatic.setOnClickListener(this);
+        tvSaveHand.setOnClickListener(this);
+        tvInLine.setOnClickListener(this);
+        tvOutLine.setOnClickListener(this);
+
+        //记录重量
+        circleTextView = findViewById(R.id.textView29);
+
+        final boolean[] isChecked = {false};
+
+        circleTextView.setClickListener(new CircleTextView.onClickListener() {
+            @Override
+            public void onClick() {
+
+                double weight = Double.parseDouble(mWeightTextView.getText().toString());
+                if (weight > 0d) {
+
+                    if (!isChecked[0]) {
+                        QMUIDialog.CheckBoxMessageDialogBuilder builder = new QMUIDialog.CheckBoxMessageDialogBuilder(MainActivity.this);
+                        QMUIDialog qmuiDialog = builder.setMessage("下次不再提示")
+                                .setChecked(true)
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+//                                        isWrite[0] = false;
+//                                        isSpeak[0] = false;
+                                        dialog.dismiss();
+
+                                    }
+                                })
+                                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        isChecked[0] = builder.isChecked();
+                                        isWrite[0] = true;
+
+                                        saveWeight(String.valueOf(weight));
+                                        openAssetMusics();
+
+                                        if (controlRelay != null) {
+                                            //闭合3号开关
+                                            controlRelay.turnOnLightLine();
+                                            //3号闭合之后，延时save,断开3号
+                                            Observable.timer(save, TimeUnit.SECONDS)
+                                                    .subscribe(new Consumer<Long>() {
+                                                        @Override
+                                                        public void accept(Long aLong) throws Exception {
+                                                            controlRelay.turnOffLightLine();
+                                                        }
+                                                    });
+                                        }
+
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .create(R.style.QMUI_Dialog);
+                        qmuiDialog.show();
+                    }
+
+                    if (isChecked[0]) {
+
+                        //计重
+                        isWrite[0] = true;
+
+                        saveWeight(String.valueOf(weight));
+                        openAssetMusics();
+
+                        if (controlRelay != null) {
+                            //闭合3号开关
+                            controlRelay.turnOnLightLine();
+                            //3号闭合之后，延时save,断开3号
+                            Observable.timer(save, TimeUnit.SECONDS)
+                                    .subscribe(new Consumer<Long>() {
+                                        @Override
+                                        public void accept(Long aLong) throws Exception {
+                                            controlRelay.turnOffLightLine();
+                                        }
+                                    });
+                        }
+
+                    }
+
+
+                } else {
+                    myToasty.showWarning("当前重量为零，请勿计重！");
+                }
+
+            }
+        });
+
+
         mTvHandSwitch.setOnCheckedChangeListener((compoundButton, b) -> isClickable = b);
 
 //        mShowPieceWeight.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG); //下划线
@@ -535,6 +659,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initData() {
 
+        //置零延时
+        zero = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_ZERO_TIME, 0);
+        //记录之后的延时
+        save = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAVE_TIME, 0);
+        //卸料之后的延时
+        out = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_OUT_TIME, 0);
+
         //初始化语音合成
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -548,6 +679,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
+        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String s) {
+
+            }
+
+            @Override
+            public void onDone(String s) {
+                //自动计重模式下，播报完重量之后回调，播放称重成功
+                if (s != null && s.length() > 0 && (hasRelayAuto || withoutRelayAuto)) {
+                    openAssetMusics();
+                }
+            }
+
+            @Override
+            public void onError(String s) {
+                myToasty.showError(s);
+            }
+        });
 //        tts.setSpeechRate(1.0f); 语速
 //        tts.setPitch(1.0f);语调
 
@@ -558,18 +708,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
-        //间隔时间,默认2秒
-        intervalTime = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_INTERVAL_TIME, 2);
 
         compositeDisposable = new CompositeDisposable();
 
         myToasty = new MyToasty(this);
+
         samplingSize = LitePal.where("hasBill < ?", "0").find(SamplingDetails.class).size();
         if (samplingSize > 0) {
-            mSampling = "(" + samplingSize + ")";
             SamplingDetails samplingDetails = LitePal.findAll(SamplingDetails.class, true).get(0);
             supplierId = samplingDetails.getSupplierId();
             supplier = LitePal.find(Supplier.class, supplierId);
+        } else {
+            supplierId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SUPPLIER, -1);
+            if (supplierId > 0) {
+                supplier = LitePal.find(Supplier.class, supplierId);
+            }
+
         }
 
 
@@ -626,18 +780,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             supplierId = deviceEvent.getSupplierId();
             supplier = LitePal.find(Supplier.class, supplierId);
             mTvSupplier.setText(supplier.getName());
-            //刷新生产线
-//            produceLineList.clear();
-//            produceLines.clear();
-//
-//            produceLineList.add(getResources().getString(R.string.choose_produce_line));
-//            produceLineList.add("移动称重");
-//
-//            produceLines = LitePal.findAll(ProduceLine.class);
-//            for (int i = 0; i < produceLines.size(); i++) {
-//                produceLineList.add(produceLines.get(i).getName());
-//            }
-//            spinnerAdapter.notifyDataSetChanged();
+
+            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_SUPPLIER, supplierId);
 
         }
         //更新品类（物料）
@@ -821,10 +965,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tvProduceLine.setText(produceLine.getName());
             Logger.d(produceLine.toString());
 
-            if (produceLine.getName().equals("移动称重") || produceLine.getName().equals("手动")) {
-                if (produceLine.getName().equals("手动")) {
-                    isByHandOnly = true;
-                }
+            if (produceLine.getName().equals("移动称重")) {
+
                 //主称
                 if (BleManager.getInstance() != null && bluetoothManager != null) {
                     BleManager.getInstance().destory();
@@ -898,10 +1040,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String powerString = produceLine.getPower();
                 Power power = new Gson().fromJson(powerString, Power.class);
                 if (power.getDeviceAddr() == null) {
-                    myToasty.showInfo("当前未配置继电器，请前往网页端配置！");
-//                    return;
-                } else {
+                    myToasty.showInfo("当前未配置继电器！");
+                    //禁用继电器模式下面4个按钮
+                    tvRelayAutomatic.setClickable(false);
+                    tvRelayHand.setClickable(false);
+                    tvInLine.setClickable(false);
+                    tvOutLine.setClickable(false);
 
+                } else {
+                    //有继电器，默认选中手动模式
+                    tvRelayHand.callOnClick();
                     inLine = power.getInLine() - 1;
                     outLine = power.getOutLine() - 1;
 
@@ -1068,9 +1216,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //单重
         final double[] compareWeight = {Double.parseDouble(SharedPreferenceUtil
                 .getString(SharedPreferenceUtil.SP_PIECE_WEIGHT))};
+        //是否零位启动，默认false
+        isZeroStart = SharedPreferenceUtil.getBoolean(SharedPreferenceUtil.SP_ZERO_START);
+
+        //置零延时
+        zero = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_ZERO_TIME, 0);
+        //记录之后的延时
+        save = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAVE_TIME, 0);
+        //卸料之后的延时
+        out = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_OUT_TIME, 0);
 
         List<String> strWeightList = new ArrayList<>();
         List<String> strLowWeightList = new ArrayList<>();
+        List<String> weightList = new ArrayList<>();
 
         if (blueMainScaleConnectionState) {
             return;
@@ -1085,10 +1243,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 qmuiTipDialog.dismiss();
                 myToasty.showSuccess(getResources().getString(R.string.Electronic_scale_is_connected));
 
-                final boolean[] isWrite = {false};
-                final boolean[] isTurn = {false};
 
-                ControlRelay controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, CONNECT_TYPE, stateOB,
+                final boolean[] isTurn = {false};
+                final boolean[] isZero = {false};
+                final boolean[] isBegin = {true};
+                final boolean[] isBeginOutLine = {true};
+                final boolean[] isTipsResetZero = {false};
+                final boolean[] isTipsOutLine = {false};
+
+                controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, CONNECT_TYPE, stateOB,
                         bluetoothRelay);
 
                 bluetoothManager.read(new TransferProgressListener() {
@@ -1100,7 +1263,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @SuppressLint("CheckResult")
                     @Override
                     public void transferSuccess(String str) {
-
                         if (observablePieceWeight != null) {
                             observablePieceWeight.subscribe(new Consumer<Double>() {
                                 @Override
@@ -1109,6 +1271,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             });
                         }
+//                        if (observableOutLineState != null) {
+//                            observableOutLineState.subscribe(new Consumer<Boolean>() {
+//                                @Override
+//                                public void accept(Boolean aBoolean) throws Exception {
+//                                    outLineState = aBoolean;
+//                                }
+//                            });
+//                        }
+//                        if (observableInLineState != null) {
+//                            observableInLineState.subscribe(new Consumer<Boolean>() {
+//                                @Override
+//                                public void accept(Boolean aBoolean) throws Exception {
+//                                    inLineState = aBoolean;
+//                                }
+//                            });
+//                        }
 
                         if (str.length() == 8) {
                             //取反
@@ -1157,69 +1335,128 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 double weight = Double.parseDouble(str);
 
+                                //刚开始连接，如果设置了零位启动，则需判断目前是否是零位
+                                if (isZeroStart && isBegin[0]) {
+                                    weightList.add(str);
+                                    int weightSize = weightList.size();
+                                    if (StringUtils.isStable(weightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
+
+                                        if (Double.valueOf(weightList.get(weightSize - 1)) != 0d) {
+
+                                            if (!isTipsResetZero[0]) { //确保只执行一次
+                                                //不等于零，每隔5秒提示请先置零
+                                                myToasty.showWarning("请将电子秤置零！");
+                                                beginDisposable = tips("请将电子秤置零！");
+                                                isTipsResetZero[0] = true;
+                                                circleTextView.setClickable(false);
+                                            }
+
+                                        } else {
+                                            //此时读数位0,跳出此段代码
+                                            isBegin[0] = false;
+                                            circleTextView.setClickable(true);
+                                            if (beginDisposable != null && !beginDisposable.isDisposed()) {
+                                                beginDisposable.dispose();
+                                                beginDisposable = null;
+                                            }
+                                        }
+                                    }
+                                    return;
+                                }
+
+                                if (hasRelayAuto) {
+                                    /**
+                                     * 继电器在连接成功之后，已断开所有开关,不需要再判断是否断开
+                                     */
+
+                                    if (isBeginOutLine[0]) {
+                                        //只在刚开始连接时，执行。后续传送带的打开在末尾
+                                        Observable.timer(zero, TimeUnit.SECONDS)
+                                                .subscribe(new Consumer<Long>() {
+                                                    @Override
+                                                    public void accept(Long aLong) throws Exception {
+                                                        controlRelay.turnOnInLine();
+                                                    }
+                                                });
+                                        isBeginOutLine[0] = false;
+                                    }
+                                }
+
+
                                 if (weight > compareWeight[0]) {
 
-                                    //超过单重之后关闭入料口，传送带
-                                    controlRelay.turnOffInLine();
-//                                            if (!isTurn[0] && manager != null && manager.isConnect()) {
-//                                                isTurn[0] = true;
-//                                                manager.send(new WriteData(Order.getTurnOff().get(inLine)));
-//
-//                                            }
+                                    //超过单重之后关闭入料口(传送带),仅在有继电器，自动模式下执行
+                                    if (hasRelayAuto) {
+                                        controlRelay.turnOffInLine();
+                                    }
 
                                     strWeightList.add(str);
                                     int size = strWeightList.size();
 
                                     if (StringUtils.isStable(strWeightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
 
-
                                         if (!isWrite[0]) {
 
-                                            //语音播报,第二个参数代表清空消息队列
-                                            tts.speak(strWeightList.get(size - 1), TextToSpeech.QUEUE_FLUSH, null);
+                                            if (hasRelayAuto || withoutRelayAuto) { //自动
 
-                                            if (!isByHandOnly) { //自动 + 半自动
-
-                                                if (manager == null && bluetoothRelay == null) { //当前未连接继电器，说明此时是半自动模式
-                                                    openAssetMusics();
+                                                //语音播报,第二个参数代表清空消息队列
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                                    tts.speak(strWeightList.get(size - 1), TextToSpeech.QUEUE_FLUSH, null, "UniqueID");
                                                 }
+
 
                                                 isWrite[0] = true;
 
                                                 //计重
                                                 saveWeight(strWeightList.get(size - 1));
+                                                //openAssetMusics();//播放“计重完成”
+                                                /**
+                                                 * 计重完成后
+                                                 * 闭合三号开关，亮灯，蜂鸣器
+                                                 * 延时B，save时间，断开3号开关
+                                                 * 判断3号是否正确断开，之后闭合2号继电器
+                                                 * 闭合后，延时C，out时间，断开2号继电器
+                                                 */
 
-                                                tvFirst.setText(tvSecond.getText());
-                                                tvSecond.setText(tvThird.getText());
-                                                tvThird.setText(strWeightList.get(size - 1));
-//
-                                                //计重之后打开2号开关，出料口开始倾倒物料
-                                                controlRelay.turnOnOutLine();
-//                                                if (manager != null && manager.isConnect()) {
-//                                                    manager.send(new WriteData(Order.getTurnOn().get(outLine)));
-//                                                }
-                                            } else {
-                                                //手动模式
-                                                openAssetMusics();
-                                                isWrite[0] = true;
-                                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                                builder.setTitle("确定上传数据？")
-                                                        .setPositiveButton(R.string.enter, new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                                //计重
-                                                                saveWeight(strWeightList.get(size - 1));
 
-                                                            }
-                                                        })
-                                                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                                Logger.d("取消");
-                                                                isWrite[0] = false;
-                                                            }
-                                                        }).show();
+                                                //有继电器的情况下
+                                                if (hasRelayAuto) {
+                                                    //闭合3号开关
+                                                    controlRelay.turnOnLightLine();
+                                                    //3号闭合之后，延时save,断开3号
+                                                    Observable.timer(save, TimeUnit.SECONDS)
+                                                            .subscribe(new Consumer<Long>() {
+                                                                @Override
+                                                                public void accept(Long aLong) throws Exception {
+                                                                    controlRelay.turnOffLightLine();
+                                                                }
+                                                            });
+                                                    //TODO 判断3号正常断开
 
+
+                                                    //3号正常断开之后，闭合2号开关，出料口开始倾倒物料
+                                                    controlRelay.turnOnOutLine();
+                                                    //当前时间
+                                                    currentTimeMillis = System.currentTimeMillis();
+                                                    //2号闭合后，延时out时间，断开2号
+                                                    Observable.timer(out, TimeUnit.SECONDS)
+                                                            .subscribe(new Consumer<Long>() {
+                                                                @Override
+                                                                public void accept(Long aLong) throws Exception {
+                                                                    controlRelay.turnOffOutLine();
+                                                                }
+                                                            });
+                                                }
+
+                                            } else if (hasRelayByHand || withoutRelayByHand) {
+                                                //此段代码是为了仅有一次语音播报
+                                                if (!isSpeak[0]) {
+                                                    //语音播报,第二个参数代表清空消息队列
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                                        tts.speak(strWeightList.get(size - 1), TextToSpeech.QUEUE_FLUSH, null, "UniqueID");
+                                                    }
+                                                    isSpeak[0] = true;
+                                                }
 
                                             }
 
@@ -1227,8 +1464,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                     }
 
-                                } else {
-
+                                } else if (weight < compareWeight[0]){
+                                    //当货物开始减少到稳定数值，认为倾倒完成（在置零启动下需要判定最终重量是否为0）
                                     if (isWrite[0]) {
 
                                         if (strWeightList.size() > 0) {
@@ -1240,30 +1477,139 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
                                         if (StringUtils.isStable(strLowWeightList, 10)) {
 
-                                            //出料口倾倒完毕，此时关闭出料口
-                                            controlRelay.turnOffOutLine();
-//                                                if (manager != null && manager.isConnect()) {
-//                                                    manager.send(new WriteData(Order.getTurnOff().get(outLine)));
-//                                                }
+                                            if (isZeroStart) {
 
-                                            //间隔1秒之后打开入料口开关，传送带
-                                            Observable.timer(1000, TimeUnit.MILLISECONDS)
-                                                    .subscribe(new Consumer<Long>() {
-                                                        @Override
-                                                        public void accept(Long aLong) throws Exception {
+                                                if (Double.valueOf(strLowWeightList.get(strLowWeightList.size() - 1)) != 0d) {
+                                                    circleTextView.setClickable(false);
+                                                    //此段代码是为了仅有一次提示置零
+                                                    if (!isZero[0]) {
+                                                        myToasty.showWarning("请将电子秤置零！");
+                                                        finalDisposable = tips("请将电子秤置零！");
+                                                        isZero[0] = true;
+                                                    }
+                                                    return;
+                                                } else {
+                                                    //已置零
+                                                    if (hasRelayAuto) {
+                                                        //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，
+                                                        // 这里延时out - (System.currentTimeMillis() - currentTimeMillis) / 1000时间再检查是否正常断开
+                                                        Logger.d("延时时间" + (out - (System.currentTimeMillis() - currentTimeMillis) / 1000));
+                                                        Observable.timer(out - (System.currentTimeMillis() - currentTimeMillis) / 1000,TimeUnit.SECONDS)
+                                                                .subscribe(new Consumer<Long>() {
+                                                                    @Override
+                                                                    public void accept(Long aLong) throws Exception {
+                                                                        if (outLineState) {
 
-                                                            //间隔1秒之后打开入料口
-                                                            controlRelay.turnOnInLine();
-//                                                                if (manager != null && manager.isConnect()) {
-//                                                                    manager.send(new WriteData(Order.getTurnOn()
-//                                                                    .get(inLine)));
-//                                                                }
-                                                            isWrite[0] = false;
-                                                            isTurn[0] = false;
-                                                            controlRelay.setIsTurn(isTurn);
-                                                            strLowWeightList.clear();
-                                                        }
-                                                    });
+                                                                            if (!isTipsOutLine[0]) { //确保只执行一次
+                                                                                //不等于零，每隔5秒提示请先置零
+                                                                                myToasty.showWarning("下料门未关闭，请检查！");
+                                                                                beginDisposable = tips("下料门未关闭，请检查！");
+                                                                                isTipsOutLine[0] = true;
+
+                                                                            }
+                                                                            return;
+                                                                        }
+                                                                        //延时zero时间，打开1号开关，入料开关（传送带）
+                                                                        Observable.timer(zero, TimeUnit.SECONDS)
+                                                                                .subscribe(new Consumer<Long>() {
+                                                                                    @Override
+                                                                                    public void accept(Long aLong) throws Exception {
+                                                                                        controlRelay.turnOnInLine();
+                                                                                    }
+                                                                                });
+                                                                    }
+                                                                });
+
+                                                    }
+
+                                                    if (beginDisposable != null && !beginDisposable.isDisposed()) {
+                                                        beginDisposable.dispose();
+                                                        beginDisposable = null;
+                                                    }
+                                                    if (finalDisposable != null && !finalDisposable.isDisposed()) {
+                                                        finalDisposable.dispose();
+                                                        finalDisposable = null;
+                                                    }
+                                                }
+
+                                            }
+                                            circleTextView.setClickable(true);
+                                            //不需要置零的情况下
+                                            if (hasRelayAuto) {
+
+                                                //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，这里同样延时out时间再检查是否正常断开
+                                                Observable.timer(out - (System.currentTimeMillis() - currentTimeMillis) / 1000,TimeUnit.SECONDS)
+                                                        .subscribe(new Consumer<Long>() {
+                                                            @Override
+                                                            public void accept(Long aLong) throws Exception {
+                                                                if (outLineState) {
+
+                                                                    if (!isTipsOutLine[0]) { //确保只执行一次
+                                                                        //不等于零，每隔5秒提示请先置零
+                                                                        myToasty.showWarning("下料门未关闭，请检查！");
+                                                                        beginDisposable = tips("下料门未关闭，请检查！");
+                                                                        isTipsOutLine[0] = true;
+
+                                                                    }
+                                                                    return;
+                                                                }
+                                                                //延时zero时间，打开1号开关，入料开关（传送带）
+                                                                Observable.timer(zero, TimeUnit.SECONDS)
+                                                                        .subscribe(new Consumer<Long>() {
+                                                                            @Override
+                                                                            public void accept(Long aLong) throws Exception {
+                                                                                controlRelay.turnOnInLine();
+                                                                                isWrite[0] = false;
+                                                                                isTurn[0] = false;
+                                                                                isZero[0] = false;
+                                                                                isSpeak[0] = false;
+                                                                                strLowWeightList.clear();
+                                                                            }
+                                                                        });
+                                                            }
+                                                        });
+
+                                            }
+
+                                            isWrite[0] = false;
+                                            isTurn[0] = false;
+                                            isZero[0] = false;
+                                            isSpeak[0] = false;
+                                            strLowWeightList.clear();
+
+
+                                            //出料口倾倒完毕，此时关闭出料口,仅在有继电器，自动模式下执行
+//                                            if (hasRelayAuto) {
+//                                                controlRelay.turnOffOutLine();
+//
+//                                                //判断出料口是否已正确断开
+////                                                    if (outLineState) {
+////                                                        myToasty.showError("请检查下料门是否已关闭！");
+////                                                        return;
+////                                                    }
+//                                            }
+                                            //间隔置零延时之后打开入料口开关，传送带
+//                                            Observable.timer(zero, TimeUnit.SECONDS)
+//                                                    .subscribe(new Consumer<Long>() {
+//                                                        @Override
+//                                                        public void accept(Long aLong) throws Exception {
+//
+//                                                            //间隔1秒之后打开入料口,仅在有继电器，自动模式下执行
+//                                                            if (hasRelayAuto) {
+//                                                                controlRelay.turnOnInLine();
+//                                                                controlRelay.setIsTurn(isTurn);
+//                                                            }
+////                                                                if (manager != null && manager.isConnect()) {
+////                                                                    manager.send(new WriteData(Order.getTurnOn()
+////                                                                    .get(inLine)));
+////                                                                }
+//                                                            isWrite[0] = false;
+//                                                            isTurn[0] = false;
+//                                                            isZero[0] = false;
+//                                                            isSpeak[0] = false;
+//                                                            strLowWeightList.clear();
+//                                                        }
+//                                                    });
 
 
                                         }
@@ -1433,8 +1779,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         myToasty.showSuccess("蓝牙继电器连接成功！");
                         produceLine.setRelayConnectionState(true);
                         blueRelayConnectionState = true;
+                        bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
                         //打开某个开关
-                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
+//                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
                     }
                 }
 
@@ -1447,7 +1794,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onComplete() {
-                    //bluetoothBean.getMyBluetoothManager().getWriteOB(BTOrder.GET_STATE).subscribe(stateOB);
                     //manager.send(new WriteData(Order.TURN_ON_1));
                 }
             });
@@ -1473,7 +1819,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onNext(byte[] bytes) {
-                        Logger.d("----" + BytesUtils.toHexStringForLog(bytes) + "----");
+                        Logger.d("toHexStringForLog" + BytesUtils.toHexStringForLog(bytes) + "----");
                         String message = BytesUtils.toHexStringForLog(bytes);
 
                         if (message.indexOf("01 05 00 ") == 0) {
@@ -1489,20 +1835,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 if (state.equals("00")) {
                                     tvInLine.setBackground(getResources().getDrawable(R.drawable.red_background));
                                     tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                                    inLineState = false;//断开
                                 } else {
                                     tvInLine.setBackground(getResources().getDrawable(R.drawable.green_background));
                                     tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                                    inLineState = true;//闭合
                                 }
+
+                                if (observableInLineState != null) {
+                                    observableInLineState = null;
+                                }
+                                observableInLineState = Observable.create(new ObservableOnSubscribe<Boolean>() {
+                                    @Override
+                                    public void subscribe(ObservableEmitter<Boolean> emitter) throws Exception {
+                                        emitter.onNext(inLineState);
+                                        emitter.onComplete();
+                                    }
+                                });
+
+
                             }
 
                             if (whichSwitch == outLine) {
                                 if (state.equals("00")) {
                                     tvOutLine.setBackground(getResources().getDrawable(R.drawable.red_background));
                                     tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                                    outLineState = false;//断开
                                 } else {
                                     tvOutLine.setBackground(getResources().getDrawable(R.drawable.green_background));
                                     tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                                    outLineState = true;//闭合
                                 }
+                                Logger.d("toHexStringForLog" + outLineState + "----");
+                                if (observableOutLineState != null) {
+                                    observableOutLineState = null;
+                                }
+                                observableOutLineState = Observable.create(new ObservableOnSubscribe<Boolean>() {
+                                    @Override
+                                    public void subscribe(ObservableEmitter<Boolean> emitter) throws Exception {
+                                        emitter.onNext(outLineState);
+                                        emitter.onComplete();
+                                    }
+                                });
+
                             }
 
                             if (state.equals("00")) {
@@ -1565,7 +1940,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 produceLine.setRelayConnectionState(true);
                 manager.send(new WriteData(Order.GET_STATE));
                 //连接成功之后就打开某个开关
-                manager.send(new WriteData(Order.getTurnOn().get(inLine)));
+//                manager.send(new WriteData(Order.getTurnOn().get(inLine)));
 
             }
 
@@ -1602,9 +1977,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (state.equals("00")) {
                             tvInLine.setBackground(getResources().getDrawable(R.drawable.red_background));
                             tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                            inLineState = false;//断开
                         } else {
                             tvInLine.setBackground(getResources().getDrawable(R.drawable.green_background));
                             tvInLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                            inLineState = true;//闭合
                         }
                     }
 
@@ -1612,9 +1989,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (state.equals("00")) {
                             tvOutLine.setBackground(getResources().getDrawable(R.drawable.red_background));
                             tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                            outLineState = false;//断开
                         } else {
                             tvOutLine.setBackground(getResources().getDrawable(R.drawable.green_background));
                             tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                            outLineState = true;//闭合
                         }
                     }
 
@@ -1734,6 +2113,112 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     myToasty.showWarning("请先选择供应商，品类，品类等级！");
                 }
 
+                break;
+
+            case R.id.iv_relay_model://继电器模式问号
+                QMUIUtils.showNormalPopup(MainActivity.this, ivRelayModel,
+                        QMUIPopup.DIRECTION_BOTTOM, "继电器模式", -100);
+
+                break;
+
+            case R.id.iv_save_model://计重模式问号
+                QMUIUtils.showNormalPopup(MainActivity.this, ivSaveModel,
+                        QMUIPopup.DIRECTION_TOP, "计重模式", -100);
+                break;
+
+            case R.id.tv_relay_automatic://继电器模式自动
+                //此时计重模式自动选为自动，手动不可选
+                hasRelayAuto = true;
+                hasRelayByHand = false;
+                withoutRelayAuto = false;
+                withoutRelayByHand = false;
+
+                tvRelayAutomatic.setBackground(getResources().getDrawable(R.drawable.green_background));
+                tvRelayAutomatic.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                tvRelayHand.setBackground(getResources().getDrawable(R.drawable.red_background));
+                tvRelayHand.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                tvSaveAutomatic.setBackground(getResources().getDrawable(R.drawable.green_background));
+                tvSaveAutomatic.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                tvSaveHand.setBackground(getResources().getDrawable(R.drawable.red_background));
+                tvSaveHand.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+
+                tvInLine.setClickable(false);
+                tvOutLine.setClickable(false);
+                tvSaveAutomatic.setClickable(false);
+                tvSaveHand.setClickable(false);
+
+                /**
+                 * 连接各设备
+                 * 此时为全自动模式
+                 */
+
+
+                break;
+
+            case R.id.tv_relay_hand://继电器模式手动
+                //此时计重模式自动选为手动，自动不可选
+
+                hasRelayAuto = false;
+                hasRelayByHand = true;
+                withoutRelayAuto = false;
+                withoutRelayByHand = false;
+
+                tvRelayAutomatic.setBackground(getResources().getDrawable(R.drawable.red_background));
+                tvRelayAutomatic.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                tvRelayHand.setBackground(getResources().getDrawable(R.drawable.green_background));
+                tvRelayHand.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                tvSaveAutomatic.setBackground(getResources().getDrawable(R.drawable.red_background));
+                tvSaveAutomatic.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                tvSaveHand.setBackground(getResources().getDrawable(R.drawable.green_background));
+                tvSaveHand.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+
+                tvInLine.setClickable(true);
+                tvOutLine.setClickable(true);
+                tvSaveAutomatic.setClickable(false);
+                tvSaveHand.setClickable(false);
+
+                /**
+                 * 连接各设备
+                 * 可以操作继电器
+                 * 此时为半自动模式（自动模式的调试模式）
+                 */
+
+                break;
+
+            case R.id.tv_in_line://传送带
+
+                if (controlRelay != null) {
+                    if (inLineState) {
+                        controlRelay.turnOffInLineWithOutIsTurn();
+                    } else {
+                        controlRelay.turnOnInLine();
+                    }
+                }
+                break;
+
+            case R.id.tv_out_line://下料门
+
+                if (controlRelay != null) {
+                    if (outLineState) {
+                        controlRelay.turnOffOutLine();
+                    } else {
+                        controlRelay.turnOnOutLine();
+                    }
+                }
+                break;
+
+            case R.id.tv_save_automatic://计重模式自动
+                hasRelayAuto = false;
+                hasRelayByHand = false;
+                withoutRelayAuto = true;
+                withoutRelayByHand = false;
+                break;
+
+            case R.id.tv_save_hand://计重模式手动
+                hasRelayAuto = false;
+                hasRelayByHand = false;
+                withoutRelayAuto = false;
+                withoutRelayByHand = true;
                 break;
 
             case R.id.id_tv_sampling://采样
@@ -2105,7 +2590,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         //蓝牙继电器
         if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-            //bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
+            bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
             bluetoothRelay.getMyBluetoothManager().disConnect();
             bluetoothRelay = null;
         }
@@ -2241,6 +2726,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvCumulativeCount.setText(String.valueOf(count));
         tvCumulativeWeight.setText(String.valueOf(cWeight));
 
+        tvFirst.setText(tvSecond.getText());
+        tvSecond.setText(tvThird.getText());
+        tvThird.setText(weight);
+
     }
 
     //当已有采样数据时，是否继续选择供应商，品类，品类等级
@@ -2264,8 +2753,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Logger.d("取消");
                     }
                 }).show();
+    }
 
+    /**
+     * 每间隔一段时间提示一次
+     */
+    @SuppressLint("CheckResult")
+    private Disposable tips(String msg) {
 
+        Disposable disposable = Flowable.interval(5, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter(new Predicate<Long>() {
+                    @Override
+                    public boolean test(Long aLong) throws Exception {
+                        return true;
+                    }
+                })
+                .subscribe(new Consumer<Long>() {
+                    @Override
+                    public void accept(Long aLong) throws Exception {
+                        myToasty.showWarning(msg);
+                    }
+                });
+        return disposable;
     }
 
 
