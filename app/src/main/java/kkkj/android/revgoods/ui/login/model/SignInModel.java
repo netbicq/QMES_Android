@@ -273,9 +273,9 @@ public class SignInModel extends MvpModel<SignInModel.Request, SignInModel.Respo
                         for (int j=0;j<produceLineOldList.size();j++) {
                             String keyIdOld = produceLineOldList.get(j).getKeyID();
                             if (!keyIdList.contains(keyIdOld)) {
-                                List<Price> list1 = LitePal.where("KeyID = ?",keyIdOld).find(Price.class);
+                                List<ProduceLine> list1 = LitePal.where("KeyID = ?",keyIdOld).find(ProduceLine.class);
                                 int id = list1.get(0).getId();
-                                LitePal.delete(Price.class,id);
+                                LitePal.delete(ProduceLine.class,id);
                             }
                         }
 

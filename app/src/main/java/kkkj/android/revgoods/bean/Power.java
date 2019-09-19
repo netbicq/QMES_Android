@@ -14,14 +14,24 @@ public class Power{
     /**
      * InLine : 1
      * OutLine : 2
+     * Buzzer : 4 蜂鸣器，灯光
      * DeviceType : 1:蓝牙；2:继电器
      * DeviceAddr : 192.168.123.105:10001
      */
 
     private int InLine;
     private int OutLine;
+    private int Buzzer;
     private int DeviceType;
     private String DeviceAddr;
+
+    public int getBuzzer() {
+        return Buzzer;
+    }
+
+    public void setBuzzer(int buzzer) {
+        Buzzer = buzzer;
+    }
 
     public int getInLine() {
         return InLine;
@@ -58,8 +68,9 @@ public class Power{
     @Override
     public String toString() {
         return "Power{" +
-                ", InLine=" + InLine +
+                "InLine=" + InLine +
                 ", OutLine=" + OutLine +
+                ", Buzzer=" + Buzzer +
                 ", DeviceType=" + DeviceType +
                 ", DeviceAddr='" + DeviceAddr + '\'' +
                 '}';

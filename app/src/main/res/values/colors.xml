@@ -11,5 +11,6 @@
     <color name="deep_red">#d81e06</color>
     <color name="green">#1afa29</color>
     <color name="yellow">#F4FC14</color>
+    <color name="gray">#d2d2d2</color>
 
 </resources>

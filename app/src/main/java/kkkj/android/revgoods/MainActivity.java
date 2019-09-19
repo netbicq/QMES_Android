@@ -314,9 +314,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //继电器控制的开关
     private int inLine;
     private int outLine;
+    private int buzzerLine;
     //开关闭合状态 true表示闭合
     private boolean inLineState;
     private boolean outLineState = false;
+    private boolean buzzerLineState;
     private Observable<Boolean> observableInLineState;
     private Observable<Boolean> observableOutLineState;
     private ControlRelay controlRelay;
@@ -856,6 +858,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
                         bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
                         bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
+                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(buzzerLine)).subscribe(stateOB);
 
                         //延迟2秒之后断开
                         Observable.timer(2000, TimeUnit.MILLISECONDS)
@@ -980,6 +983,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(buzzerLine)).subscribe(stateOB);
                     bluetoothRelay.getMyBluetoothManager().disConnect();
                 }
 
@@ -1001,6 +1005,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
             } else {
 //                mTvHand.setVisibility(View.GONE);
+
+                //连接之后，可点击
+                tvRelayAutomatic.setClickable(true);
+                tvRelayHand.setClickable(true);
+                tvSaveAutomatic.setClickable(true);
+                tvSaveHand.setClickable(true);
 
                 //主秤
                 String masterString = produceLine.getMaster();
@@ -1052,6 +1062,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     tvRelayHand.callOnClick();
                     inLine = power.getInLine() - 1;
                     outLine = power.getOutLine() - 1;
+                    buzzerLine = power.getBuzzer() - 1;
 
                     switch (power.getDeviceType()) {
                         case 1://蓝牙继电器
@@ -1251,7 +1262,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 final boolean[] isTipsResetZero = {false};
                 final boolean[] isTipsOutLine = {false};
 
-                controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, CONNECT_TYPE, stateOB,
+                controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, buzzerLine, CONNECT_TYPE, stateOB,
                         bluetoothRelay);
 
                 bluetoothManager.read(new TransferProgressListener() {
@@ -1431,11 +1442,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                     controlRelay.turnOffLightLine();
                                                                 }
                                                             });
+
                                                     //TODO 判断3号正常断开
+                                                    if (buzzerLineState) {
+                                                        myToasty.showWarning("蜂鸣器未断开，请检查！");
+                                                        return;
+                                                    }
+                                                    //3号正常断开之后，延时100毫秒(蓝牙继电器短时间内无非接受两个指令，只能延时)，
+                                                    // 闭合2号开关，出料口开始倾倒物料
+                                                    Observable.timer(100,TimeUnit.MILLISECONDS)
+                                                            .subscribe(new Consumer<Long>() {
+                                                                @Override
+                                                                public void accept(Long aLong) throws Exception {
+                                                                    controlRelay.turnOnOutLine();
+                                                                }
+                                                            });
 
-
-                                                    //3号正常断开之后，闭合2号开关，出料口开始倾倒物料
-                                                    controlRelay.turnOnOutLine();
                                                     //当前时间
                                                     currentTimeMillis = System.currentTimeMillis();
                                                     //2号闭合后，延时out时间，断开2号
@@ -1446,6 +1468,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                     controlRelay.turnOffOutLine();
                                                                 }
                                                             });
+
                                                 }
 
                                             } else if (hasRelayByHand || withoutRelayByHand) {
@@ -1464,7 +1487,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                     }
 
-                                } else if (weight < compareWeight[0]){
+                                } else if (weight < compareWeight[0]) {
                                     //当货物开始减少到稳定数值，认为倾倒完成（在置零启动下需要判定最终重量是否为0）
                                     if (isWrite[0]) {
 
@@ -1492,23 +1515,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                     //已置零
                                                     if (hasRelayAuto) {
                                                         //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，
+
+                                                        if (outLineState) {
+
+                                                            if (!isTipsOutLine[0]) { //确保只执行一次
+                                                                //不等于零，每隔5秒提示请先置零
+                                                                myToasty.showWarning("下料门未关闭，请检查！");
+                                                                beginDisposable = tips("下料门未关闭，请检查！");
+                                                                isTipsOutLine[0] = true;
+
+                                                            }
+                                                            return;
+                                                        }
+
                                                         // 这里延时out - (System.currentTimeMillis() - currentTimeMillis) / 1000时间再检查是否正常断开
-                                                        Logger.d("延时时间" + (out - (System.currentTimeMillis() - currentTimeMillis) / 1000));
-                                                        Observable.timer(out - (System.currentTimeMillis() - currentTimeMillis) / 1000,TimeUnit.SECONDS)
+                                                        long time = out - (System.currentTimeMillis() - currentTimeMillis) / 1000;
+                                                        if (time < 0) {
+                                                            time = 0;
+                                                        }
+                                                        Observable.timer(time, TimeUnit.SECONDS)
                                                                 .subscribe(new Consumer<Long>() {
                                                                     @Override
                                                                     public void accept(Long aLong) throws Exception {
-                                                                        if (outLineState) {
 
-                                                                            if (!isTipsOutLine[0]) { //确保只执行一次
-                                                                                //不等于零，每隔5秒提示请先置零
-                                                                                myToasty.showWarning("下料门未关闭，请检查！");
-                                                                                beginDisposable = tips("下料门未关闭，请检查！");
-                                                                                isTipsOutLine[0] = true;
-
-                                                                            }
-                                                                            return;
-                                                                        }
                                                                         //延时zero时间，打开1号开关，入料开关（传送带）
                                                                         Observable.timer(zero, TimeUnit.SECONDS)
                                                                                 .subscribe(new Consumer<Long>() {
@@ -1538,21 +1567,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             if (hasRelayAuto) {
 
                                                 //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，这里同样延时out时间再检查是否正常断开
-                                                Observable.timer(out - (System.currentTimeMillis() - currentTimeMillis) / 1000,TimeUnit.SECONDS)
+                                                if (outLineState) {
+                                                    Logger.d("下料门未关闭，请检查！");
+                                                    if (!isTipsOutLine[0]) { //确保只执行一次
+                                                        //不等于零，每隔5秒提示请先置零
+                                                        myToasty.showWarning("下料门未关闭，请检查！");
+                                                        beginDisposable = tips("下料门未关闭，请检查！");
+                                                        isTipsOutLine[0] = true;
+
+                                                    }
+                                                    return;
+                                                }
+
+                                                if (beginDisposable != null && !beginDisposable.isDisposed()) {
+                                                    beginDisposable.dispose();
+                                                    beginDisposable = null;
+                                                }
+
+                                                long time = out - (System.currentTimeMillis() - currentTimeMillis) / 1000;
+                                                if (time < 0) {
+                                                    time = 0;
+                                                }
+
+                                                Observable.timer(time, TimeUnit.SECONDS)
                                                         .subscribe(new Consumer<Long>() {
                                                             @Override
                                                             public void accept(Long aLong) throws Exception {
-                                                                if (outLineState) {
 
-                                                                    if (!isTipsOutLine[0]) { //确保只执行一次
-                                                                        //不等于零，每隔5秒提示请先置零
-                                                                        myToasty.showWarning("下料门未关闭，请检查！");
-                                                                        beginDisposable = tips("下料门未关闭，请检查！");
-                                                                        isTipsOutLine[0] = true;
-
-                                                                    }
-                                                                    return;
-                                                                }
                                                                 //延时zero时间，打开1号开关，入料开关（传送带）
                                                                 Observable.timer(zero, TimeUnit.SECONDS)
                                                                         .subscribe(new Consumer<Long>() {
@@ -1880,6 +1921,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             }
 
+                            if (whichSwitch == buzzerLine) {
+                                if (state.equals("00")) {
+                                    buzzerLineState = false;
+                                } else {
+                                    buzzerLineState = true;
+                                }
+                            }
+
                             if (state.equals("00")) {
                                 mWifiList.get(whichSwitch).setState("0");//断开
                             } else {
@@ -1994,6 +2043,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             tvOutLine.setBackground(getResources().getDrawable(R.drawable.green_background));
                             tvOutLine.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
                             outLineState = true;//闭合
+                        }
+                    }
+
+                    if (whichSwitch == buzzerLine) {
+                        if (state.equals("00")) {
+                            buzzerLineState = false;
+                        } else {
+                            buzzerLineState = true;
                         }
                     }
 
@@ -2212,6 +2269,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 hasRelayByHand = false;
                 withoutRelayAuto = true;
                 withoutRelayByHand = false;
+
+                tvSaveAutomatic.setBackground(getResources().getDrawable(R.drawable.green_background));
+                tvSaveAutomatic.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+                tvSaveHand.setBackground(getResources().getDrawable(R.drawable.red_background));
+                tvSaveHand.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+
                 break;
 
             case R.id.tv_save_hand://计重模式手动
@@ -2219,6 +2282,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 hasRelayByHand = false;
                 withoutRelayAuto = false;
                 withoutRelayByHand = true;
+
+                tvSaveAutomatic.setBackground(getResources().getDrawable(R.drawable.red_background));
+                tvSaveAutomatic.setTextColor(getResources().getColor(R.color.qmui_config_color_white));
+                tvSaveHand.setBackground(getResources().getDrawable(R.drawable.green_background));
+                tvSaveHand.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
+
                 break;
 
             case R.id.id_tv_sampling://采样

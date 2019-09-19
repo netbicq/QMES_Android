@@ -1,5 +1,6 @@
 package kkkj.android.revgoods.conn;
 
+import com.orhanobut.logger.Logger;
 import com.xuhao.didi.socket.client.sdk.client.connection.IConnectionManager;
 
 import io.reactivex.Observer;
@@ -23,6 +24,7 @@ public class ControlRelay {
     //继电器控制的开关
     private int inLine;
     private int outLine;
+    private int buzzerLine;
     /**
      * 继电器连接类型
      * 1-Wifi继电器
@@ -34,12 +36,13 @@ public class ControlRelay {
     //蓝牙继电器
     private BluetoothBean bluetoothRelay;
 
-    public ControlRelay(IConnectionManager manager, boolean[] isTurn, int inLine, int outLine, int CONNECT_TYPE,
+    public ControlRelay(IConnectionManager manager, boolean[] isTurn, int inLine, int outLine, int buzzerLine, int CONNECT_TYPE,
                         Observer<String> stateOB, BluetoothBean bluetoothRelay) {
         this.manager = manager;
         this.isTurn = isTurn;
         this.inLine = inLine;
         this.outLine = outLine;
+        this.buzzerLine = buzzerLine;
         this.CONNECT_TYPE = CONNECT_TYPE;
         this.stateOB = stateOB;
         this.bluetoothRelay = bluetoothRelay;
@@ -109,6 +112,7 @@ public class ControlRelay {
 
     //计重之后打开2号开关，出料口开始倾倒物料
     public void turnOnOutLine() {
+
         switch (CONNECT_TYPE) {
             case 1:
 
@@ -179,14 +183,52 @@ public class ControlRelay {
         }
     }
 
-    //闭合灯光开关
+    //闭合灯光，蜂鸣器开关
     public void turnOnLightLine() {
+        switch (CONNECT_TYPE) {
+            case 1:
 
+                if (manager != null && manager.isConnect()) {
+                    manager.send(new WriteData(Order.getTurnOn().get(buzzerLine)));
+                }
+
+                break;
+
+            case 2:
+
+                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(buzzerLine)).subscribe(stateOB);
+                }
+
+                break;
+
+            default:
+                break;
+        }
     }
 
-    //断开灯光开关
+    //断开灯光，蜂鸣器开关
     public void turnOffLightLine() {
+        switch (CONNECT_TYPE) {
+            case 1:
 
+                if (manager != null && manager.isConnect()) {
+                    manager.send(new WriteData(Order.getTurnOff().get(buzzerLine)));
+                }
+
+                break;
+
+            case 2:
+
+                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(buzzerLine)).subscribe(stateOB);
+                }
+
+                break;
+
+            default:
+                break;
+        }
     }
 
 
