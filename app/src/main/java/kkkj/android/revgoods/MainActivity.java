@@ -1380,7 +1380,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                      * 继电器在连接成功之后，已断开所有开关,不需要再判断是否断开
                                      */
 
-                                    if (isBeginOutLine[0]) {
+                                    if (isBeginOutLine[0] && ((manager != null && manager.isConnect()) || (bluetoothRelay != null && bluetoothRelay.isConnect()))) {
                                         //只在刚开始连接时，执行。后续传送带的打开在末尾
                                         Observable.timer(zero, TimeUnit.SECONDS)
                                                 .subscribe(new Consumer<Long>() {
@@ -1415,7 +1415,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                     tts.speak(strWeightList.get(size - 1), TextToSpeech.QUEUE_FLUSH, null, "UniqueID");
                                                 }
 
-
                                                 isWrite[0] = true;
 
                                                 //计重
@@ -1428,7 +1427,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                  * 判断3号是否正确断开，之后闭合2号继电器
                                                  * 闭合后，延时C，out时间，断开2号继电器
                                                  */
-
 
                                                 //有继电器的情况下
                                                 if (hasRelayAuto) {
@@ -1450,7 +1448,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                     }
                                                     //3号正常断开之后，延时100毫秒(蓝牙继电器短时间内无非接受两个指令，只能延时)，
                                                     // 闭合2号开关，出料口开始倾倒物料
-                                                    Observable.timer(100,TimeUnit.MILLISECONDS)
+                                                    Observable.timer(200, TimeUnit.MILLISECONDS)
                                                             .subscribe(new Consumer<Long>() {
                                                                 @Override
                                                                 public void accept(Long aLong) throws Exception {
@@ -1468,7 +1466,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                     controlRelay.turnOffOutLine();
                                                                 }
                                                             });
-
                                                 }
 
                                             } else if (hasRelayByHand || withoutRelayByHand) {
@@ -1500,157 +1497,164 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
                                         if (StringUtils.isStable(strLowWeightList, 10)) {
 
-                                            if (isZeroStart) {
+                                            if (hasRelayAuto) { //有继电器自动模式
 
-                                                if (Double.valueOf(strLowWeightList.get(strLowWeightList.size() - 1)) != 0d) {
-                                                    circleTextView.setClickable(false);
-                                                    //此段代码是为了仅有一次提示置零
-                                                    if (!isZero[0]) {
-                                                        myToasty.showWarning("请将电子秤置零！");
-                                                        finalDisposable = tips("请将电子秤置零！");
-                                                        isZero[0] = true;
-                                                    }
-                                                    return;
-                                                } else {
-                                                    //已置零
-                                                    if (hasRelayAuto) {
-                                                        //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，
-
-                                                        if (outLineState) {
-
-                                                            if (!isTipsOutLine[0]) { //确保只执行一次
-                                                                //不等于零，每隔5秒提示请先置零
-                                                                myToasty.showWarning("下料门未关闭，请检查！");
-                                                                beginDisposable = tips("下料门未关闭，请检查！");
-                                                                isTipsOutLine[0] = true;
-
-                                                            }
-                                                            return;
-                                                        }
-
-                                                        // 这里延时out - (System.currentTimeMillis() - currentTimeMillis) / 1000时间再检查是否正常断开
-                                                        long time = out - (System.currentTimeMillis() - currentTimeMillis) / 1000;
-                                                        if (time < 0) {
-                                                            time = 0;
-                                                        }
-                                                        Observable.timer(time, TimeUnit.SECONDS)
-                                                                .subscribe(new Consumer<Long>() {
-                                                                    @Override
-                                                                    public void accept(Long aLong) throws Exception {
-
-                                                                        //延时zero时间，打开1号开关，入料开关（传送带）
-                                                                        Observable.timer(zero, TimeUnit.SECONDS)
-                                                                                .subscribe(new Consumer<Long>() {
-                                                                                    @Override
-                                                                                    public void accept(Long aLong) throws Exception {
-                                                                                        controlRelay.turnOnInLine();
-                                                                                    }
-                                                                                });
-                                                                    }
-                                                                });
-
-                                                    }
-
-                                                    if (beginDisposable != null && !beginDisposable.isDisposed()) {
-                                                        beginDisposable.dispose();
-                                                        beginDisposable = null;
-                                                    }
-                                                    if (finalDisposable != null && !finalDisposable.isDisposed()) {
-                                                        finalDisposable.dispose();
-                                                        finalDisposable = null;
-                                                    }
-                                                }
-
-                                            }
-                                            circleTextView.setClickable(true);
-                                            //不需要置零的情况下
-                                            if (hasRelayAuto) {
-
-                                                //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，这里同样延时out时间再检查是否正常断开
-                                                if (outLineState) {
-                                                    Logger.d("下料门未关闭，请检查！");
-                                                    if (!isTipsOutLine[0]) { //确保只执行一次
-                                                        //不等于零，每隔5秒提示请先置零
-                                                        myToasty.showWarning("下料门未关闭，请检查！");
-                                                        beginDisposable = tips("下料门未关闭，请检查！");
-                                                        isTipsOutLine[0] = true;
-
-                                                    }
-                                                    return;
-                                                }
-
-                                                if (beginDisposable != null && !beginDisposable.isDisposed()) {
-                                                    beginDisposable.dispose();
-                                                    beginDisposable = null;
-                                                }
-
+                                                // 这里延时out - (System.currentTimeMillis() - currentTimeMillis) / 1000时间再检查是否正常断开
                                                 long time = out - (System.currentTimeMillis() - currentTimeMillis) / 1000;
-                                                if (time < 0) {
+                                                if (time < 0) { //说明此时已经过了2号的延时时间，也就是2号已执行断开操作
                                                     time = 0;
                                                 }
 
                                                 Observable.timer(time, TimeUnit.SECONDS)
+                                                        .observeOn(AndroidSchedulers.mainThread())
                                                         .subscribe(new Consumer<Long>() {
                                                             @Override
                                                             public void accept(Long aLong) throws Exception {
+                                                                if (isZeroStart) { //置零启动
+                                                                    Logger.d("请将电子秤置零" + "指令启动1");
+                                                                    if (Double.valueOf(strLowWeightList.get(strLowWeightList.size() - 1)) != 0d) {
+                                                                        circleTextView.setClickable(false);
+                                                                        Logger.d("请将电子秤置零" + "指令启动2");
+                                                                        //此段代码是为了仅有一次提示置零
+                                                                        if (!isZero[0]) {
+                                                                            isZero[0] = true;
+                                                                            Logger.d("请将电子秤置零" + "指令启动3");
+                                                                            myToasty.showWarning("请将电子秤置零！");
+                                                                            finalDisposable = tips("请将电子秤置零！");
+                                                                            Logger.d("请将电子秤置零" + "指令启动4" + isZero[0]);
+                                                                        }
+                                                                        Logger.d("请将电子秤置零" + "指令启动5" + isZero[0]);
+                                                                        return;
+                                                                    }
 
-                                                                //延时zero时间，打开1号开关，入料开关（传送带）
-                                                                Observable.timer(zero, TimeUnit.SECONDS)
-                                                                        .subscribe(new Consumer<Long>() {
-                                                                            @Override
-                                                                            public void accept(Long aLong) throws Exception {
-                                                                                controlRelay.turnOnInLine();
-                                                                                isWrite[0] = false;
-                                                                                isTurn[0] = false;
-                                                                                isZero[0] = false;
-                                                                                isSpeak[0] = false;
-                                                                                strLowWeightList.clear();
-                                                                            }
-                                                                        });
+                                                                    Logger.d("请将电子秤置零" + "已置零1");
+                                                                    //已置零
+                                                                    if (finalDisposable != null && !finalDisposable.isDisposed()) {
+                                                                        finalDisposable.dispose();
+                                                                        finalDisposable = null;
+                                                                    }
+                                                                    circleTextView.setClickable(true);
+
+                                                                    Logger.d("请将电子秤置零" + "已置零2");
+                                                                    //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，
+                                                                    if (outLineState) {
+
+                                                                        if (!isTipsOutLine[0]) { //确保只执行一次
+                                                                            //不等于零，每隔5秒提示请先置零
+                                                                            myToasty.showWarning("下料门未关闭，请检查！");
+                                                                            beginDisposable = tips("下料门未关闭，请检查！");
+                                                                            isTipsOutLine[0] = true;
+
+                                                                        }
+                                                                        return;
+                                                                    }
+
+                                                                    if (beginDisposable != null && !beginDisposable.isDisposed()) {
+                                                                        beginDisposable.dispose();
+                                                                        beginDisposable = null;
+                                                                    }
+
+                                                                    //延时zero时间，打开1号开关，入料开关（传送带）
+                                                                    Observable.timer(zero, TimeUnit.SECONDS)
+                                                                            .subscribe(new Consumer<Long>() {
+                                                                                @Override
+                                                                                public void accept(Long aLong) throws Exception {
+                                                                                    controlRelay.turnOnInLine();
+                                                                                    Logger.d("请将电子秤置零" + "已置零7");
+                                                                                    isWrite[0] = false;
+                                                                                    isTurn[0] = false;
+                                                                                    isZero[0] = false;
+                                                                                    isSpeak[0] = false;
+                                                                                    strLowWeightList.clear();
+                                                                                }
+                                                                            });
+
+
+                                                                } else {  //不需要置零的情况下
+
+                                                                    circleTextView.setClickable(true);
+                                                                    Logger.d("下料门未关闭，请检查！0");
+                                                                    //检查2号开关下料门正常关闭,2号开关在延时out时间关闭，这里同样延时out时间再检查是否正常断开
+                                                                    if (outLineState) {
+                                                                        Logger.d("下料门未关闭，请检查！");
+                                                                        if (!isTipsOutLine[0]) { //确保只执行一次
+                                                                            //不等于零，每隔5秒提示请先置零
+                                                                            Logger.d("下料门未关闭，请检查！1");
+                                                                            myToasty.showWarning("下料门未关闭，请检查！");
+                                                                            beginDisposable = tips("下料门未关闭，请检查！");
+                                                                            isTipsOutLine[0] = true;
+
+                                                                        }
+                                                                        return;
+                                                                    }
+                                                                    Logger.d("下料门未关闭，请检查！2");
+                                                                    if (beginDisposable != null && !beginDisposable.isDisposed()) {
+                                                                        beginDisposable.dispose();
+                                                                        beginDisposable = null;
+                                                                    }
+
+                                                                    //延时zero时间，打开1号开关，入料开关（传送带）
+                                                                    Observable.timer(zero, TimeUnit.SECONDS)
+                                                                            .subscribe(new Consumer<Long>() {
+                                                                                @Override
+                                                                                public void accept(Long aLong) throws Exception {
+                                                                                    controlRelay.turnOnInLine();
+                                                                                    isWrite[0] = false;
+                                                                                    isTurn[0] = false;
+                                                                                    isZero[0] = false;
+                                                                                    isSpeak[0] = false;
+                                                                                    strLowWeightList.clear();
+                                                                                }
+                                                                            });
+                                                                }
+
                                                             }
                                                         });
 
+                                            } else { //其他模式
+
+                                                //无继电器自动模式，有继电器手动模式，无继电器手动模式，只需考虑是否需要置零
+                                                if (isZeroStart) { //置零启动
+                                                    Logger.d("请将电子秤置零" + "指令启动1");
+                                                    if (Double.valueOf(strLowWeightList.get(strLowWeightList.size() - 1)) != 0d) {
+                                                        circleTextView.setClickable(false);
+                                                        Logger.d("请将电子秤置零" + "指令启动2");
+                                                        //此段代码是为了仅有一次提示置零
+                                                        if (!isZero[0]) {
+                                                            isZero[0] = true;
+                                                            Logger.d("请将电子秤置零" + "指令启动3");
+                                                            myToasty.showWarning("请将电子秤置零！");
+                                                            finalDisposable = tips("请将电子秤置零！");
+                                                            Logger.d("请将电子秤置零" + "指令启动4" + isZero[0]);
+                                                        }
+                                                        Logger.d("请将电子秤置零" + "指令启动5" + isZero[0]);
+                                                        return;
+                                                    }
+
+                                                    Logger.d("请将电子秤置零" + "已置零1");
+                                                    //已置零
+                                                    if (finalDisposable != null && !finalDisposable.isDisposed()) {
+                                                        finalDisposable.dispose();
+                                                        finalDisposable = null;
+                                                    }
+
+                                                    circleTextView.setClickable(true);
+                                                    isWrite[0] = false;
+                                                    isZero[0] = false;
+                                                    isSpeak[0] = false;
+                                                    strLowWeightList.clear();
+
+                                                } else {
+
+                                                    circleTextView.setClickable(true);
+                                                    isWrite[0] = false;
+                                                    isZero[0] = false;
+                                                    isSpeak[0] = false;
+                                                    strLowWeightList.clear();
+
+                                                }
+
                                             }
-
-                                            isWrite[0] = false;
-                                            isTurn[0] = false;
-                                            isZero[0] = false;
-                                            isSpeak[0] = false;
-                                            strLowWeightList.clear();
-
-
-                                            //出料口倾倒完毕，此时关闭出料口,仅在有继电器，自动模式下执行
-//                                            if (hasRelayAuto) {
-//                                                controlRelay.turnOffOutLine();
-//
-//                                                //判断出料口是否已正确断开
-////                                                    if (outLineState) {
-////                                                        myToasty.showError("请检查下料门是否已关闭！");
-////                                                        return;
-////                                                    }
-//                                            }
-                                            //间隔置零延时之后打开入料口开关，传送带
-//                                            Observable.timer(zero, TimeUnit.SECONDS)
-//                                                    .subscribe(new Consumer<Long>() {
-//                                                        @Override
-//                                                        public void accept(Long aLong) throws Exception {
-//
-//                                                            //间隔1秒之后打开入料口,仅在有继电器，自动模式下执行
-//                                                            if (hasRelayAuto) {
-//                                                                controlRelay.turnOnInLine();
-//                                                                controlRelay.setIsTurn(isTurn);
-//                                                            }
-////                                                                if (manager != null && manager.isConnect()) {
-////                                                                    manager.send(new WriteData(Order.getTurnOn()
-////                                                                    .get(inLine)));
-////                                                                }
-//                                                            isWrite[0] = false;
-//                                                            isTurn[0] = false;
-//                                                            isZero[0] = false;
-//                                                            isSpeak[0] = false;
-//                                                            strLowWeightList.clear();
-//                                                        }
-//                                                    });
 
 
                                         }
