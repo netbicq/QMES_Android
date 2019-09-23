@@ -720,12 +720,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             SamplingDetails samplingDetails = LitePal.findAll(SamplingDetails.class, true).get(0);
             supplierId = samplingDetails.getSupplierId();
             supplier = LitePal.find(Supplier.class, supplierId);
-        } else {
-            supplierId = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SUPPLIER, -1);
-            if (supplierId > 0) {
-                supplier = LitePal.find(Supplier.class, supplierId);
-            }
-
         }
 
 
@@ -782,8 +776,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             supplierId = deviceEvent.getSupplierId();
             supplier = LitePal.find(Supplier.class, supplierId);
             mTvSupplier.setText(supplier.getName());
-
-            SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_SUPPLIER, supplierId);
 
         }
         //更新品类（物料）
@@ -1261,6 +1253,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 final boolean[] isBeginOutLine = {true};
                 final boolean[] isTipsResetZero = {false};
                 final boolean[] isTipsOutLine = {false};
+                //读数是否为负数
+                final boolean[] isNegative = {false};
 
                 controlRelay = new ControlRelay(manager, isTurn, inLine, outLine, buzzerLine, CONNECT_TYPE, stateOB,
                         bluetoothRelay);
@@ -1302,17 +1296,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (str.length() == 8) {
                             //取反
                             str = new StringBuilder(str).reverse().toString();
-
+                            Logger.d("------------> 0：" + str);
+                            //剔除掉所有“=”开头，“=”结尾，第6位不是“.”的数据
                             if (!str.endsWith("=") && !str.startsWith("=") && str.substring(5, 6).equals(".")) {
-                                //去掉前面的“=”号和零
-                                str = str.replaceFirst("^0*", "");
-                                if (str.startsWith(".")) {
-                                    str = "0" + str;
+                                Logger.d("------------> 1" + str);
+
+                                if (str.startsWith("-")) { //读数为负数的情况
+                                    isNegative[0] = true;
+                                    //去掉前面的负号
+                                    str = str.replaceFirst("^-*", "");
+                                    //去掉前面的零
+                                    str = str.replaceFirst("^0*", "");
+                                    //当个位数也为“0”时，需要将“0”补回来
+                                    if (str.startsWith(".")) {
+                                        str = "0" + str;
+                                    }
+                                    //最后补上“-”
+                                    str = "-" + str;
+
+                                } else { //读数位正数
+                                    isNegative[0] = false;
+                                    //去掉前面的零
+                                    str = str.replaceFirst("^0*", "");
+                                    Logger.d("------------> 2" + str);
+                                    if (str.startsWith(".")) {
+                                        str = "0" + str;
+                                    }
+                                    Logger.d("------------> 3" + str);
                                 }
+
 
                                 mWeightTextView.setText(str);
 
-                                byte[] weightByte = CRC16Util.stringToByte(str);
+//                                byte[] weightByte = CRC16Util.stringToByte(str);
 
                                 if (bleTest != null && !isDisconnectScreen) {
 //                                    bleScreenConnectionState = ble.isConnected();
@@ -1344,7 +1360,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     bleTest.sendData(b3);
                                 }
 
-                                double weight = Double.parseDouble(str);
 
                                 //刚开始连接，如果设置了零位启动，则需判断目前是否是零位
                                 if (isZeroStart && isBegin[0]) {
@@ -1393,6 +1408,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 }
 
+                                double weight;
+                                if (isNegative[0]) {
+                                    //去掉前面的负号
+                                    str = str.replaceFirst("^-*", "");
+                                    weight = -Double.parseDouble(str);
+                                }else {
+                                    weight = Double.parseDouble(str);
+                                }
 
                                 if (weight > compareWeight[0]) {
 
@@ -1428,7 +1451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                  * 闭合后，延时C，out时间，断开2号继电器
                                                  */
 
-                                                //有继电器的情况下
+                                                //有继电器自动的情况下
                                                 if (hasRelayAuto) {
                                                     //闭合3号开关
                                                     controlRelay.turnOnLightLine();
@@ -1447,7 +1470,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                         return;
                                                     }
                                                     //3号正常断开之后，延时100毫秒(蓝牙继电器短时间内无非接受两个指令，只能延时)，
-                                                    // 闭合2号开关，出料口开始倾倒物料
+                                                    //闭合2号开关，出料口开始倾倒物料
                                                     Observable.timer(200, TimeUnit.MILLISECONDS)
                                                             .subscribe(new Consumer<Long>() {
                                                                 @Override
@@ -1459,7 +1482,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                     //当前时间
                                                     currentTimeMillis = System.currentTimeMillis();
                                                     //2号闭合后，延时out时间，断开2号
-                                                    Observable.timer(out, TimeUnit.SECONDS)
+                                                    //变换为毫秒
+                                                    out = out * 1000;
+                                                    //如果save和out相等，蓝牙继电器短时间内无非接受两个指令，只能将out延时200毫秒
+                                                    if (save * 1000 == out) {
+                                                        out = out + 200;
+                                                    }
+
+                                                    Observable.timer(out, TimeUnit.MILLISECONDS)
                                                             .subscribe(new Consumer<Long>() {
                                                                 @Override
                                                                 public void accept(Long aLong) throws Exception {

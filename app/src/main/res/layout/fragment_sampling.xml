@@ -13,74 +13,107 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
+        android:background="@color/qmui_config_color_black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bar_container"/>
+
     <LinearLayout
         android:id="@+id/id_ll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginLeft="8dp"
-        android:background="@color/qmui_config_color_pure_black"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bar_container">
+        app:layout_constraintTop_toBottomOf="@+id/view">
+
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
             android:gravity="center"
             android:text="@string/quantity" />
+
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
 
         <TextView
             android:id="@+id/tv_unit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
             android:gravity="center"
             android:text="@string/weight" />
 
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
             android:gravity="center"
             android:text="规格名称" />
 
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="1dp"
-            android:layout_marginBottom="1dp"
+            android:layout_weight="3"
             android:gravity="center"
             android:text="单重范围" />
 
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/qmui_config_color_white"
-            android:layout_margin="1dp"
             android:gravity="center"
             android:text="初始单价" />
 
+        <View
+            android:background="@color/qmui_config_color_pure_black"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"/>
+
     </LinearLayout>
+
+    <View
+        android:id="@+id/view1"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
+        android:background="@color/qmui_config_color_black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/id_ll"/>
 
     <LinearLayout
         android:id="@+id/linearLayout2"
@@ -91,7 +124,7 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/id_ll">
+        app:layout_constraintTop_toBottomOf="@+id/view1">
 
         <View
             android:background="@color/qmui_config_color_pure_black"
@@ -146,7 +179,7 @@
             android:id="@+id/id_sp_specs"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="3"
             android:gravity="center" />
 
         <View

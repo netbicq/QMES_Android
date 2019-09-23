@@ -246,7 +246,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 Specs specs = LitePal.find(Specs.class, samplingDetails.getSpecsId());
 
                 BillDetails billDetails = new BillDetails();
-                billDetails.setSpecs(specs.getValue());
+                billDetails.setSpecs(specs.getName());
                 billDetails.setSpecsKeyId(specs.getKeyID());
                 billDetails.setPrice(samplingDetails.getPrice() + "");
                 billDetails.setAdjustPrice("0");

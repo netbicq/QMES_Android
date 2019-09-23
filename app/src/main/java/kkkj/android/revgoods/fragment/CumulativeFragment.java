@@ -93,9 +93,9 @@ public class CumulativeFragment extends BaseDialogFragment implements View.OnCli
     @Override
     public void initView(View view) {
         if (type == 1) {
-            tvTitle.setText("扣重明细");
+            tvTitle.setText("扣重记录");
         }else if (type == 2) {
-            tvTitle.setText("计重明细");
+            tvTitle.setText("计重记录");
         }
 
 

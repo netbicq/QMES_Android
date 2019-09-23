@@ -18,7 +18,7 @@ public class SharedPreferenceUtil {
 
     public static final String SP_INTERVAL_TIME = "Interval_Time";
 
-    public static final String SP_SUPPLIER = "Supplier";
+
     public static final String SP_MATTER = "Matter";
     public static final String SP_MATTER_LEVEL = "Matter_Level";
 

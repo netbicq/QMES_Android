@@ -12,7 +12,7 @@
     <string name="cumulative_count">累计次数：</string>
     <string name="cumulative_weight">累计重量：</string>
     <string name="cumulative_details">累计明细</string>
-    <string name="sampling_details">采样明细</string>
+    <string name="sampling_details">采样记录</string>
     <string name="price_details">价格明细</string>
     <string name="count">次数</string>
     <string name="quantity">数量</string>

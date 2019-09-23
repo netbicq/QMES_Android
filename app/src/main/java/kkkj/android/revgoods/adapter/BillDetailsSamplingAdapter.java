@@ -31,7 +31,7 @@ public class BillDetailsSamplingAdapter extends BaseQuickAdapter<SamplingDetails
         helper.setText(R.id.id_tv_number,item.getNumber());
         helper.setText(R.id.id_tv_count,helper.getAdapterPosition() + 1 + "");
         helper.setText(R.id.id_tv_weight,item.getWeight());
-        helper.setText(R.id.id_tv_specs,specs.getValue());
+        helper.setText(R.id.id_tv_specs,specs.getName());
         helper.setText(R.id.id_tv_price,item.getPrice() + "");
         helper.setText(R.id.id_tv_proportion,item.getSpecsProportion()+ "");
     }

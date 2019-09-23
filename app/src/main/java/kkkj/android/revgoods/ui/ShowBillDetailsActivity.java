@@ -2,15 +2,24 @@ package kkkj.android.revgoods.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.litepal.LitePal;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,12 +110,15 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     TextView tvUnit;
     @BindView(R.id.tv_right)
     TextView tvRight;
+    @BindView(R.id.scrollView)
+    NestedScrollView scrollView;
 
 
     private List<BillDetails> billDetailsList;
     private List<String[]> weightList;
     private List<Deduction> deductionList;
     private List<SamplingDetails> samplingDetailsList;
+    private String billName;
 
     public static Intent newInstance(Context context, int billId) {
         Intent intent = new Intent(context, ShowBillDetailsActivity.class);
@@ -130,6 +142,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         tvTitle.setText(R.string.bill_details);
         tvRight.setText("打印");
         ivBack.setOnClickListener(this);
+        tvRight.setOnClickListener(this);
 
         int samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT, 1);
         switch (samplingUnit) {
@@ -155,6 +168,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         Intent intent = getIntent();
         int billId = intent.getIntExtra("billId", -1);
         Bill bill = LitePal.find(Bill.class, billId, true);
+        billName = bill.getName();
         billDetailsList = bill.getBillDetailsList();
 
         getBillRequest(bill);
@@ -165,15 +179,16 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         BillDetailsSamplingAdapter billDetailsSamplingAdapter = new BillDetailsSamplingAdapter(R.layout.item_bill_details_sampling, samplingDetailsList);
 
 //        recyclerView = findViewById(R.id.recycler_view);
+        //金额汇总
         recyclerView.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
-
+        //计重记录
         recyclerViewCumulative.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerViewCumulative.setAdapter(weightListAdapter);
-
+        //扣重记录
         recyclerViewDeduction.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerViewDeduction.setAdapter(deductionAdapter);
-
+        //采样记录
         recyclerViewSampling.setLayoutManager(new MyLinearLayoutManager(this));
         recyclerViewSampling.setAdapter(billDetailsSamplingAdapter);
 
@@ -192,9 +207,56 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
             case R.id.iv_back:
                 finish();
                 break;
+
+            case R.id.tv_right:
+//                getScrollViewBitmap(scrollView,billName);
+                break;
         }
     }
 
+    /**
+     * 截取scrollview的屏幕
+     **/
+    public static Bitmap getScrollViewBitmap(NestedScrollView scrollView,String fileName) {
+        fileName = fileName + ".jpg";
+        int h = 0;
+        Bitmap bitmap;
+        for (int i = 0; i < scrollView.getChildCount(); i++) {
+            h += scrollView.getChildAt(i).getHeight();
+        }
+        // 创建对应大小的bitmap
+        bitmap = Bitmap.createBitmap(scrollView.getWidth(), h,
+                Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(bitmap);
+        scrollView.draw(canvas);
+
+        //将bitmap保存为本地文件
+        //文件保存的路径
+        final String FILE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/JCamera";
+        // 文件名fileName
+        File file = new File(FILE_PATH, fileName);
+        // 判断文件夹是否存在，如果不存在，创建文件夹
+        File fileParent = file.getParentFile();
+        if (!fileParent.exists()) {
+            // 创建文件夹
+            fileParent.mkdirs();
+        }
+        //判断文件是否存在，存在则先删除
+        if (file.exists()) {
+            file.delete();
+        }
+
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return bitmap;
+    }
 
     private void getBillRequest(Bill bill) {
 
@@ -278,7 +340,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
             llCumulative.setVisibility(View.GONE);
         }
 
-        tvDeductionMix.setText("计重明细（当前扣重率：" + bill.getDeductionMix() + "%）");//扣重率
+        tvDeductionMix.setText("计重汇总（当前扣重率：" + bill.getDeductionMix() + "%）");//扣重率
         mTvDeductionCount.setText(deductionList.size() + "");//扣重次数
         tvDeductionWeight.setText(String.valueOf(deductionWeight));//扣重总重量
         tvDeductionWeightDetails.setText(String.valueOf(deductionWeight));//扣重明细里面扣重总重量
@@ -293,7 +355,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
 
     private List<String[]> getWeightList(List<Cumulative> cumulativeList) {
         List<String[]> weightList = new ArrayList<>();
-        int order = 1;//序号
+        int order = 0;//序号
 
         for (int i = 0; i < cumulativeList.size(); i++) {
 
