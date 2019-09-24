@@ -23,6 +23,8 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -75,6 +77,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
     private Spinner spSpecs;
     private EditText tvPrice;
     private Button btnSave;
+    private ImageView mImageView;
     private View mView;
 
     private String tempPrice = "";
@@ -118,6 +121,7 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         samplingDetailsList = new ArrayList<>();
         samplingDetailsList = LitePal.where("hasBill < ?", "0")
                 .find(SamplingDetails.class, true);
+
 
         samplingSize = samplingDetailsList.size();
         if (samplingSize > 0) {
@@ -190,48 +194,70 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
         adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                int id = samplingDetailsList.get(position).getId();
-                LitePal.delete(SamplingDetails.class, id);
-                samplingDetailsList.remove(position);
-                /**
-                 * 由于不一定是删除的最后一个，所以只能对Count重新赋值
-                 */
-                for (int i = 0; i < samplingDetailsList.size(); i++) {
-                    samplingDetailsList.get(i).setCount(i + 1);
-                    //samplingDetailsList.get(i).save();
+
+                switch (view.getId()) {
+                    case R.id.image_view:
+
+                        if (!samplingDetailsList.get(position).isUsed()) {
+
+                            for (SamplingDetails samplingDetails:samplingDetailsList) {
+                                samplingDetails.setUsed(false);
+                            }
+                            samplingDetailsList.get(position).setUsed(true);
+                            mImageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_box_unchecked_24dp));
+                            adapter.notifyDataSetChanged();
+                        }
+
+                        break;
+
+                    case R.id.tv_delete:
+
+                        int id = samplingDetailsList.get(position).getId();
+                        LitePal.delete(SamplingDetails.class, id);
+                        samplingDetailsList.remove(position);
+                        /**
+                         * 由于不一定是删除的最后一个，所以只能对Count重新赋值
+                         */
+                        for (int i = 0; i < samplingDetailsList.size(); i++) {
+                            samplingDetailsList.get(i).setCount(i + 1);
+                            //samplingDetailsList.get(i).save();
+                        }
+                        //重新计算占比
+                        //采样总重量
+                        double total = 0d;
+                        double totalPrice = 0d;
+                        for (int i = 0; i < samplingDetailsList.size(); i++) {
+                            BigDecimal b1 = new BigDecimal(Double.toString(total));
+                            BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
+                            total = b1.add(b2).doubleValue();
+
+                            BigDecimal b3 = new BigDecimal(Double.toString(totalPrice));
+                            BigDecimal b4 = new BigDecimal(samplingDetailsList.get(i).getPrice());
+                            totalPrice = b3.add(b4).doubleValue();
+
+                            count = count + Integer.valueOf(samplingDetailsList.get(i).getNumber());
+
+                        }
+
+                        //总重量
+                        weight = total;
+                        specsList.get(0).setValue(String.valueOf(DoubleCountUtils.keep(weight / count)));
+                        specsAdapter.notifyDataSetChanged();
+
+                        //计算占比
+                        for (int i = 0; i < samplingDetailsList.size(); i++) {
+                            double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
+                            specsProportion = DoubleCountUtils.keep4(specsProportion);
+                            samplingDetailsList.get(i).setSpecsProportion(specsProportion);
+                        }
+                        LitePal.saveAll(samplingDetailsList);
+
+                        adapter.notifyDataSetChanged();
+                        mRecyclerView.closeMenu();
+
+                        break;
                 }
-                //重新计算占比
-                //采样总重量
-                double total = 0d;
-                double totalPrice = 0d;
-                for (int i = 0; i < samplingDetailsList.size(); i++) {
-                    BigDecimal b1 = new BigDecimal(Double.toString(total));
-                    BigDecimal b2 = new BigDecimal(samplingDetailsList.get(i).getWeight());
-                    total = b1.add(b2).doubleValue();
 
-                    BigDecimal b3 = new BigDecimal(Double.toString(totalPrice));
-                    BigDecimal b4 = new BigDecimal(samplingDetailsList.get(i).getPrice());
-                    totalPrice = b3.add(b4).doubleValue();
-
-                    count = count + Integer.valueOf(samplingDetailsList.get(i).getNumber());
-
-                }
-
-                //总重量
-                weight = total;
-                specsList.get(0).setValue(String.valueOf(DoubleCountUtils.keep(weight / count)));
-                specsAdapter.notifyDataSetChanged();
-
-                //计算占比
-                for (int i = 0; i < samplingDetailsList.size(); i++) {
-                    double specsProportion = Double.parseDouble(samplingDetailsList.get(i).getWeight()) / total;
-                    specsProportion = DoubleCountUtils.keep4(specsProportion);
-                    samplingDetailsList.get(i).setSpecsProportion(specsProportion);
-                }
-                LitePal.saveAll(samplingDetailsList);
-
-                adapter.notifyDataSetChanged();
-                mRecyclerView.closeMenu();
             }
         });
     }
@@ -246,6 +272,15 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
 
         tvCount = view.findViewById(R.id.tv_count);
         tvWeight = view.findViewById(R.id.tv_weight);
+
+        mImageView = view.findViewById(R.id.id_iv);
+        mImageView.setOnClickListener(this);
+        for (SamplingDetails samplingDetails : samplingDetailsList) {
+
+            if (samplingDetails.isUsed()) {
+                mImageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_box_unchecked_24dp));
+            }
+        }
 
         tvUnit = view.findViewById(R.id.tv_unit);
         int samplingUnit = SharedPreferenceUtil.getInt(SharedPreferenceUtil.SP_SAMPLING_UNIT,1);
@@ -421,6 +456,15 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
                 dismiss();
                 break;
 
+            case R.id.id_iv:
+
+                for (SamplingDetails samplingDetails : samplingDetailsList) {
+                    samplingDetails.setUsed(false);
+                    adapter.notifyDataSetChanged();
+                }
+                mImageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_box_checked_24dp));
+                break;
+
             case R.id.button:
 
                 if (position == 0) {
@@ -440,13 +484,38 @@ public class SamplingDetailsFragment extends BaseDialogFragment implements View.
 
                 LitePal.deleteAll(SamplingBySpecs.class,"hasBill < ?", "0");
 
-                SamplingBySpecs samplingBySpecs = new SamplingBySpecs();
-                samplingBySpecs.setCount(count);
-                samplingBySpecs.setWeiht(weight);
-                samplingBySpecs.setSpecsId(specs.getId());
-                samplingBySpecs.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
-                samplingBySpecs.saveOrUpdate("hasBill < ?", "0");
-                Logger.d("end" + LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class).size());
+
+                SamplingDetails mSamplingDetails = null;
+                for (SamplingDetails samplingDetails : samplingDetailsList) {
+                    samplingDetails.save();
+
+                    if (samplingDetails.isUsed()) { //套用该条数据
+                        mSamplingDetails = samplingDetails;
+                    }
+                }
+
+                if (mSamplingDetails != null) {
+
+                    SamplingBySpecs samplingBySpecs = new SamplingBySpecs();
+                    samplingBySpecs.setCount(mSamplingDetails.getCount());
+                    samplingBySpecs.setWeiht(Double.valueOf(mSamplingDetails.getWeight()));
+                    samplingBySpecs.setSpecsId(mSamplingDetails.getSpecsId());
+                    samplingBySpecs.setPrice(mSamplingDetails.getPrice());
+                    samplingBySpecs.saveOrUpdate("hasBill < ?", "0");
+                    Logger.d("end1：" + LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class).size());
+
+                }else {
+
+                    SamplingBySpecs samplingBySpecs = new SamplingBySpecs();
+                    samplingBySpecs.setCount(count);
+                    samplingBySpecs.setWeiht(weight);
+                    samplingBySpecs.setSpecsId(specs.getId());
+                    samplingBySpecs.setPrice(DoubleCountUtils.keep(Double.valueOf(tempPrice)));
+                    samplingBySpecs.saveOrUpdate("hasBill < ?", "0");
+                    Logger.d("end2：" + LitePal.where("hasBill < ?", "0").find(SamplingBySpecs.class).size());
+
+                }
+
                 dismiss();
 
                 break;

@@ -43,6 +43,7 @@ import kkkj.android.revgoods.bean.Supplier;
 import kkkj.android.revgoods.customer.MyLinearLayoutManager;
 import kkkj.android.revgoods.mvpInterface.MvpPresenter;
 import kkkj.android.revgoods.utils.DoubleCountUtils;
+import kkkj.android.revgoods.utils.ShareFile;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 
 public class ShowBillDetailsActivity extends BaseActivity implements View.OnClickListener {
@@ -141,6 +142,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     protected void initView() {
         tvTitle.setText(R.string.bill_details);
         tvRight.setText("打印");
+        tvRight.setVisibility(View.VISIBLE);
         ivBack.setOnClickListener(this);
         tvRight.setOnClickListener(this);
 
@@ -209,6 +211,8 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
                 break;
 
             case R.id.tv_right:
+               // ShareFile.shareFile(getActivity(),file);调用系统自带分享文件的功能
+                ShareFile.shareFile(ShowBillDetailsActivity.this,getScrollViewBitmap(scrollView,billName));
 //                getScrollViewBitmap(scrollView,billName);
                 break;
         }
@@ -217,7 +221,7 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
     /**
      * 截取scrollview的屏幕
      **/
-    public static Bitmap getScrollViewBitmap(NestedScrollView scrollView,String fileName) {
+    public File getScrollViewBitmap(NestedScrollView scrollView,String fileName) {
         fileName = fileName + ".jpg";
         int h = 0;
         Bitmap bitmap;
@@ -251,11 +255,13 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
             fos.flush();
             fos.close();
+            //ShareFile.shareFile(ShowBillDetailsActivity.this,file);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return bitmap;
+        return file;
     }
 
     private void getBillRequest(Bill bill) {

@@ -103,9 +103,20 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@color/qmui_config_color_white"
-                    android:layout_margin="1dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_marginBottom="1dp"
                     android:gravity="center"
                     android:text="初始单价"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/qmui_config_color_white"
+                    android:layout_margin="1dp"
+                    android:gravity="center"
+                    android:text="套用"/>
 
 
             </LinearLayout>
@@ -207,6 +218,20 @@
                     android:hint="@string/input_price"
                     />
 
+                <View
+                    android:background="@color/qmui_config_color_pure_black"
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"/>
+
+                <ImageView
+                    android:id="@+id/id_iv"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:paddingVertical="5dp"
+                    android:gravity="center"
+                    app:srcCompat="@drawable/ic_check_box_checked_24dp"
+                    />
 
                 <View
                     android:background="@color/qmui_config_color_pure_black"

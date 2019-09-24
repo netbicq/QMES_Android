@@ -61,7 +61,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (!isTurn[0] && manager != null && manager.isConnect()) {
+                if (!isTurn[0] && manager != null && manager.isConnect() && (inLine != -1)) {
                     isTurn[0] = true;
                     manager.send(new WriteData(Order.getTurnOff().get(inLine)));
 
@@ -70,7 +70,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (!isTurn[0] && bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (!isTurn[0] && bluetoothRelay.getMyBluetoothManager().isConnect() && (inLine != -1)) {
                     isTurn[0] = true;
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
 
@@ -89,7 +89,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (manager != null && manager.isConnect()) {
+                if (manager != null && manager.isConnect() && (inLine != -1)) {
                     manager.send(new WriteData(Order.getTurnOff().get(inLine)));
 
                 }
@@ -97,7 +97,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (bluetoothRelay.getMyBluetoothManager().isConnect() && (inLine != -1)) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
 
                 }
@@ -116,7 +116,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (manager != null && manager.isConnect()) {
+                if (manager != null && manager.isConnect() && (outLine != -1)) {
                     manager.send(new WriteData(Order.getTurnOn().get(outLine)));
                 }
 
@@ -124,7 +124,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (bluetoothRelay.getMyBluetoothManager().isConnect() && (outLine != -1)) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(outLine)).subscribe(stateOB);
                 }
 
@@ -140,7 +140,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (manager != null && manager.isConnect()) {
+                if (manager != null && manager.isConnect() && (outLine != -1)) {
                     manager.send(new WriteData(Order.getTurnOff().get(outLine)));
                 }
 
@@ -148,7 +148,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (bluetoothRelay.getMyBluetoothManager().isConnect() && (outLine != -1)) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
                 }
 
@@ -164,7 +164,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (manager != null && manager.isConnect()) {
+                if (manager != null && manager.isConnect() && (inLine != -1)) {
                     manager.send(new WriteData(Order.getTurnOn().get(inLine)));
                 }
 
@@ -172,7 +172,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (bluetoothRelay.getMyBluetoothManager().isConnect() && (inLine != -1)) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(inLine)).subscribe(stateOB);
                 }
 
@@ -188,7 +188,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (manager != null && manager.isConnect()) {
+                if (manager != null && manager.isConnect() && (buzzerLine != -1)) {
                     manager.send(new WriteData(Order.getTurnOn().get(buzzerLine)));
                 }
 
@@ -196,7 +196,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (bluetoothRelay.getMyBluetoothManager().isConnect() && (buzzerLine != -1)) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOn().get(buzzerLine)).subscribe(stateOB);
                 }
 
@@ -212,7 +212,7 @@ public class ControlRelay {
         switch (CONNECT_TYPE) {
             case 1:
 
-                if (manager != null && manager.isConnect()) {
+                if (manager != null && manager.isConnect() && (buzzerLine != -1)) {
                     manager.send(new WriteData(Order.getTurnOff().get(buzzerLine)));
                 }
 
@@ -220,7 +220,7 @@ public class ControlRelay {
 
             case 2:
 
-                if (bluetoothRelay.getMyBluetoothManager().isConnect()) {
+                if (bluetoothRelay.getMyBluetoothManager().isConnect() && (buzzerLine != -1)) {
                     bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(buzzerLine)).subscribe(stateOB);
                 }
 

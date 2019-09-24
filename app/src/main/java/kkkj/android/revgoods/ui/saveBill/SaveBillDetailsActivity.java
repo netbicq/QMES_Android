@@ -186,7 +186,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
                 .create();
 
         tvTitle.setText(R.string.bill_details);
-        tvRight.setOnClickListener(this);
+        tvRight.setVisibility(View.GONE);
         ivBack.setOnClickListener(this);
         mBtnSaveBill.setOnClickListener(this);
 
@@ -277,7 +277,7 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
             tvFinalPrice.setText(price);
 
             BillDetails billDetails = new BillDetails();
-            billDetails.setSpecs(specs.getValue());
+            billDetails.setSpecs(specs.getName());
             billDetails.setPrice(price);
             billDetails.setAdjustPrice("0");
             billDetails.setFinalPrice(price);
@@ -333,11 +333,6 @@ public class SaveBillDetailsActivity extends BaseActivity<BillPresenter> impleme
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-
-            //上传附件
-            case R.id.tv_right:
-
-                break;
 
             //确认单价
             case R.id.btn_price:

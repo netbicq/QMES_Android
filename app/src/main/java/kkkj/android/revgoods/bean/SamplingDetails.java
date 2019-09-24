@@ -63,9 +63,22 @@ public class SamplingDetails extends LitePalSupport {
     private int matterId;
 
     /**
+     * 是否套用
+     */
+    private boolean isUsed = false;
+
+    /**
      * 所属单据
      */
     private Bill bill;
+
+    public boolean isUsed() {
+        return isUsed;
+    }
+
+    public void setUsed(boolean used) {
+        isUsed = used;
+    }
 
     public int getSupplierId() {
         return supplierId;

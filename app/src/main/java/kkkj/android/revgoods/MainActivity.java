@@ -447,6 +447,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvInLine.setOnClickListener(this);
         tvOutLine.setOnClickListener(this);
 
+        tvRelayAutomatic.setClickable(false);
+        tvRelayHand.setClickable(false);
+        tvSaveAutomatic.setClickable(false);
+        tvSaveHand.setClickable(false);
+
+
         //记录重量
         circleTextView = findViewById(R.id.textView29);
 
@@ -848,9 +854,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     //蓝牙继电器
                     if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
-                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(buzzerLine)).subscribe(stateOB);
+                        bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
 
                         //延迟2秒之后断开
                         Observable.timer(2000, TimeUnit.MILLISECONDS)
@@ -973,9 +977,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 //蓝牙继电器
                 if (bluetoothRelay != null && bluetoothRelay.getMyBluetoothManager() != null && bluetoothRelay.getMyBluetoothManager().isConnect()) {
-                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(inLine)).subscribe(stateOB);
-                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(outLine)).subscribe(stateOB);
-                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.getTurnOff().get(buzzerLine)).subscribe(stateOB);
+                    bluetoothRelay.getMyBluetoothManager().getWriteOB(BTOrder.TURN_OFF_ALL).subscribe(stateOB);
+
                     bluetoothRelay.getMyBluetoothManager().disConnect();
                 }
 
@@ -997,12 +1000,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
             } else {
 //                mTvHand.setVisibility(View.GONE);
-
-                //连接之后，可点击
-                tvRelayAutomatic.setClickable(true);
-                tvRelayHand.setClickable(true);
-                tvSaveAutomatic.setClickable(true);
-                tvSaveHand.setClickable(true);
 
                 //主秤
                 String masterString = produceLine.getMaster();
@@ -1042,55 +1039,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String powerString = produceLine.getPower();
                 Power power = new Gson().fromJson(powerString, Power.class);
                 if (power.getDeviceAddr() == null) {
-                    myToasty.showInfo("当前未配置继电器！");
-                    //禁用继电器模式下面4个按钮
+                    myToasty.showError("当前未配置继电器,请前往网页端配置！");
+                    return;
+                }
+
+
+                if ((power.getInLine() == 0 && power.getOutLine() != 0) || (power.getInLine() != 0 && power.getOutLine() == 0)) {
+                    //一个为0，一个不为0，表示配置异常
+                    myToasty.showError("传送带或下料门配置异常，请前往网页端检查！");
+                    return;
+                }
+                if (power.getInLine() == 0) { //此时，只有都为0，或都不为0
+                    //此时不使用传送带和下料门，禁用继电器模式下面4个按钮
+                    //计重模式下面两个按钮启用
                     tvRelayAutomatic.setClickable(false);
                     tvRelayHand.setClickable(false);
                     tvInLine.setClickable(false);
                     tvOutLine.setClickable(false);
 
-                } else {
-                    //有继电器，默认选中手动模式
+                    tvSaveAutomatic.setClickable(true);
+                    tvSaveHand.setClickable(true);
+
+                }else {
+
+                    //使用传送带和下料门，默认选中手动模式
                     tvRelayHand.callOnClick();
-                    inLine = power.getInLine() - 1;
-                    outLine = power.getOutLine() - 1;
-                    buzzerLine = power.getBuzzer() - 1;
 
-                    switch (power.getDeviceType()) {
-                        case 1://蓝牙继电器
-                            CONNECT_TYPE = 2;
-                            String address1 = power.getDeviceAddr().trim();
-                            try {
-                                bluetoothRelayDevice =
-                                        BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
-                                connectBluetoothRelay(bluetoothRelayDevice);
+                }
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                myToasty.showInfo(e.getMessage());
-                            }
-                            break;
+                inLine = power.getInLine() - 1;
+                outLine = power.getOutLine() - 1;
+                buzzerLine = power.getBuzzer() - 1;
 
-                        case 2://Wifi继电器
-                            CONNECT_TYPE = 1;
-                            //分割 ：
-                            String[] strarr = power.getDeviceAddr().split(":");
-                            if (strarr.length < 2) {
-                                myToasty.showWarning("Wifi继电器参数格式配置异常，请前往网页端检查！");
-                                return;
-                            }
-                            String ip = strarr[0].trim();
-                            int port = Integer.valueOf(strarr[1]);
-                            wifiRelayDevice = new Device();
-                            wifiRelayDevice.setWifiIp(ip);
-                            wifiRelayDevice.setWifiPort(port);
-                            connectWifi(wifiRelayDevice);
-                            break;
+                switch (power.getDeviceType()) {
+                    case 1://蓝牙继电器
+                        CONNECT_TYPE = 2;
+                        String address1 = power.getDeviceAddr().trim();
+                        try {
+                            bluetoothRelayDevice =
+                                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address1);
+                            connectBluetoothRelay(bluetoothRelayDevice);
 
-                        default:
-                            break;
-                    }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            myToasty.showInfo(e.getMessage());
+                        }
+                        break;
 
+                    case 2://Wifi继电器
+                        CONNECT_TYPE = 1;
+                        //分割 ：
+                        String[] strarr = power.getDeviceAddr().split(":");
+                        if (strarr.length < 2) {
+                            myToasty.showWarning("Wifi继电器参数格式配置异常，请前往网页端检查！");
+                            return;
+                        }
+                        String ip = strarr[0].trim();
+                        int port = Integer.valueOf(strarr[1]);
+                        wifiRelayDevice = new Device();
+                        wifiRelayDevice.setWifiIp(ip);
+                        wifiRelayDevice.setWifiPort(port);
+                        connectWifi(wifiRelayDevice);
+                        break;
+
+                    default:
+                        break;
                 }
 
 
@@ -1413,7 +1426,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     //去掉前面的负号
                                     str = str.replaceFirst("^-*", "");
                                     weight = -Double.parseDouble(str);
-                                }else {
+                                } else {
                                     weight = Double.parseDouble(str);
                                 }
 
@@ -2022,6 +2035,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 wifiConnectionState = true;
                 produceLine.setRelayConnectionState(true);
                 manager.send(new WriteData(Order.GET_STATE));
+                manager.send(new WriteData(Order.TURN_OFF_ALL));
                 //连接成功之后就打开某个开关
 //                manager.send(new WriteData(Order.getTurnOn().get(inLine)));
 
@@ -2263,6 +2277,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 tvSaveHand.setBackground(getResources().getDrawable(R.drawable.green_background));
                 tvSaveHand.setTextColor(getResources().getColor(R.color.qmui_config_color_black));
 
+                tvRelayAutomatic.setClickable(true);
+                tvRelayHand.setClickable(true);
                 tvInLine.setClickable(true);
                 tvOutLine.setClickable(true);
                 tvSaveAutomatic.setClickable(false);

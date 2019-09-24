@@ -46,7 +46,7 @@
                     android:layout_margin="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    android:text="计重明细（当前扣重率：2%）"
+                    android:text="计重记录（当前扣重率：2%）"
                     android:textSize="20sp"
                     app:layout_column="0"
                     app:layout_columnSpan="3"
@@ -276,7 +276,7 @@
                     android:layout_marginBottom="1dp"
                     android:background="#ffffff"
                     android:gravity="center"
-                    android:text="合计净重" />
+                    android:text="合计净重（kg）" />
 
                 <TextView
                     android:layout_width="0dp"
