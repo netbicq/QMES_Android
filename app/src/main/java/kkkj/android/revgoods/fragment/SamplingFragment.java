@@ -248,6 +248,7 @@ public class SamplingFragment extends BaseDialogFragment implements View.OnClick
                 .create();
 
         ivRight.setImageResource(R.drawable.ic_camera);
+        ivRight.setVisibility(View.VISIBLE);
         tvTitle.setText(R.string.sampling);
 
         mEtWeight = view.findViewById(R.id.id_et_weight);

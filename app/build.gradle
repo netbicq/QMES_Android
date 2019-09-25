@@ -6,10 +6,10 @@ android {
         applicationId "kkkj.android.revgoods"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 20
+        versionCode 21
 
 
-        versionName "1.0.20"
+        versionName "1.0.21"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         android.defaultConfig.vectorDrawables.useSupportLibrary = true
@@ -119,5 +119,6 @@ dependencies {
     //    // Optional, if you use support library fragments:
 
     //    debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.1'
+
     implementation files('libs/jxl.jar')
 }
