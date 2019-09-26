@@ -6,10 +6,10 @@ android {
         applicationId "kkkj.android.revgoods"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 21
+        versionCode 22
 
 
-        versionName "1.0.21"
+        versionName "1.0.22"
         multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         android.defaultConfig.vectorDrawables.useSupportLibrary = true
