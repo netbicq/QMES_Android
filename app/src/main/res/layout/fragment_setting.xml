@@ -36,7 +36,7 @@
             android:gravity="center"
             android:layout_marginTop="30dp"
             android:padding="10dp"
-            android:text="参数设置"
+            android:text="@string/Setting"
             android:background="@drawable/text_black_background"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
@@ -51,7 +51,7 @@
             android:gravity="center"
             android:layout_marginTop="30dp"
             android:padding="10dp"
-            android:text="切换主题"
+            android:text="@string/change_theme"
             android:background="@drawable/text_black_background"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
@@ -81,7 +81,7 @@
             android:gravity="center"
             android:layout_marginTop="30dp"
             android:padding="10dp"
-            android:text="切换账号"
+            android:text="@string/change_user"
             android:background="@drawable/text_black_background"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />
@@ -96,7 +96,7 @@
             android:gravity="center"
             android:layout_marginTop="30dp"
             android:padding="10dp"
-            android:text="常见问题"
+            android:text="@string/faq"
             android:background="@drawable/text_black_background"
             android:textColor="@color/qmui_config_color_white"
             android:textSize="20sp" />

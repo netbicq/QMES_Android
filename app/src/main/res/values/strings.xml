@@ -7,29 +7,28 @@
     <string name="bluetooth_service">蓝牙服务</string>
 
     <string name="app_name">RevGoods</string>
-    <string name="sampling">采样</string>
+
     <string name="sampling_cumulative">采样累计</string>
-    <string name="cumulative_count">累计次数：</string>
-    <string name="cumulative_weight">累计重量：</string>
+
     <string name="cumulative_details">累计明细</string>
-    <string name="sampling_details">采样记录</string>
+
     <string name="price_details">价格明细</string>
     <string name="count">次数</string>
     <string name="quantity">数量</string>
     <string name="weight">重量(kg)</string>
     <string name="weight_no">重量</string>
-    <string name="piece_weight">单重</string>
+
     <string name="piece_weight_colon">单重:</string>
-    <string name="deduction">扣重</string>
+
     <string name="cumulative">累计</string>
     <string name="net_weight">净重</string>
     <string name="gross_weight">毛重</string>
-    <string name="supplier">供应商</string>
-    <string name="matter">品类</string>
-    <string name="matter_level">品类等级</string>
+
+
+
     <string name="choose_matter_level">请选择品类等级</string>
-    <string name="name">规格</string>
-    <string name="choose_produce_line">请选择生产线</string>
+
+
     <string name="choose_specs">请选择规格</string>
     <string name="input_specs">请输入规格信息</string>
     <string name="choose_matter">请选择品类</string>
@@ -51,7 +50,7 @@
     <string name="save">保存</string>
     <string name="save_bill">保存单据</string>
     <string name="bill_name">单据名称</string>
-    <string name="bill_list">单据列表</string>
+
     <string name="bill_details">单据明细</string>
     <string name="pic_details">照片详情</string>
     <string name="input_category">请填写类别</string>
@@ -71,10 +70,41 @@
 
     <string name="Electronic_scale_is_connected">蓝牙电子秤连接成功！</string>
     <string name="Please_open_the_wifi">请先打开Wifi！</string>
-    <string name="is_connecting">正在链接...</string>
-    <string name="is_saving">正在保存...</string>
-    <string name="is_uploading">正在上传...</string>
+    <string name="is_connecting">正在链接…</string>
+    <string name="is_saving">正在保存…</string>
+    <string name="is_uploading">正在上传…</string>
     <string name="connect_failed">蓝牙电子秤连接失败,请尝试重连！</string>
     <string name="bluetooth_diconnected">蓝牙电子秤连接已断开！</string>
+
+    <!-- 左侧设置界面 -->
+    <string name="Setting">参数设置</string>
+    <string name="change_theme">切换主题</string>
+    <string name="change_user">切换账号</string>
+    <string name="faq">常见问题</string>
+    <string name="versionCode">系统版本号：</string>
+
+    <!-- 主界面 -->
+    <string name="supplier">供应商</string>
+    <string name="matter">   品类   </string>
+    <string name="matter_level">等级</string>
+    <string name="name">规格</string>
+    <string name="choose_produce_line">请选择生产线</string>
+    <string name="relay_model">继电器模式</string>
+    <string name="automatic">自动</string>
+    <string name="manual">手动</string>
+    <string name="conveyor_belt">传送带</string>
+    <string name="blanking_door">下料门</string>
+    <string name="weight_model">计重模式</string>
+    <string name="piece_weight">单重</string>
+    <string name="last_three_weight">前三秤重量：</string>
+    <string name="cumulative_count">累计次数：</string>
+    <string name="cumulative_weight">累计重量：</string>
+    <string name="bill_list">单据列表</string>
+    <string name="device_list">设备列表</string>
+    <string name="deduction_rate">扣重率</string>
+    <string name="sampling">采样</string>
+    <string name="sampling_details">采样记录</string>
+    <string name="deduction">扣重</string>
+    <string name="deduction_details">扣重记录</string>
 
 </resources>

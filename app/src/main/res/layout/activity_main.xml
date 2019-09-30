@@ -368,7 +368,7 @@
         android:background="@drawable/text_background"
         android:gravity="center"
         android:paddingHorizontal="8dp"
-        android:text="@string/sampling_cumulative"
+        android:text="@string/sampling_details"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_tv_save_bill"
@@ -401,7 +401,7 @@
         android:gravity="center"
         android:paddingHorizontal="24dp"
         android:paddingVertical="8dp"
-        android:text="供应商"
+        android:text="@string/supplier"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="15sp"
         app:layout_constraintStart_toEndOf="@+id/imageView"
@@ -415,7 +415,7 @@
         android:background="@drawable/text_background"
         android:gravity="center"
         android:paddingHorizontal="8dp"
-        android:text="单据列表"
+        android:text="@string/bill_list"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/id_iv_takePicture"
@@ -432,7 +432,7 @@
         android:background="@drawable/text_background"
         android:gravity="center"
         android:padding="8dp"
-        android:text="设备列表"
+        android:text="@string/device_list"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -547,7 +547,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.50063694" />
+        app:layout_constraintGuide_percent="0.500684" />
 
     <android.support.constraint.Guideline
         android:id="@+id/guideline8"
@@ -603,7 +603,7 @@
         android:id="@+id/textView28"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="前三秤重量："
+        android:text="@string/last_three_weight"
         android:textColor="@color/qmui_config_color_white"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@+id/textView3"

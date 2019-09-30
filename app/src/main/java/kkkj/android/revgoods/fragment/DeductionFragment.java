@@ -72,6 +72,11 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
 
 
     @Override
+    public int setLayout() {
+        return R.layout.fragment_deduction;
+    }
+
+    @Override
     public void initData() {
 
         deductionList = LitePal.findAll(DeductionCategory.class);
@@ -167,11 +172,6 @@ public class DeductionFragment extends BaseDialogFragment implements View.OnClic
             }
         });
 
-    }
-
-    @Override
-    public int setLayout() {
-        return R.layout.fragment_deduction;
     }
 
 
