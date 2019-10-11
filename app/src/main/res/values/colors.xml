@@ -10,7 +10,15 @@
     <color name="red">#FF0000</color>
     <color name="deep_red">#d81e06</color>
     <color name="green">#1afa29</color>
-    <color name="yellow">#F4FC14</color>
+
     <color name="gray">#d2d2d2</color>
+
+    <color name="color_white">#ffffff</color>
+    <color name="color_white_day">#000000</color>
+    <color name="color_background">#243D5F</color>
+    <color name="color_background_day">#ffffff</color>
+    <color name="yellow">#F4FC14</color>
+    <color name="yellow_day">#000000</color>
+
 
 </resources>

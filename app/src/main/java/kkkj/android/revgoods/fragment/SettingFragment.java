@@ -37,6 +37,7 @@ import kkkj.android.revgoods.ui.login.view.LoginActivity;
 import kkkj.android.revgoods.ui.saveBill.SaveBillDetailsActivity;
 import kkkj.android.revgoods.utils.AppVersionInfoUtils;
 import kkkj.android.revgoods.utils.SharedPreferenceUtil;
+import skin.support.SkinCompatManager;
 
 public class SettingFragment extends DialogFragment implements View.OnClickListener {
 
@@ -45,6 +46,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
     private TextView mTvDeviceList;
     private TextView mTvChangeUser;
     private TextView mTvVersionName;
+    private TextView mTvChangeTheme;
 
     private String versionName;
 
@@ -80,6 +82,8 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
         mSettingDeductionCategoryTextView.setOnClickListener(this);
         mChangeLanguageTv.setOnClickListener(this);
         mTvDeviceList.setOnClickListener(this);
+        mTvChangeTheme = view.findViewById(R.id.tv_change_theme);
+        mTvChangeTheme.setOnClickListener(this);
     }
 
 
@@ -131,7 +135,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
                 }).show();
                 break;
 
-            case R.id.tv_device_list://延时时间
+            case R.id.tv_device_list://参数设置
 
                 //清除已经存在的，相同的fragment
                 FragmentTransaction ft = getChildFragmentManager().beginTransaction();
@@ -142,7 +146,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
                     ft.remove(fragment);
                 }
                 ft.addToBackStack(null);
-                new DelayTimeFragment().show(ft,"DelayTimeFragment");
+                new DelayTimeFragment().show(ft, "DelayTimeFragment");
 
 
 //                //间隔时间,默认2秒
@@ -185,8 +189,36 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
 //                        }).show();
                 break;
 
+            case R.id.tv_change_theme://切换主题
+
+                String[] item = new String[2];
+                item[0] = "日间主题";
+                item[1] = "夜间主题";
+                QMUIDialog.MenuDialogBuilder qBuilder = new QMUIDialog.MenuDialogBuilder(getContext());
+                qBuilder.addItems(item, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        switch (i) {
+                            case 0:
+                                SkinCompatManager.getInstance().loadSkin("day", SkinCompatManager.SKIN_LOADER_STRATEGY_BUILD_IN); // 后缀加载
+                                break;
+
+                            case 1:
+                                SkinCompatManager.getInstance().restoreDefaultTheme();
+
+                                break;
+                            default:
+                                break;
+                        }
+                        dialogInterface.dismiss();
+                        dismiss();
+                    }
+                }).show();
+
+                break;
+
             case R.id.tv_change_user:
-                SharedPreferenceUtil.setBoolean(SharedPreferenceUtil.SP_AUTO_LOGIN,false);
+                SharedPreferenceUtil.setBoolean(SharedPreferenceUtil.SP_AUTO_LOGIN, false);
                 startActivity(new Intent(getActivity(), LoginActivity.class));
                 break;
 
@@ -197,7 +229,7 @@ public class SettingFragment extends DialogFragment implements View.OnClickListe
 
     private void changeLanguage(int language) {
         //将选择的language保存到SP中
-        SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_USER_LANG,language);
+        SharedPreferenceUtil.setInt(SharedPreferenceUtil.SP_USER_LANG, language);
         //重新启动Activity,并且要清空栈
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
