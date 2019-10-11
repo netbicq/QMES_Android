@@ -18,11 +18,21 @@ public class Supplier extends LitePalSupport {
     private int id;
     @Column(unique = true)
     private String KeyID;
+    //编号
+    private String Code;
 
     /**
      * 名称
      */
     private String Name;
+
+    public String getCode() {
+        return Code;
+    }
+
+    public void setCode(String code) {
+        Code = code;
+    }
 
     public String getKeyID() {
         return KeyID;

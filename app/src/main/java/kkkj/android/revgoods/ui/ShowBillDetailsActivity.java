@@ -8,12 +8,15 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.orhanobut.logger.Logger;
 
 import org.litepal.LitePal;
 
@@ -295,8 +298,9 @@ public class ShowBillDetailsActivity extends BaseActivity implements View.OnClic
         tvTimeSampling.setText(time);
         tvSupplier.setText(supplier.getName());
         tvSupplierSampling.setText(supplier.getName());
-        tvSupplierNumber.setText(supplier.getKeyID());
-        tvSupplierNumberSampling.setText(supplier.getKeyID());
+        tvSupplierNumber.setText(supplier.getCode());
+        tvSupplierNumberSampling.setText(supplier.getCode());
+
         tvMatter.setText(matter.getName());
         tvMatterLevel.setText(matterLevel.getName());
 
