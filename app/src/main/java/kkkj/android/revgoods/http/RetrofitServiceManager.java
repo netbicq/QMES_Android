@@ -1,8 +1,11 @@
 package kkkj.android.revgoods.http;
 
 
+import com.orhanobut.logger.Logger;
+
 import java.util.concurrent.TimeUnit;
 
+import kkkj.android.revgoods.utils.SharedPreferenceUtil;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -23,16 +26,23 @@ public class RetrofitServiceManager {
         // 添加公共参数拦截器
         HttpCommonInterceptor commonInterceptor = new HttpCommonInterceptor.Builder()
                 .build();
-        builder.addInterceptor(commonInterceptor);
+        builder.addInterceptor(new BaseUrlInterceptor())
+                .addInterceptor(commonInterceptor);
+
+
+        //基址
+        String baseUrl = SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_BASE_URL);
+        Logger.d("baseUrl:--------->" + baseUrl);
 
         // 创建Retrofit
         mRetrofit = new Retrofit.Builder()
                 .client(builder.build())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(MyGsonConverterFactory.create())
-                .baseUrl(ApiConfig.BASE_URL)
+                .baseUrl(baseUrl)
                 .build();
     }
+
     private static class SingletonHolder {
         private static final RetrofitServiceManager INSTANCE = new RetrofitServiceManager();
     }

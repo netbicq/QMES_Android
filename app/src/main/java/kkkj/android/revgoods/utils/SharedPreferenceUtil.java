@@ -42,6 +42,12 @@ public class SharedPreferenceUtil {
 
     public static final String SP_APK_URL = "SP_APK_URL";
 
+
+    /**
+     * api基址
+     */
+    public static final String SP_BASE_URL = "BASE_URL";
+
     /**
      * UserProfile
      */

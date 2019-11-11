@@ -4,14 +4,17 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AppOpsManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -27,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -144,6 +149,9 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
         switch (v.getId()) {
             case  R.id.tv_regist:
 //                startActivity(new Intent(mContext,RegistActivity.class));
+                //配置baseUrl
+                setBaseUrl();
+
                 break;
             case  R.id.btn_login:
                 login();
@@ -163,6 +171,32 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
                 default:
                     break;
         }
+    }
+
+    private void setBaseUrl() {
+
+        final EditText editText = new EditText(LoginActivity.this);
+        String baseUrl = SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_BASE_URL);
+        editText.setText(baseUrl);
+        editText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        AlertDialog.Builder inputDialog = new AlertDialog.Builder(LoginActivity.this);
+        inputDialog.setTitle("请配置网络地址").setView(editText);
+        inputDialog.setPositiveButton(R.string.enter,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String baseUrl = editText.getText().toString().trim();
+
+                        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_BASE_URL,
+                                baseUrl);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                }).show();
+
     }
 
     @Override

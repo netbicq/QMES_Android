@@ -27,6 +27,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
+
 import android.support.v7.app.SkinAppCompatDelegateImpl;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -1297,6 +1298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @SuppressLint("CheckResult")
                     @Override
                     public void transferSuccess(String str) {
+                        Logger.d("读取的数据：" + str);
                         if (observablePieceWeight != null) {
                             observablePieceWeight.subscribe(new Consumer<Double>() {
                                 @Override
@@ -2612,9 +2614,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.id_tv_hand://手动计重
+
                 double weight = Double.parseDouble(mWeightTextView.getText().toString());
                 if (weight > 0d) {
-
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("确定上传数据？")
                             .setPositiveButton(R.string.enter, new DialogInterface.OnClickListener() {
