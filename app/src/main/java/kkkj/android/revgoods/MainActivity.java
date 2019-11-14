@@ -16,6 +16,7 @@ import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.NonNull;
@@ -664,9 +665,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (!wifiManager.isWifiEnabled()) {
             myToasty.showError(getResources().getString(R.string.Please_open_the_wifi));
-            Intent it = new Intent();
-            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
-            it.setComponent(cn);
+            Intent it =  new Intent(Settings.ACTION_WIFI_SETTINGS);;
+//            ComponentName cn = new ComponentName("com.android.settings", "com.android.settings.wifi.WifiSettings");
+//            it.setComponent(cn);
             startActivity(it);
         }
 
