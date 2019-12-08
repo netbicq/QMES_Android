@@ -20,6 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.orhanobut.logger.Logger;
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
@@ -186,9 +187,12 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String baseUrl = editText.getText().toString().trim();
-
-                        SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_BASE_URL,
-                                baseUrl);
+                        if (baseUrl.length() == 0){
+                            showToast("地址不能为空！");
+                        }else {
+                            SharedPreferenceUtil.setString(SharedPreferenceUtil.SP_BASE_URL,
+                                    baseUrl);
+                        }
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -255,6 +259,10 @@ public class LoginActivity extends MvpBaseActivity<LoginPresenter> implements Lo
         }
         else {
             showToast("请输入密码");
+            return;
+        }
+        if (TextUtils.isEmpty(SharedPreferenceUtil.getString(SharedPreferenceUtil.SP_BASE_URL))) {
+            showToast("请先配置网络地址！");
             return;
         }
         mPresenter.signin(request);

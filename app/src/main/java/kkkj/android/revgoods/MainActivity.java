@@ -467,6 +467,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final boolean[] isChecked = {false};
 
         circleTextView.setClickListener(new CircleTextView.onClickListener() {
+            @SuppressLint("CheckResult")
             @Override
             public void onClick() {
 
@@ -1024,7 +1025,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     masterDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
                     if (masterDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
-                        //connectAndGetBluetoothScale(bluetoothDevice);
                         if (!blueMainScaleConnectionState) {
                             connect(masterDevice);
                         }
@@ -1034,7 +1034,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             @Override
                             public void paired(BluetoothDevice device) {
                                 connect(device);
-                                //connectAndGetBluetoothScale(device);
                             }
                         });
                     }
@@ -1151,14 +1150,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     BluetoothDevice bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
                     if (bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
-                        //connectAndGetBluetoothScale(bluetoothDevice);
                         connect(bluetoothDevice);
                     } else {
                         BleManager.getInstance().pin(bluetoothDevice, new PinResultListener() {
                             @Override
                             public void paired(BluetoothDevice device) {
                                 connect(device);
-                                //connectAndGetBluetoothScale(device);
                             }
                         });
                     }
