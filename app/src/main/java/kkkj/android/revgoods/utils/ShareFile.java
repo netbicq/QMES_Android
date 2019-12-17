@@ -13,7 +13,7 @@ import java.io.File;
  * Package Name：kkkj.android.revgoods.utils
  * Author: Admin
  * Time: 2019/8/23 13:47
- * Describe: 调用系统再带文件分享
+ * Describe: 调用系统自带文件分享
  */
 public class ShareFile {
 

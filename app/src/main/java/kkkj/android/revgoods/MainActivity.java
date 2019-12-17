@@ -377,6 +377,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextToSpeech tts;
 
+    private byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
+    private byte[] b3 = {0x23};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1280,6 +1283,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 final boolean[] isTipsOutLine = {false};
                 final boolean[] isTipsLightLine = {false};
                 final boolean[] isCount = {false, false};
+                final boolean[] isStable = {false};
                 final long[] time = {0};
                 //读数是否为负数
                 final boolean[] isNegative = {false};
@@ -1343,8 +1347,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //                                byte[] weightByte = CRC16Util.stringToByte(str);
 
-                                if (bleTest != null && !isDisconnectScreen) {
+                                if (bleTest != null && !isDisconnectScreen && !isStable[0]) {
 //                                    bleScreenConnectionState = ble.isConnected();
+
                                     if (!isSend[0] && bleScreenConnectionState) {
 
 //                                        myToasty.showSuccess("显示屏连接成功！");
@@ -1363,8 +1368,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                      *    b2  数据
                                      */
 
-                                    byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
-                                    byte[] b3 = {0x23};
+//                                    byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
+//                                    byte[] b3 = {0x23};
                                     byte[] b4 = {0x30, 0x31, 0x26};
                                     byte[] b2 = str.getBytes();
                                     b2 = CRC16Util.addBytes(b1, b2);
@@ -1441,7 +1446,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     int size = strWeightList.size();
 
                                     if (StringUtils.isStable(strWeightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
-
+                                        isStable[0] = true;
                                         if (!isWrite[0]) {
 
                                             if (hasRelayAuto || withoutRelayAuto) { //自动
@@ -1542,7 +1547,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 } else if (weight < compareWeight[0]) {
                                     //当货物开始减少到稳定数值，认为倾倒完成（在置零启动下需要判定最终重量是否为0）
                                     if (isWrite[0]) {
-
+                                        isStable[0] = false;
                                         if (strWeightList.size() > 0) {
                                             strWeightList.clear();
                                         }
@@ -1551,7 +1556,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                         //连续10个数相等，说明电子秤读数稳定，也就是说秤上的物料已经倒完（有可能不为0）
                                         if (StringUtils.isStable(strLowWeightList, 10)) {
-
+                                            isStable[0] = true;
                                             if (hasRelayAuto) { //有继电器自动模式
                                                 Logger.d("请将电子秤置零" + "指令启动1");
 
@@ -1631,6 +1636,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                                         isSpeak[0] = false;
                                                                                         isCount[0] = false;
                                                                                         isCount[1] = false;
+                                                                                        isStable[0] = false;
                                                                                         strLowWeightList.clear();
                                                                                     }
                                                                                 });
@@ -1670,6 +1676,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                                                         isSpeak[0] = false;
                                                                                         isCount[0] = false;
                                                                                         isCount[1] = false;
+                                                                                        isStable[0] = false;
                                                                                         strLowWeightList.clear();
                                                                                     }
                                                                                 });
@@ -1707,6 +1714,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                     isWrite[0] = false;
                                                     isZero[0] = false;
                                                     isSpeak[0] = false;
+                                                    isStable[0] = false;
                                                     strLowWeightList.clear();
 
                                                 } else {
@@ -1715,6 +1723,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                                     isWrite[0] = false;
                                                     isZero[0] = false;
                                                     isSpeak[0] = false;
+                                                    isStable[0] = false;
                                                     strLowWeightList.clear();
 
                                                 }
