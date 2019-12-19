@@ -1371,7 +1371,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                                    byte[] b1 = {0x24, 0x30, 0x30, 0x31, 0x2C};
 //                                    byte[] b3 = {0x23};
                                     byte[] b4 = {0x30, 0x31, 0x26};
-                                    byte[] b2 = str.getBytes();
+                                    byte[] b2 = new byte[0];
+                                    try {
+                                        b2 = str.getBytes();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                     b2 = CRC16Util.addBytes(b1, b2);
                                     b3 = CRC16Util.addBytes(b2, b3);
                                     b4 = CRC16Util.addBytes(b1, b4);
@@ -1385,24 +1390,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     int weightSize = weightList.size();
                                     if (StringUtils.isStable(weightList, 10)) { //倒数连续10个数相等，则说明电子秤读数稳定
 
-                                        if (Double.valueOf(weightList.get(weightSize - 1)) != 0d) {
+                                        try {
+                                            if (Double.valueOf(weightList.get(weightSize - 1)) != 0d) {
 
-                                            if (!isTipsResetZero[0]) { //确保只执行一次
-                                                //不等于零，每隔5秒提示请先置零
-                                                myToasty.showWarning("请将电子秤置零！");
-                                                beginDisposable = tips("请将电子秤置零！");
-                                                isTipsResetZero[0] = true;
-                                                circleTextView.setClickable(false);
-                                            }
+                                                if (!isTipsResetZero[0]) { //确保只执行一次
+                                                    //不等于零，每隔5秒提示请先置零
+                                                    myToasty.showWarning("请将电子秤置零！");
+                                                    beginDisposable = tips("请将电子秤置零！");
+                                                    isTipsResetZero[0] = true;
+                                                    circleTextView.setClickable(false);
+                                                }
 
-                                        } else {
-                                            //此时读数位0,跳出此段代码
-                                            isBegin[0] = false;
-                                            circleTextView.setClickable(true);
-                                            if (beginDisposable != null && !beginDisposable.isDisposed()) {
-                                                beginDisposable.dispose();
-                                                beginDisposable = null;
+                                            } else {
+                                                //此时读数位0,跳出此段代码
+                                                isBegin[0] = false;
+                                                circleTextView.setClickable(true);
+                                                if (beginDisposable != null && !beginDisposable.isDisposed()) {
+                                                    beginDisposable.dispose();
+                                                    beginDisposable = null;
+                                                }
                                             }
+                                        } catch (NumberFormatException e) {
+                                            e.printStackTrace();
                                         }
                                     }
                                     return;
@@ -1427,12 +1436,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
                                 double weight;
-                                if (isNegative[0]) {
-                                    //去掉前面的负号
-                                    str = str.replaceFirst("^-*", "");
-                                    weight = -Double.parseDouble(str);
-                                } else {
-                                    weight = Double.parseDouble(str);
+                                try {
+                                    if (isNegative[0]) {
+                                        //去掉前面的负号
+                                        str = str.replaceFirst("^-*", "");
+                                        weight = -Double.parseDouble(str);
+                                    } else {
+                                        weight = Double.parseDouble(str);
+                                    }
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    return;
                                 }
 
                                 if (weight > compareWeight[0]) {
